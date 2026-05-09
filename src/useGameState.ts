@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useMemo } from 'react';
+import { useReducer, useCallback, useMemo, useEffect, useRef } from 'react';
 import { WordPuzzle } from './generatePuzzle';
 import { shortestPath } from './wordGraph';
 
@@ -19,7 +19,8 @@ type GameAction =
   | { type: 'USE_HINT' }
   | { type: 'UNDO_STEP' }
   | { type: 'LOSE_GAME' }
-  | { type: 'WIN_GAME' };
+  | { type: 'WIN_GAME' }
+  | { type: 'RESET_GAME'; puzzle: WordPuzzle };
 
 // Word list for validation (same as in generatePuzzle.ts and wordGraph.ts)
 const VALID_WORDS = new Set([
@@ -178,6 +179,18 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case 'RESET_GAME': {
+      return {
+        history: [[...action.puzzle.start.split('')]],
+        burned: 0,
+        currentInput: [],
+        selectedIdx: 0,
+        hintsLeft: action.puzzle.lockedIndices.length + 1,
+        score: 0,
+        phase: 'playing'
+      };
+    }
+
     default:
       return state;
   }
@@ -195,6 +208,14 @@ export function useGameState(puzzle: WordPuzzle) {
   };
 
   const [state, dispatch] = useReducer(gameReducer, initialState);
+  const prevPuzzleRef = useRef<string>(puzzle.start);
+
+  useEffect(() => {
+    if (puzzle.start !== prevPuzzleRef.current) {
+      prevPuzzleRef.current = puzzle.start;
+      dispatch({ type: 'RESET_GAME', puzzle });
+    }
+  }, [puzzle]);
 
   const pressLetter = useCallback((letter: string) => {
     dispatch({ type: 'PRESS_LETTER', letter });
