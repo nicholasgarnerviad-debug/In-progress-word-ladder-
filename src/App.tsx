@@ -81,7 +81,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div key={resetKey} className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-2">
           <h1 className="text-3xl font-bold text-gray-800">Word Ladder</h1>
@@ -142,7 +142,7 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
+        <div key={resetKey} className="bg-white rounded-lg shadow-lg p-6 mb-4">
           {/* Target word */}
           <div className="text-center mb-4">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Get from</p>
