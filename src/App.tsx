@@ -13,20 +13,20 @@ export const App: React.FC = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [showPuzzleList, setShowPuzzleList] = useState(false);
+  const [lastGamePhase, setLastGamePhase] = useState<'playing' | 'won' | 'lost'>('playing');
 
   // When game ends, immediately load new puzzle and show countdown
   useEffect(() => {
-    if (game.state.phase === 'won' || game.state.phase === 'lost') {
-      setIsGameOver(true);
-      setCountdown(3);
-
-      // Load new puzzle immediately so keyboard works during countdown
+    if ((game.state.phase === 'won' || game.state.phase === 'lost') && lastGamePhase === 'playing') {
       const newPuzzle = generatePuzzle(4, 'medium');
       setPuzzle(newPuzzle);
       setPuzzleHistory(prev => [...prev, newPuzzle]);
+      setIsGameOver(true);
+      setCountdown(3);
       setResetKey(prev => prev + 1);
+      setLastGamePhase(game.state.phase);
     }
-  }, [game.state.phase]);
+  }, [game.state.phase, lastGamePhase]);
 
   // Countdown effect - decrements every second
   useEffect(() => {
@@ -43,6 +43,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (isGameOver && game.state.phase === 'playing') {
       setIsGameOver(false);
+      setLastGamePhase('playing');
     }
   }, [game.state.phase, isGameOver]);
 
@@ -57,11 +58,11 @@ export const App: React.FC = () => {
 
   const handleSubmitWord = () => {
     const word = game.state.currentInput.join('');
-    
+
     if (word.length === 0) {
       return;
     }
-    
+
     if (word.length !== puzzle.start.length) {
       return;
     }
