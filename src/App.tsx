@@ -402,23 +402,23 @@ export const App: React.FC = () => {
         <div key={resetKey} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-4">
           {/* Target word */}
           <div className="text-center mb-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Get from</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Get from</p>
             <div className="flex gap-1 justify-center my-2">
               {puzzle.start.split('').map((letter, i) => (
                 <div
                   key={i}
-                  className="w-8 h-8 flex items-center justify-center bg-blue-100 border border-blue-300 rounded font-bold text-blue-900"
+                  className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-600 rounded font-bold text-blue-900 dark:text-blue-200"
                 >
                   {letter.toUpperCase()}
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">to</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">to</p>
             <div className="flex gap-1 justify-center my-2">
               {puzzle.end.split('').map((letter, i) => (
                 <div
                   key={i}
-                  className="w-8 h-8 flex items-center justify-center bg-green-100 border border-green-300 rounded font-bold text-green-900"
+                  className="w-8 h-8 flex items-center justify-center bg-green-100 dark:bg-green-900/40 border border-green-300 dark:border-green-600 rounded font-bold text-green-900 dark:text-green-200"
                 >
                   {letter.toUpperCase()}
                 </div>
@@ -426,7 +426,7 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          <hr className="my-4" />
+          <hr className="my-4 border-gray-200 dark:border-gray-600" />
 
           {/* History */}
           <div className="space-y-2 min-h-20">
@@ -439,7 +439,7 @@ export const App: React.FC = () => {
                 return <Rung key={i} word={word} tileStates={tileStates} />;
               })
             ) : (
-              <p className="text-center text-gray-400 text-sm py-4">No guesses yet</p>
+              <p className="text-center text-gray-400 dark:text-gray-500 text-sm py-4">No guesses yet</p>
             )}
           </div>
 
@@ -459,7 +459,7 @@ export const App: React.FC = () => {
                 {game.state.currentInput.map((letter, i) => (
                   <div
                     key={i}
-                    className="flex-1 h-10 flex items-center justify-center rounded-md font-bold transition-colors bg-white border-2 border-dashed border-blue-400 text-blue-600"
+                    className="flex-1 h-10 flex items-center justify-center rounded-md font-bold transition-colors bg-white dark:bg-gray-700 border-2 border-dashed border-blue-400 text-blue-600 dark:text-blue-400"
                   >
                     {letter.toUpperCase()}
                   </div>
@@ -473,8 +473,8 @@ export const App: React.FC = () => {
             <div
               className={`mt-4 p-4 rounded-lg text-center font-semibold ${
                 roundResult.type === 'won'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                  : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
               }`}
             >
               <div className="text-lg mb-3 font-bold">
@@ -484,7 +484,7 @@ export const App: React.FC = () => {
                 {roundResult.coinsDelta >= 0 ? '+' : ''}{roundResult.coinsDelta} ◎
               </div>
               <div className="text-5xl font-bold animate-pulse mb-3">{countdown}</div>
-              <div className="text-sm mb-4">New puzzle loading...</div>
+              <div className="text-sm mb-4 dark:text-gray-300">New puzzle loading...</div>
               <button
                 onClick={loadNewPuzzle}
                 className={`w-full py-2 px-4 rounded font-bold text-white transition-colors ${
@@ -506,7 +506,7 @@ export const App: React.FC = () => {
             disabled={coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null}
             className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
               coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-amber-400 text-amber-900 hover:bg-amber-500'
             }`}
           >
@@ -517,7 +517,7 @@ export const App: React.FC = () => {
             disabled={coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null}
             className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
               coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-cyan-400 text-cyan-900 hover:bg-cyan-500'
             }`}
           >
@@ -528,7 +528,7 @@ export const App: React.FC = () => {
             disabled={coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'}
             className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
               coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-purple-400 text-purple-900 hover:bg-purple-500'
             }`}
           >
@@ -538,13 +538,13 @@ export const App: React.FC = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="bg-white rounded p-3 text-center">
-            <p className="text-xs text-gray-500">Steps</p>
-            <p className="text-xl font-bold text-gray-800">{game.state.history.length - 1}</p>
+          <div className="bg-white dark:bg-gray-800 rounded p-3 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Steps</p>
+            <p className="text-xl font-bold text-gray-800 dark:text-gray-100">{game.state.history.length - 1}</p>
           </div>
-          <div className="bg-white rounded p-3 text-center">
-            <p className="text-xs text-gray-500">Best</p>
-            <p className="text-xl font-bold text-gray-800">{puzzle.optimal}</p>
+          <div className="bg-white dark:bg-gray-800 rounded p-3 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Best</p>
+            <p className="text-xl font-bold text-gray-800 dark:text-gray-100">{puzzle.optimal}</p>
           </div>
         </div>
 
