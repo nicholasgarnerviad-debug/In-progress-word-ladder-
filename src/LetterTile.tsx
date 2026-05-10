@@ -8,13 +8,13 @@ interface LetterTileProps {
 }
 
 const stateClasses: Record<TileState, string> = {
-  idle: 'bg-gray-100 text-gray-900 border border-gray-200',
-  changed: 'bg-blue-100 border-2 border-blue-400 text-blue-900 font-semibold',
-  locked: 'bg-amber-100 border-2 border-amber-400 text-amber-900 font-semibold',
-  burned: 'bg-red-100 border-2 border-red-400 text-red-900 font-semibold',
-  input: 'bg-white border-2 border-dashed border-gray-300 text-gray-900',
-  selected: 'bg-blue-50 border-2 border-blue-500 text-blue-900 font-semibold ring-2 ring-blue-200',
-  hinted: 'bg-white border-2 border-amber-400 text-gray-900 ring-2 ring-amber-300'
+  idle: 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-600',
+  changed: 'bg-blue-100 dark:bg-blue-900/40 border-2 border-blue-400 dark:border-blue-500 text-blue-900 dark:text-blue-200 font-semibold',
+  locked: 'bg-amber-100 dark:bg-amber-900/40 border-2 border-amber-400 dark:border-amber-500 text-amber-900 dark:text-amber-200 font-semibold',
+  burned: 'bg-red-100 dark:bg-red-900/40 border-2 border-red-400 dark:border-red-500 text-red-900 dark:text-red-200 font-semibold',
+  input: 'bg-white dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-500 text-gray-900 dark:text-gray-100',
+  selected: 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500 text-blue-900 dark:text-blue-200 font-semibold ring-2 ring-blue-200 dark:ring-blue-700',
+  hinted: 'bg-white dark:bg-gray-700 border-2 border-amber-400 dark:border-amber-400 text-gray-900 dark:text-gray-100 ring-2 ring-amber-300 dark:ring-amber-500'
 };
 
 export const LetterTile: React.FC<LetterTileProps> = ({ letter, state }) => {
