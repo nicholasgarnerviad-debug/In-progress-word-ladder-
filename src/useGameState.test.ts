@@ -23,15 +23,15 @@ describe('useGameState', () => {
       expect(result.current.state.phase).toBe('playing');
     });
 
-    it('should initialize with zero score and burned', () => {
+    it('should initialize with 3 lives', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
-      expect(result.current.state.score).toBe(0);
-      expect(result.current.state.burned).toBe(0);
+      expect(result.current.state.lives).toBe(3);
     });
 
-    it('should initialize with correct hints count', () => {
+    it('should initialize with no hint or reveal active', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
-      expect(result.current.state.hintsLeft).toBe(mockPuzzle.lockedIndices.length + 1);
+      expect(result.current.state.lastHintedLetter).toBeNull();
+      expect(result.current.state.lastRevealedWord).toBeNull();
     });
 
     it('should expose all required methods', () => {
@@ -39,7 +39,9 @@ describe('useGameState', () => {
       expect(typeof result.current.pressLetter).toBe('function');
       expect(typeof result.current.deleteLetter).toBe('function');
       expect(typeof result.current.submitWord).toBe('function');
-      expect(typeof result.current.useHint).toBe('function');
+      expect(typeof result.current.applyHint).toBe('function');
+      expect(typeof result.current.applyReveal).toBe('function');
+      expect(typeof result.current.clearHint).toBe('function');
       expect(typeof result.current.undoStep).toBe('function');
     });
   });
@@ -131,20 +133,7 @@ describe('useGameState', () => {
         result.current.submitWord();
       });
 
-      expect(result.current.state.burned).toBe(1);
-    });
-
-    it('should deduct 50 points for wrong word', () => {
-      const { result } = renderHook(() => useGameState(mockPuzzle));
-
-      act(() => {
-        result.current.pressLetter('x');
-        result.current.pressLetter('y');
-        result.current.pressLetter('z');
-        result.current.submitWord();
-      });
-
-      expect(result.current.state.score).toBe(-50);
+      expect(result.current.state.lives).toBe(2);
     });
 
     it('should transition to lost after 3 wrong guesses', () => {
@@ -177,7 +166,7 @@ describe('useGameState', () => {
 
       expect(result.current.state.phase).toBe('lost');
 
-      const scoreBeforeLostAttempt = result.current.state.score;
+      const livesBeforeLostAttempt = result.current.state.lives;
 
       act(() => {
         result.current.pressLetter('a');
@@ -186,48 +175,22 @@ describe('useGameState', () => {
         result.current.submitWord();
       });
 
-      expect(result.current.state.score).toBe(scoreBeforeLostAttempt);
+      expect(result.current.state.lives).toBe(livesBeforeLostAttempt);
     });
   });
 
   describe('hints', () => {
-    it('should deduct 60 points when using hint', () => {
+    it('should apply hint when valid', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
       act(() => {
-        result.current.useHint();
+        result.current.applyHint(0, 'c');
       });
 
-      expect(result.current.state.score).toBe(-60);
+      expect(result.current.state.lastHintedLetter).toEqual({ index: 0, letter: 'c' });
     });
 
-    it('should decrement hints available', () => {
-      const { result } = renderHook(() => useGameState(mockPuzzle));
-
-      const initialHints = result.current.state.hintsLeft;
-
-      act(() => {
-        result.current.useHint();
-      });
-
-      expect(result.current.state.hintsLeft).toBe(initialHints - 1);
-    });
-
-    it('should not use hint when none remaining', () => {
-      const { result } = renderHook(() => useGameState(mockPuzzle));
-
-      const hintsAvailable = result.current.state.hintsLeft;
-
-      for (let i = 0; i < hintsAvailable + 2; i++) {
-        act(() => {
-          result.current.useHint();
-        });
-      }
-
-      expect(result.current.state.hintsLeft).toBeGreaterThanOrEqual(0);
-    });
-
-    it('should not use hint when game not playing', () => {
+    it('should not apply hint when game not playing', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
       // Make the game end by losing
@@ -241,14 +204,6 @@ describe('useGameState', () => {
       }
 
       expect(result.current.state.phase).toBe('lost');
-
-      const scoreBeforeHint = result.current.state.score;
-
-      act(() => {
-        result.current.useHint();
-      });
-
-      expect(result.current.state.score).toBe(scoreBeforeHint);
     });
   });
 
@@ -266,7 +221,7 @@ describe('useGameState', () => {
     it('should deduct 10 points when undoing', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
-      // Make a wrong guess first to get a non-zero score
+      // Make a wrong guess first to lose a life
       act(() => {
         result.current.pressLetter('x');
         result.current.pressLetter('y');
@@ -274,15 +229,7 @@ describe('useGameState', () => {
         result.current.submitWord();
       });
 
-      expect(result.current.state.score).toBe(-50);
-
-      // Can't undo when there's only 1 item in history
-      // So this test just verifies the undo penalty cost structure
-      act(() => {
-        result.current.useHint();
-      });
-
-      expect(result.current.state.score).toBe(-110);
+      expect(result.current.state.lives).toBe(2);
     });
 
     it('should clear current input after undo', () => {
@@ -312,41 +259,43 @@ describe('useGameState', () => {
     });
   });
 
-  describe('score tracking', () => {
-    it('should accumulate negative scores', () => {
+  describe('power-ups', () => {
+    it('should apply hint', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
       act(() => {
-        for (let i = 0; i < 2; i++) {
-          result.current.pressLetter('x');
-          result.current.pressLetter('y');
-          result.current.pressLetter('z');
-          result.current.submitWord();
-        }
+        result.current.applyHint(0, 'c');
       });
 
-      expect(result.current.state.score).toBe(-100);
+      expect(result.current.state.lastHintedLetter).toEqual({ index: 0, letter: 'c' });
+      expect(result.current.state.powerUpsUsed.hints).toBe(1);
     });
 
-    it('should track combined score changes', () => {
+    it('should apply reveal', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
-      let expectedScore = 0;
-
       act(() => {
-        result.current.pressLetter('x');
-        result.current.pressLetter('y');
-        result.current.pressLetter('z');
-        result.current.submitWord();
-        expectedScore -= 50;
+        result.current.applyReveal(['c', 'o', 't']);
       });
 
+      expect(result.current.state.lastRevealedWord).toEqual(['c', 'o', 't']);
+      expect(result.current.state.powerUpsUsed.reveals).toBe(1);
+    });
+
+    it('should clear hint', () => {
+      const { result } = renderHook(() => useGameState(mockPuzzle));
+
       act(() => {
-        result.current.useHint();
-        expectedScore -= 60;
+        result.current.applyHint(0, 'c');
       });
 
-      expect(result.current.state.score).toBe(expectedScore);
+      expect(result.current.state.lastHintedLetter).not.toBeNull();
+
+      act(() => {
+        result.current.clearHint();
+      });
+
+      expect(result.current.state.lastHintedLetter).toBeNull();
     });
   });
 
@@ -399,7 +348,7 @@ describe('useGameState', () => {
       }
 
       expect(result.current.state.phase).toBe('lost');
-      expect(result.current.state.burned).toBe(3);
+      expect(result.current.state.lives).toBe(0);
     });
   });
 });

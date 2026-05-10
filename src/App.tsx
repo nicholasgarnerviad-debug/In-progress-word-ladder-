@@ -15,9 +15,39 @@ export const App: React.FC = () => {
   const [showPuzzleList, setShowPuzzleList] = useState(false);
   const [lastGamePhase, setLastGamePhase] = useState<'playing' | 'won' | 'lost'>('playing');
 
-  // When game ends, immediately load new puzzle and show countdown
+  const [coins, setCoins] = useState<number>(() => {
+    const saved = localStorage.getItem('wordladder-coins');
+    return saved ? parseInt(saved, 10) : 150;
+  });
+
+  const [roundResult, setRoundResult] = useState<{
+    type: 'won' | 'lost';
+    coinsDelta: number;
+  } | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('wordladder-coins', String(coins));
+  }, [coins]);
+
+  // Calculate coin changes when game ends
   useEffect(() => {
     if ((game.state.phase === 'won' || game.state.phase === 'lost') && lastGamePhase === 'playing') {
+      if (game.state.phase === 'won') {
+        const extraSteps = (game.state.history.length - 1) - (puzzle.optimal.length - 1);
+        const mistakes = game.state.powerUpsUsed.undos; // Count of failed submissions
+        const baseReward = 100;
+        const efficiency = Math.max(0, baseReward - (extraSteps * 15));
+        const mistakePenalty = mistakes * 20;
+        const winReward = Math.max(20, efficiency - mistakePenalty);
+
+        setCoins(prev => prev + winReward);
+        setRoundResult({ type: 'won', coinsDelta: winReward });
+      } else {
+        const lossPenalty = 50;
+        setCoins(prev => Math.max(0, prev - lossPenalty));
+        setRoundResult({ type: 'lost', coinsDelta: -lossPenalty });
+      }
+
       const newPuzzle = generatePuzzle(4, 'medium');
       setPuzzle(newPuzzle);
       setPuzzleHistory(prev => [...prev, newPuzzle]);
@@ -26,7 +56,7 @@ export const App: React.FC = () => {
       setResetKey(prev => prev + 1);
       setLastGamePhase(game.state.phase);
     }
-  }, [game.state.phase, lastGamePhase]);
+  }, [game.state.phase, lastGamePhase, puzzle.optimal.length, game.state.history.length, game.state.powerUpsUsed.undos]);
 
   // Countdown effect - decrements every second
   useEffect(() => {
@@ -80,6 +110,47 @@ export const App: React.FC = () => {
     game.submitWord();
   };
 
+  const handleUseHint = () => {
+    if (coins < 30 || game.state.phase !== 'playing') return;
+
+    const nextWordIndex = game.state.history.length;
+    if (nextWordIndex >= puzzle.chain.length) return;
+
+    const nextWord = puzzle.chain[nextWordIndex];
+    const currentWord = game.state.history[game.state.history.length - 1].join('');
+
+    let hintedIndex = -1;
+    for (let i = 0; i < nextWord.length; i++) {
+      if (nextWord[i] !== currentWord[i]) {
+        hintedIndex = i;
+        break;
+      }
+    }
+
+    if (hintedIndex === -1) return;
+
+    setCoins(prev => prev - 30);
+    game.applyHint(hintedIndex, nextWord[hintedIndex]);
+  };
+
+  const handleRevealStep = () => {
+    if (coins < 60 || game.state.phase !== 'playing') return;
+
+    const nextWordIndex = game.state.history.length;
+    if (nextWordIndex >= puzzle.chain.length) return;
+
+    const nextWord = puzzle.chain[nextWordIndex].split('');
+    setCoins(prev => prev - 60);
+    game.applyReveal(nextWord);
+  };
+
+  const handleUndoStep = () => {
+    if (coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing') return;
+
+    setCoins(prev => prev - 20);
+    game.undoStep();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-md mx-auto">
@@ -91,6 +162,19 @@ export const App: React.FC = () => {
           >
             📋
           </button>
+        </div>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-1">
+            <span className="text-2xl">◎</span>
+            <span className="text-lg font-bold text-gray-800">{coins}</span>
+          </div>
+          <div className="flex gap-1">
+            {[0, 1, 2].map(i => (
+              <span key={i} className={game.state.lives > i ? 'text-red-500 text-lg' : 'text-gray-300 text-lg'}>
+                ❤
+              </span>
+            ))}
+          </div>
         </div>
         <p className="text-center text-sm text-gray-600 mb-6">Change one letter at a time</p>
 
@@ -182,6 +266,15 @@ export const App: React.FC = () => {
             )}
           </div>
 
+          {/* Revealed word ghost row */}
+          {game.state.lastRevealedWord && (
+            <Rung
+              word={game.state.lastRevealedWord}
+              tileStates={game.state.lastRevealedWord.map(() => 'locked')}
+              status="neutral"
+            />
+          )}
+
           {/* Current input */}
           {game.state.currentInput.length > 0 && (
             <div className="mt-4 pt-4 border-t">
@@ -189,7 +282,11 @@ export const App: React.FC = () => {
                 {game.state.currentInput.map((letter, i) => (
                   <div
                     key={i}
-                    className="flex-1 h-10 flex items-center justify-center bg-white border-2 border-dashed border-blue-400 rounded-md font-bold text-blue-600"
+                    className={`flex-1 h-10 flex items-center justify-center rounded-md font-bold transition-colors ${
+                      game.state.lastHintedLetter && game.state.lastHintedLetter.index === i
+                        ? 'bg-amber-200 border-2 border-amber-400 text-amber-900'
+                        : 'bg-white border-2 border-dashed border-blue-400 text-blue-600'
+                    }`}
                   >
                     {letter.toUpperCase()}
                   </div>
@@ -199,23 +296,26 @@ export const App: React.FC = () => {
           )}
 
           {/* Game Over Message with Countdown and Button */}
-          {isGameOver && countdown > 0 && (
+          {isGameOver && countdown > 0 && roundResult && (
             <div
               className={`mt-4 p-4 rounded-lg text-center font-semibold ${
-                game.state.phase === 'won'
+                roundResult.type === 'won'
                   ? 'bg-green-100 text-green-700'
                   : 'bg-red-100 text-red-700'
               }`}
             >
               <div className="text-lg mb-3 font-bold">
-                {game.state.phase === 'won' ? '🎉 You Won!' : '💔 Game Over!'}
+                {roundResult.type === 'won' ? '🎉 You Won!' : '💔 Game Over!'}
+              </div>
+              <div className={`text-lg font-bold mb-2 ${roundResult.coinsDelta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {roundResult.coinsDelta >= 0 ? '+' : ''}{roundResult.coinsDelta} ◎
               </div>
               <div className="text-5xl font-bold animate-pulse mb-3">{countdown}</div>
               <div className="text-sm mb-4">New puzzle loading...</div>
               <button
                 onClick={loadNewPuzzle}
                 className={`w-full py-2 px-4 rounded font-bold text-white transition-colors ${
-                  game.state.phase === 'won'
+                  roundResult.type === 'won'
                     ? 'bg-green-500 hover:bg-green-600'
                     : 'bg-red-500 hover:bg-red-600'
                 }`}
@@ -226,12 +326,45 @@ export const App: React.FC = () => {
           )}
         </div>
 
+        {/* Power-ups */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={handleUseHint}
+            disabled={coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedLetter !== null}
+            className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
+              coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedLetter !== null
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-amber-400 text-amber-900 hover:bg-amber-500'
+            }`}
+          >
+            Hint (30◎)
+          </button>
+          <button
+            onClick={handleRevealStep}
+            disabled={coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null}
+            className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
+              coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-cyan-400 text-cyan-900 hover:bg-cyan-500'
+            }`}
+          >
+            Reveal (60◎)
+          </button>
+          <button
+            onClick={handleUndoStep}
+            disabled={coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'}
+            className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
+              coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-purple-400 text-purple-900 hover:bg-purple-500'
+            }`}
+          >
+            Undo (20◎)
+          </button>
+        </div>
+
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="bg-white rounded p-3 text-center">
-            <p className="text-xs text-gray-500">Score</p>
-            <p className="text-xl font-bold text-gray-800">{game.state.score}</p>
-          </div>
+        <div className="grid grid-cols-2 gap-2 mb-4">
           <div className="bg-white rounded p-3 text-center">
             <p className="text-xs text-gray-500">Steps</p>
             <p className="text-xl font-bold text-gray-800">{game.state.history.length - 1}</p>

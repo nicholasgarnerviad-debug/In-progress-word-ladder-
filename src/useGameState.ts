@@ -4,22 +4,25 @@ import { shortestPath } from './wordGraph';
 
 export interface GameState {
   history: string[][];
-  burned: number;
+  lives: number;
   currentInput: string[];
   selectedIdx: number;
-  hintsLeft: number;
-  score: number;
   phase: 'playing' | 'won' | 'lost';
+  lastHintedLetter: { index: number; letter: string } | null;
+  lastRevealedWord: string[] | null;
+  powerUpsUsed: { hints: number; reveals: number; undos: number };
 }
 
 type GameAction =
   | { type: 'PRESS_LETTER'; letter: string }
   | { type: 'DELETE_LETTER' }
   | { type: 'SUBMIT_WORD'; success: boolean }
-  | { type: 'USE_HINT' }
+  | { type: 'APPLY_HINT'; hintedIndex: number; hintedLetter: string }
+  | { type: 'APPLY_REVEAL'; word: string[] }
+  | { type: 'CLEAR_HINT' }
   | { type: 'UNDO_STEP' }
-  | { type: 'LOSE_GAME' }
   | { type: 'WIN_GAME' }
+  | { type: 'LOSE_GAME' }
   | { type: 'RESET_GAME'; puzzle: WordPuzzle };
 
 // Word list for validation (same as in generatePuzzle.ts and wordGraph.ts)
@@ -121,54 +124,66 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'playing') return state;
 
       if (action.success) {
-        const word = state.currentInput.join('');
         return {
           ...state,
           history: [...state.history, [...state.currentInput]],
           currentInput: [],
           selectedIdx: 0,
-          score: state.score - 20
+          lastHintedLetter: null,
+          lastRevealedWord: null
         };
       } else {
+        const newLives = state.lives - 1;
         return {
           ...state,
-          burned: state.burned + 1,
+          lives: newLives,
           currentInput: [],
           selectedIdx: 0,
-          score: state.score - 50,
-          phase: state.burned + 1 >= 3 ? 'lost' : 'playing'
+          phase: newLives <= 0 ? 'lost' : 'playing'
         };
       }
     }
 
-    case 'USE_HINT': {
-      if (state.phase !== 'playing' || state.hintsLeft === 0) return state;
-
+    case 'APPLY_HINT': {
+      if (state.phase !== 'playing') return state;
       return {
         ...state,
-        hintsLeft: state.hintsLeft - 1,
-        score: state.score - 60
+        lastHintedLetter: { index: action.hintedIndex, letter: action.hintedLetter },
+        powerUpsUsed: { ...state.powerUpsUsed, hints: state.powerUpsUsed.hints + 1 }
+      };
+    }
+
+    case 'APPLY_REVEAL': {
+      if (state.phase !== 'playing') return state;
+      return {
+        ...state,
+        lastRevealedWord: action.word,
+        powerUpsUsed: { ...state.powerUpsUsed, reveals: state.powerUpsUsed.reveals + 1 }
+      };
+    }
+
+    case 'CLEAR_HINT': {
+      return {
+        ...state,
+        lastHintedLetter: null
       };
     }
 
     case 'UNDO_STEP': {
-      if (state.history.length === 0) return state;
-
+      if (state.history.length <= 1) return state;
       return {
         ...state,
         history: state.history.slice(0, -1),
         currentInput: [],
         selectedIdx: 0,
-        score: state.score - 10
+        powerUpsUsed: { ...state.powerUpsUsed, undos: state.powerUpsUsed.undos + 1 }
       };
     }
 
     case 'WIN_GAME': {
-      const bonusScore = state.history.length === state.hintsLeft ? 150 : 0;
       return {
         ...state,
-        phase: 'won',
-        score: state.score + bonusScore
+        phase: 'won'
       };
     }
 
@@ -182,11 +197,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'RESET_GAME': {
       return {
         history: [[...action.puzzle.start.split('')]],
-        burned: 0,
+        lives: 3,
         currentInput: [],
         selectedIdx: 0,
-        hintsLeft: action.puzzle.lockedIndices.length + 1,
-        score: 0,
+        lastHintedLetter: null,
+        lastRevealedWord: null,
+        powerUpsUsed: { hints: 0, reveals: 0, undos: 0 },
         phase: 'playing'
       };
     }
@@ -199,11 +215,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 export function useGameState(puzzle: WordPuzzle) {
   const initialState: GameState = {
     history: [[...puzzle.start.split('')]],
-    burned: 0,
+    lives: 3,
     currentInput: [],
     selectedIdx: 0,
-    hintsLeft: puzzle.lockedIndices.length + 1,
-    score: 0,
+    lastHintedLetter: null,
+    lastRevealedWord: null,
+    powerUpsUsed: { hints: 0, reveals: 0, undos: 0 },
     phase: 'playing'
   };
 
@@ -257,27 +274,20 @@ export function useGameState(puzzle: WordPuzzle) {
     }
   }, [state, puzzle]);
 
-  const useHint = useCallback(() => {
-    if (state.hintsLeft <= 0 || state.phase !== 'playing') return;
+  const applyHint = useCallback((hintedIndex: number, hintedLetter: string) => {
+    dispatch({ type: 'APPLY_HINT', hintedIndex, hintedLetter });
+  }, []);
 
-    const nextWordIndex = state.history.length;
-    if (nextWordIndex >= puzzle.chain.length) return;
+  const applyReveal = useCallback((word: string[]) => {
+    dispatch({ type: 'APPLY_REVEAL', word });
+  }, []);
 
-    const nextWord = puzzle.chain[nextWordIndex];
-    const currentWord = state.history[state.history.length - 1].join('');
-
-    for (let i = 0; i < nextWord.length; i++) {
-      if (nextWord[i] !== currentWord[i] && !puzzle.lockedIndices.includes(i)) {
-        return;
-      }
-    }
-
-    dispatch({ type: 'USE_HINT' });
-  }, [state, puzzle]);
+  const clearHint = useCallback(() => {
+    dispatch({ type: 'CLEAR_HINT' });
+  }, []);
 
   const undoStep = useCallback(() => {
     if (state.history.length <= 1) return;
-
     dispatch({ type: 'UNDO_STEP' });
   }, [state.history.length]);
 
@@ -286,7 +296,9 @@ export function useGameState(puzzle: WordPuzzle) {
     pressLetter,
     deleteLetter,
     submitWord,
-    useHint,
+    applyHint,
+    applyReveal,
+    clearHint,
     undoStep
   };
 }
