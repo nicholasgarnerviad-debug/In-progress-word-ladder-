@@ -382,14 +382,12 @@ export const App: React.FC = () => {
                   </div>
                   <button
                     onClick={() => setDarkMode(prev => !prev)}
-                    className={`w-12 h-6 rounded-full transition-colors relative ${
-                      darkMode ? 'bg-blue-500' : 'bg-gray-300'
+                    className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${
+                      darkMode ? 'bg-blue-500 justify-end' : 'bg-gray-300 justify-start'
                     }`}
                     aria-label="Toggle dark mode"
                   >
-                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                      darkMode ? 'translate-x-7' : 'translate-x-1'
-                    }`} />
+                    <span className="w-5 h-5 bg-white rounded-full shadow transition-all m-0.5" />
                   </button>
                 </div>
 
