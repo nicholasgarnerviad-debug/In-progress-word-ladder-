@@ -184,10 +184,10 @@ describe('useGameState', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
       act(() => {
-        result.current.applyHint(0, 'c');
+        result.current.applyHint('c');
       });
 
-      expect(result.current.state.lastHintedLetter).toEqual({ index: 0, letter: 'c' });
+      expect(result.current.state.lastHintedLetter).toBe('c');
     });
 
     it('should not apply hint when game not playing', () => {
@@ -264,10 +264,10 @@ describe('useGameState', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
       act(() => {
-        result.current.applyHint(0, 'c');
+        result.current.applyHint('c');
       });
 
-      expect(result.current.state.lastHintedLetter).toEqual({ index: 0, letter: 'c' });
+      expect(result.current.state.lastHintedLetter).toBe('c');
       expect(result.current.state.powerUpsUsed.hints).toBe(1);
     });
 
@@ -286,7 +286,7 @@ describe('useGameState', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
       act(() => {
-        result.current.applyHint(0, 'c');
+        result.current.applyHint('c');
       });
 
       expect(result.current.state.lastHintedLetter).not.toBeNull();

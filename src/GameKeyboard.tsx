@@ -5,6 +5,7 @@ interface GameKeyboardProps {
   onDeleteLetter: () => void;
   onSubmitWord: () => void;
   disabled?: boolean;
+  hintedLetter?: string;
 }
 
 const rows = [
@@ -17,8 +18,9 @@ const KeyButton: React.FC<{
   letter: string;
   onClick: () => void;
   disabled?: boolean;
+  highlighted?: boolean;
   variant?: 'letter' | 'delete' | 'submit';
-}> = ({ letter, onClick, disabled = false, variant = 'letter' }) => {
+}> = ({ letter, onClick, disabled = false, highlighted = false, variant = 'letter' }) => {
   const baseClasses = `
     h-10 rounded-md font-semibold text-sm uppercase
     transition-all duration-100 select-none
@@ -27,8 +29,11 @@ const KeyButton: React.FC<{
 
   const variantClasses = {
     letter: `
-      flex-1 min-w-0 bg-gray-200 text-gray-900
-      hover:bg-gray-300 active:bg-gray-400
+      flex-1 min-w-0 font-semibold
+      ${highlighted
+        ? 'bg-amber-300 border-2 border-amber-500 text-amber-900 hover:bg-amber-400'
+        : 'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400'
+      }
       disabled:opacity-50 disabled:cursor-not-allowed
     `,
     delete: `
@@ -64,7 +69,8 @@ export const GameKeyboard: React.FC<GameKeyboardProps> = ({
   onPressLetter,
   onDeleteLetter,
   onSubmitWord,
-  disabled = false
+  disabled = false,
+  hintedLetter
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -106,6 +112,7 @@ export const GameKeyboard: React.FC<GameKeyboardProps> = ({
             letter={letter}
             onClick={() => onPressLetter(letter)}
             disabled={disabled}
+            highlighted={letter === hintedLetter?.toUpperCase()}
             variant="letter"
           />
         ))}
@@ -120,6 +127,7 @@ export const GameKeyboard: React.FC<GameKeyboardProps> = ({
             letter={letter}
             onClick={() => onPressLetter(letter)}
             disabled={disabled}
+            highlighted={letter === hintedLetter?.toUpperCase()}
             variant="letter"
           />
         ))}
@@ -140,6 +148,7 @@ export const GameKeyboard: React.FC<GameKeyboardProps> = ({
             letter={letter}
             onClick={() => onPressLetter(letter)}
             disabled={disabled}
+            highlighted={letter === hintedLetter?.toUpperCase()}
             variant="letter"
           />
         ))}

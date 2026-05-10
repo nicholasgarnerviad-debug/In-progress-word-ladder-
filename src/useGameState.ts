@@ -8,16 +8,17 @@ export interface GameState {
   currentInput: string[];
   selectedIdx: number;
   phase: 'playing' | 'won' | 'lost';
-  lastHintedLetter: { index: number; letter: string } | null;
+  lastHintedLetter: string | null;
   lastRevealedWord: string[] | null;
   powerUpsUsed: { hints: number; reveals: number; undos: number };
+  failedSubmissions: number;
 }
 
 type GameAction =
   | { type: 'PRESS_LETTER'; letter: string }
   | { type: 'DELETE_LETTER' }
   | { type: 'SUBMIT_WORD'; success: boolean }
-  | { type: 'APPLY_HINT'; hintedIndex: number; hintedLetter: string }
+  | { type: 'APPLY_HINT'; letter: string }
   | { type: 'APPLY_REVEAL'; word: string[] }
   | { type: 'CLEAR_HINT' }
   | { type: 'UNDO_STEP' }
@@ -139,6 +140,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           lives: newLives,
           currentInput: [],
           selectedIdx: 0,
+          failedSubmissions: state.failedSubmissions + 1,
           phase: newLives <= 0 ? 'lost' : 'playing'
         };
       }
@@ -148,7 +150,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'playing') return state;
       return {
         ...state,
-        lastHintedLetter: { index: action.hintedIndex, letter: action.hintedLetter },
+        lastHintedLetter: action.letter,
         powerUpsUsed: { ...state.powerUpsUsed, hints: state.powerUpsUsed.hints + 1 }
       };
     }
@@ -176,6 +178,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         history: state.history.slice(0, -1),
         currentInput: [],
         selectedIdx: 0,
+        lastHintedLetter: null,
+        lastRevealedWord: null,
         powerUpsUsed: { ...state.powerUpsUsed, undos: state.powerUpsUsed.undos + 1 }
       };
     }
@@ -203,6 +207,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         lastHintedLetter: null,
         lastRevealedWord: null,
         powerUpsUsed: { hints: 0, reveals: 0, undos: 0 },
+        failedSubmissions: 0,
         phase: 'playing'
       };
     }
@@ -221,6 +226,7 @@ export function useGameState(puzzle: WordPuzzle) {
     lastHintedLetter: null,
     lastRevealedWord: null,
     powerUpsUsed: { hints: 0, reveals: 0, undos: 0 },
+    failedSubmissions: 0,
     phase: 'playing'
   };
 
@@ -274,8 +280,8 @@ export function useGameState(puzzle: WordPuzzle) {
     }
   }, [state, puzzle]);
 
-  const applyHint = useCallback((hintedIndex: number, hintedLetter: string) => {
-    dispatch({ type: 'APPLY_HINT', hintedIndex, hintedLetter });
+  const applyHint = useCallback((letter: string) => {
+    dispatch({ type: 'APPLY_HINT', letter });
   }, []);
 
   const applyReveal = useCallback((word: string[]) => {

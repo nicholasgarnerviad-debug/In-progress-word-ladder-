@@ -33,8 +33,8 @@ export const App: React.FC = () => {
   useEffect(() => {
     if ((game.state.phase === 'won' || game.state.phase === 'lost') && lastGamePhase === 'playing') {
       if (game.state.phase === 'won') {
-        const extraSteps = (game.state.history.length - 1) - (puzzle.optimal.length - 1);
-        const mistakes = game.state.powerUpsUsed.undos; // Count of failed submissions
+        const extraSteps = (game.state.history.length - 1) - puzzle.optimal;
+        const mistakes = game.state.failedSubmissions;
         const baseReward = 100;
         const efficiency = Math.max(0, baseReward - (extraSteps * 15));
         const mistakePenalty = mistakes * 20;
@@ -56,7 +56,7 @@ export const App: React.FC = () => {
       setResetKey(prev => prev + 1);
       setLastGamePhase(game.state.phase);
     }
-  }, [game.state.phase, lastGamePhase, puzzle.optimal.length, game.state.history.length, game.state.powerUpsUsed.undos]);
+  }, [game.state.phase, lastGamePhase, puzzle.optimal, game.state.history.length, game.state.failedSubmissions]);
 
   // Countdown effect - decrements every second
   useEffect(() => {
@@ -119,18 +119,18 @@ export const App: React.FC = () => {
     const nextWord = puzzle.chain[nextWordIndex];
     const currentWord = game.state.history[game.state.history.length - 1].join('');
 
-    let hintedIndex = -1;
+    let hintedLetter = '';
     for (let i = 0; i < nextWord.length; i++) {
       if (nextWord[i] !== currentWord[i]) {
-        hintedIndex = i;
+        hintedLetter = nextWord[i];
         break;
       }
     }
 
-    if (hintedIndex === -1) return;
+    if (!hintedLetter) return;
 
     setCoins(prev => prev - 30);
-    game.applyHint(hintedIndex, nextWord[hintedIndex]);
+    game.applyHint(hintedLetter);
   };
 
   const handleRevealStep = () => {
@@ -204,7 +204,7 @@ export const App: React.FC = () => {
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-bold text-gray-700">Puzzle #{idx + 1}</span>
                       <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-                        {p.optimal.length - 1} steps
+                        {p.optimal} steps
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
@@ -282,11 +282,7 @@ export const App: React.FC = () => {
                 {game.state.currentInput.map((letter, i) => (
                   <div
                     key={i}
-                    className={`flex-1 h-10 flex items-center justify-center rounded-md font-bold transition-colors ${
-                      game.state.lastHintedLetter && game.state.lastHintedLetter.index === i
-                        ? 'bg-amber-200 border-2 border-amber-400 text-amber-900'
-                        : 'bg-white border-2 border-dashed border-blue-400 text-blue-600'
-                    }`}
+                    className="flex-1 h-10 flex items-center justify-center rounded-md font-bold transition-colors bg-white border-2 border-dashed border-blue-400 text-blue-600"
                   >
                     {letter.toUpperCase()}
                   </div>
@@ -371,7 +367,7 @@ export const App: React.FC = () => {
           </div>
           <div className="bg-white rounded p-3 text-center">
             <p className="text-xs text-gray-500">Best</p>
-            <p className="text-xl font-bold text-gray-800">{puzzle.optimal.length - 1}</p>
+            <p className="text-xl font-bold text-gray-800">{puzzle.optimal}</p>
           </div>
         </div>
 
@@ -381,6 +377,7 @@ export const App: React.FC = () => {
           onDeleteLetter={game.deleteLetter}
           onSubmitWord={handleSubmitWord}
           disabled={game.state.phase !== 'playing'}
+          hintedLetter={game.state.lastHintedLetter ?? undefined}
         />
       </div>
     </div>
