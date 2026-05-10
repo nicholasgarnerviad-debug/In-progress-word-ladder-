@@ -387,12 +387,14 @@ export const App: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setDarkMode(prev => !prev)}
-                    className={`w-12 h-6 rounded-full transition-colors relative flex items-center cursor-pointer ${
+                    className={`w-14 h-7 rounded-full transition-colors relative flex items-center cursor-pointer ${
                       darkMode ? 'bg-blue-500 justify-end' : 'bg-gray-300 justify-start'
                     }`}
                     aria-label="Toggle dark mode"
                   >
-                    <span className="w-5 h-5 bg-white rounded-full shadow transition-all m-0.5" />
+                    <span className="w-6 h-6 bg-white rounded-full shadow m-0.5 flex items-center justify-center text-sm leading-none">
+                      {darkMode ? '🌙' : '☀️'}
+                    </span>
                   </button>
                 </div>
 
