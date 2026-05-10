@@ -8,7 +8,7 @@ export interface GameState {
   currentInput: string[];
   selectedIdx: number;
   phase: 'playing' | 'won' | 'lost';
-  lastHintedLetter: string | null;
+  lastHintedIndex: number | null;
   lastRevealedWord: string[] | null;
   powerUpsUsed: { hints: number; reveals: number; undos: number };
   failedSubmissions: number;
@@ -18,7 +18,7 @@ type GameAction =
   | { type: 'PRESS_LETTER'; letter: string }
   | { type: 'DELETE_LETTER' }
   | { type: 'SUBMIT_WORD'; success: boolean }
-  | { type: 'APPLY_HINT'; letter: string }
+  | { type: 'APPLY_HINT'; index: number }
   | { type: 'APPLY_REVEAL'; word: string[] }
   | { type: 'CLEAR_HINT' }
   | { type: 'UNDO_STEP' }
@@ -130,7 +130,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           history: [...state.history, [...state.currentInput]],
           currentInput: [],
           selectedIdx: 0,
-          lastHintedLetter: null,
+          lastHintedIndex: null,
           lastRevealedWord: null
         };
       } else {
@@ -150,7 +150,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.phase !== 'playing') return state;
       return {
         ...state,
-        lastHintedLetter: action.letter,
+        lastHintedIndex: action.index,
         powerUpsUsed: { ...state.powerUpsUsed, hints: state.powerUpsUsed.hints + 1 }
       };
     }
@@ -167,7 +167,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'CLEAR_HINT': {
       return {
         ...state,
-        lastHintedLetter: null
+        lastHintedIndex: null
       };
     }
 
@@ -178,7 +178,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         history: state.history.slice(0, -1),
         currentInput: [],
         selectedIdx: 0,
-        lastHintedLetter: null,
+        lastHintedIndex: null,
         lastRevealedWord: null,
         powerUpsUsed: { ...state.powerUpsUsed, undos: state.powerUpsUsed.undos + 1 }
       };
@@ -204,7 +204,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         lives: 3,
         currentInput: [],
         selectedIdx: 0,
-        lastHintedLetter: null,
+        lastHintedIndex: null,
         lastRevealedWord: null,
         powerUpsUsed: { hints: 0, reveals: 0, undos: 0 },
         failedSubmissions: 0,
@@ -223,7 +223,7 @@ export function useGameState(puzzle: WordPuzzle) {
     lives: 3,
     currentInput: [],
     selectedIdx: 0,
-    lastHintedLetter: null,
+    lastHintedIndex: null,
     lastRevealedWord: null,
     powerUpsUsed: { hints: 0, reveals: 0, undos: 0 },
     failedSubmissions: 0,
@@ -280,8 +280,8 @@ export function useGameState(puzzle: WordPuzzle) {
     }
   }, [state, puzzle]);
 
-  const applyHint = useCallback((letter: string) => {
-    dispatch({ type: 'APPLY_HINT', letter });
+  const applyHint = useCallback((index: number) => {
+    dispatch({ type: 'APPLY_HINT', index });
   }, []);
 
   const applyReveal = useCallback((word: string[]) => {

@@ -30,7 +30,7 @@ describe('useGameState', () => {
 
     it('should initialize with no hint or reveal active', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
-      expect(result.current.state.lastHintedLetter).toBeNull();
+      expect(result.current.state.lastHintedIndex).toBeNull();
       expect(result.current.state.lastRevealedWord).toBeNull();
     });
 
@@ -184,10 +184,10 @@ describe('useGameState', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
       act(() => {
-        result.current.applyHint('c');
+        result.current.applyHint(0);
       });
 
-      expect(result.current.state.lastHintedLetter).toBe('c');
+      expect(result.current.state.lastHintedIndex).toBe(0);
     });
 
     it('should not apply hint when game not playing', () => {
@@ -264,10 +264,10 @@ describe('useGameState', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
       act(() => {
-        result.current.applyHint('c');
+        result.current.applyHint(0);
       });
 
-      expect(result.current.state.lastHintedLetter).toBe('c');
+      expect(result.current.state.lastHintedIndex).toBe(0);
       expect(result.current.state.powerUpsUsed.hints).toBe(1);
     });
 
@@ -286,16 +286,16 @@ describe('useGameState', () => {
       const { result } = renderHook(() => useGameState(mockPuzzle));
 
       act(() => {
-        result.current.applyHint('c');
+        result.current.applyHint(0);
       });
 
-      expect(result.current.state.lastHintedLetter).not.toBeNull();
+      expect(result.current.state.lastHintedIndex).not.toBeNull();
 
       act(() => {
         result.current.clearHint();
       });
 
-      expect(result.current.state.lastHintedLetter).toBeNull();
+      expect(result.current.state.lastHintedIndex).toBeNull();
     });
   });
 

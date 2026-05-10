@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type TileState = 'idle' | 'changed' | 'locked' | 'burned' | 'input' | 'selected';
+export type TileState = 'idle' | 'changed' | 'locked' | 'burned' | 'input' | 'selected' | 'hinted';
 
 interface LetterTileProps {
   letter: string;
@@ -13,7 +13,8 @@ const stateClasses: Record<TileState, string> = {
   locked: 'bg-amber-100 border-2 border-amber-400 text-amber-900 font-semibold',
   burned: 'bg-red-100 border-2 border-red-400 text-red-900 font-semibold',
   input: 'bg-white border-2 border-dashed border-gray-300 text-gray-900',
-  selected: 'bg-blue-50 border-2 border-blue-500 text-blue-900 font-semibold ring-2 ring-blue-200'
+  selected: 'bg-blue-50 border-2 border-blue-500 text-blue-900 font-semibold ring-2 ring-blue-200',
+  hinted: 'bg-white border-2 border-amber-400 text-gray-900 ring-2 ring-amber-300'
 };
 
 export const LetterTile: React.FC<LetterTileProps> = ({ letter, state }) => {

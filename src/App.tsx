@@ -110,7 +110,7 @@ export const App: React.FC = () => {
     game.submitWord();
   };
 
-  const getCorrectHintLetter = () => {
+  const getHintIndex = (): number | null => {
     const nextWordIndex = game.state.history.length;
     if (nextWordIndex >= puzzle.chain.length) return null;
 
@@ -118,9 +118,7 @@ export const App: React.FC = () => {
     const currentWord = game.state.history[game.state.history.length - 1].join('');
 
     for (let i = 0; i < nextWord.length; i++) {
-      if (nextWord[i] !== currentWord[i]) {
-        return nextWord[i];
-      }
+      if (nextWord[i] !== currentWord[i]) return i;
     }
     return null;
   };
@@ -128,11 +126,11 @@ export const App: React.FC = () => {
   const handleUseHint = () => {
     if (coins < 30 || game.state.phase !== 'playing') return;
 
-    const hintedLetter = getCorrectHintLetter();
-    if (!hintedLetter) return;
+    const hintIndex = getHintIndex();
+    if (hintIndex === null) return;
 
     setCoins(prev => prev - 30);
-    game.applyHint(hintedLetter);
+    game.applyHint(hintIndex);
   };
 
   const handleRevealStep = () => {
@@ -260,9 +258,13 @@ export const App: React.FC = () => {
           {/* History */}
           <div className="space-y-2 min-h-20">
             {game.state.history.length > 0 ? (
-              game.state.history.map((word, i) => (
-                <Rung key={i} word={word} tileStates={word.map(() => 'idle')} />
-              ))
+              game.state.history.map((word, i) => {
+                const isLastWord = i === game.state.history.length - 1;
+                const tileStates = word.map((_, j) =>
+                  isLastWord && game.state.lastHintedIndex === j ? 'hinted' : 'idle'
+                );
+                return <Rung key={i} word={word} tileStates={tileStates} />;
+              })
             ) : (
               <p className="text-center text-gray-400 text-sm py-4">No guesses yet</p>
             )}
@@ -328,9 +330,9 @@ export const App: React.FC = () => {
         <div className="flex gap-2 mb-4">
           <button
             onClick={handleUseHint}
-            disabled={coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedLetter !== null}
+            disabled={coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null}
             className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
-              coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedLetter !== null
+              coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-amber-400 text-amber-900 hover:bg-amber-500'
             }`}
@@ -379,7 +381,6 @@ export const App: React.FC = () => {
           onDeleteLetter={game.deleteLetter}
           onSubmitWord={handleSubmitWord}
           disabled={game.state.phase !== 'playing'}
-          hintedLetter={game.state.lastHintedLetter ?? undefined}
         />
       </div>
     </div>
