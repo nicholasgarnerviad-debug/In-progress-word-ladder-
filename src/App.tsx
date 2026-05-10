@@ -381,8 +381,9 @@ export const App: React.FC = () => {
                     <p className="text-xs text-gray-500 dark:text-gray-400">Switch to dark color theme</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setDarkMode(prev => !prev)}
-                    className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${
+                    className={`w-12 h-6 rounded-full transition-colors relative flex items-center cursor-pointer ${
                       darkMode ? 'bg-blue-500 justify-end' : 'bg-gray-300 justify-start'
                     }`}
                     aria-label="Toggle dark mode"
