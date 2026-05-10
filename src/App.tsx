@@ -5,15 +5,32 @@ import { Rung } from './Rung';
 import { GameKeyboard } from './GameKeyboard';
 import { WordPuzzle } from './generatePuzzle';
 
+interface PuzzleRecord {
+  puzzle: WordPuzzle;
+  playerPath: string[];
+  result: 'won' | 'lost';
+  coinsDelta: number;
+  timestamp: number;
+}
+
 export const App: React.FC = () => {
   const [resetKey, setResetKey] = useState(0);
   const [puzzle, setPuzzle] = useState(() => generatePuzzle(4, 'medium'));
-  const [puzzleHistory, setPuzzleHistory] = useState<WordPuzzle[]>([puzzle]);
   const game = useGameState(puzzle);
   const [isGameOver, setIsGameOver] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [showPuzzleList, setShowPuzzleList] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [lastGamePhase, setLastGamePhase] = useState<'playing' | 'won' | 'lost'>('playing');
+
+  const [puzzleRecords, setPuzzleRecords] = useState<PuzzleRecord[]>(() => {
+    const saved = localStorage.getItem('wordladder-records');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('wordladder-dark') === 'true';
+  });
 
   const [coins, setCoins] = useState<number>(() => {
     const saved = localStorage.getItem('wordladder-coins');
@@ -29,6 +46,15 @@ export const App: React.FC = () => {
     localStorage.setItem('wordladder-coins', String(coins));
   }, [coins]);
 
+  useEffect(() => {
+    localStorage.setItem('wordladder-records', JSON.stringify(puzzleRecords));
+  }, [puzzleRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('wordladder-dark', String(darkMode));
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
+
   // Calculate coin changes when game ends
   useEffect(() => {
     if ((game.state.phase === 'won' || game.state.phase === 'lost') && lastGamePhase === 'playing') {
@@ -42,15 +68,32 @@ export const App: React.FC = () => {
 
         setCoins(prev => prev + winReward);
         setRoundResult({ type: 'won', coinsDelta: winReward });
+
+        const wonRecord: PuzzleRecord = {
+          puzzle,
+          playerPath: game.state.history.map(w => w.join('')),
+          result: 'won',
+          coinsDelta: winReward,
+          timestamp: Date.now()
+        };
+        setPuzzleRecords(prev => [...prev, wonRecord]);
       } else {
         const lossPenalty = 50;
         setCoins(prev => Math.max(0, prev - lossPenalty));
         setRoundResult({ type: 'lost', coinsDelta: -lossPenalty });
+
+        const lostRecord: PuzzleRecord = {
+          puzzle,
+          playerPath: game.state.history.map(w => w.join('')),
+          result: 'lost',
+          coinsDelta: -50,
+          timestamp: Date.now()
+        };
+        setPuzzleRecords(prev => [...prev, lostRecord]);
       }
 
       const newPuzzle = generatePuzzle(4, 'medium');
       setPuzzle(newPuzzle);
-      setPuzzleHistory(prev => [...prev, newPuzzle]);
       setIsGameOver(true);
       setCountdown(3);
       setResetKey(prev => prev + 1);
@@ -80,7 +123,6 @@ export const App: React.FC = () => {
   const loadNewPuzzle = () => {
     const newPuzzle = generatePuzzle(4, 'medium');
     setPuzzle(newPuzzle);
-    setPuzzleHistory(prev => [...prev, newPuzzle]);
     setIsGameOver(false);
     setCountdown(-1);
     setResetKey(prev => prev + 1);
@@ -144,6 +186,10 @@ export const App: React.FC = () => {
     game.applyReveal(nextWord);
   };
 
+  const handleResetCoins = () => {
+    setCoins(150);
+  };
+
   const handleUndoStep = () => {
     if (coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing') return;
 
@@ -152,21 +198,29 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-2">
-          <h1 className="text-3xl font-bold text-gray-800">Word Ladder</h1>
-          <button
-            onClick={() => setShowPuzzleList(!showPuzzleList)}
-            className="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
-          >
-            📋
-          </button>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Word Ladder</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowPuzzleList(!showPuzzleList)}
+              className="text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1 rounded"
+            >
+              📋
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1 rounded"
+            >
+              ⚙️
+            </button>
+          </div>
         </div>
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-1">
             <span className="text-2xl">◎</span>
-            <span className="text-lg font-bold text-gray-800">{coins}</span>
+            <span className="text-lg font-bold text-gray-800 dark:text-gray-100">{coins}</span>
           </div>
           <div className="flex gap-1">
             {[0, 1, 2].map(i => (
@@ -176,57 +230,176 @@ export const App: React.FC = () => {
             ))}
           </div>
         </div>
-        <p className="text-center text-sm text-gray-600 mb-6">Change one letter at a time</p>
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-6">Change one letter at a time</p>
 
-        {/* Puzzle List Modal */}
+        {/* Puzzle History Modal */}
         {showPuzzleList && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md max-h-96 overflow-auto p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-auto p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Puzzle History ({puzzleHistory.length})</h2>
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                  Puzzle History ({puzzleRecords.length} completed)
+                </h2>
                 <button
                   onClick={() => setShowPuzzleList(false)}
-                  className="text-gray-500 hover:text-gray-700 text-xl"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl"
                 >
                   ✕
                 </button>
               </div>
-              <div className="space-y-3">
-                {puzzleHistory.map((p, idx) => (
+
+              <div className="space-y-4">
+                {/* IN PROGRESS CARD */}
+                <div className="p-3 rounded-lg border-2 border-blue-400 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-500">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-blue-700 dark:text-blue-300 text-sm">▶ In Progress</span>
+                    <span className="text-xs bg-blue-200 dark:bg-blue-700 dark:text-blue-200 px-2 py-1 rounded">
+                      {puzzle.optimal} steps optimal
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm mb-2">
+                    <span className="font-mono font-bold text-blue-600 dark:text-blue-300">{puzzle.start.toUpperCase()}</span>
+                    <span className="text-gray-400">→</span>
+                    <span className="font-mono font-bold text-green-600 dark:text-green-400">{puzzle.end.toUpperCase()}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1 text-xs">
+                    {game.state.history.map((word, i) => (
+                      <span key={i} className="font-mono bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-2 py-0.5 rounded">
+                        {word.join('').toUpperCase()}
+                      </span>
+                    ))}
+                    {Array.from({ length: Math.max(0, puzzle.optimal - (game.state.history.length - 1)) }).map((_, i) => (
+                      <span key={`lock-${i}`} className="font-mono bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-500 border border-dashed border-gray-300 dark:border-gray-500 px-2 py-0.5 rounded">
+                        ???
+                      </span>
+                    ))}
+                    <span className="font-mono bg-green-100 dark:bg-green-900/50 dark:text-green-400 border border-green-300 dark:border-green-600 px-2 py-0.5 rounded">
+                      {puzzle.end.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* COMPLETED RECORDS — newest first */}
+                {[...puzzleRecords].reverse().map((record, idx) => (
                   <div
                     key={idx}
                     className={`p-3 rounded-lg border-2 ${
-                      idx === puzzleHistory.length - 1
-                        ? 'border-blue-400 bg-blue-50'
-                        : 'border-gray-200 bg-gray-50'
+                      record.result === 'won'
+                        ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700'
+                        : 'border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-gray-700">Puzzle #{idx + 1}</span>
-                      <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-                        {p.optimal} steps
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-700 dark:text-gray-300 text-sm">
+                          #{puzzleRecords.length - idx}
+                        </span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                          record.result === 'won'
+                            ? 'bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200'
+                            : 'bg-red-200 text-red-800 dark:bg-red-700 dark:text-red-200'
+                        }`}>
+                          {record.result === 'won' ? 'WON' : 'LOST'}
+                        </span>
+                      </div>
+                      <span className={`text-sm font-bold ${record.coinsDelta >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {record.coinsDelta >= 0 ? '+' : ''}{record.coinsDelta}◎
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="font-mono font-bold text-blue-600">
-                        {p.start.toUpperCase()}
-                      </span>
+
+                    <div className="flex items-center gap-2 text-sm mb-3">
+                      <span className="font-mono font-bold text-blue-600 dark:text-blue-300">{record.puzzle.start.toUpperCase()}</span>
                       <span className="text-gray-400">→</span>
-                      <span className="font-mono font-bold text-green-600">
-                        {p.end.toUpperCase()}
-                      </span>
+                      <span className="font-mono font-bold text-green-600 dark:text-green-400">{record.puzzle.end.toUpperCase()}</span>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Path: {p.chain.join(' → ').toUpperCase()}
+
+                    <div className="mb-2">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your path ({record.playerPath.length - 1} steps)</p>
+                      <div className="flex flex-wrap gap-1">
+                        {record.playerPath.map((word, i) => (
+                          <span key={i} className="font-mono text-xs bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-2 py-0.5 rounded">
+                            {word.toUpperCase()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Optimal ({record.puzzle.optimal} steps)</p>
+                      <div className="flex flex-wrap gap-1">
+                        {record.puzzle.chain.map((word, i) => (
+                          <span key={i} className="font-mono text-xs bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-700 px-2 py-0.5 rounded">
+                            {word.toUpperCase()}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}
+
+                {puzzleRecords.length === 0 && (
+                  <p className="text-center text-gray-400 dark:text-gray-500 text-sm py-4">
+                    Complete a puzzle to unlock your history!
+                  </p>
+                )}
               </div>
             </div>
           </div>
         )}
 
-        <div key={resetKey} className="bg-white rounded-lg shadow-lg p-6 mb-4">
+        {/* Settings Modal */}
+        {showSettings && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-sm p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Settings</h2>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">Dark Mode</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Switch to dark color theme</p>
+                  </div>
+                  <button
+                    onClick={() => setDarkMode(prev => !prev)}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${
+                      darkMode ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                    aria-label="Toggle dark mode"
+                  >
+                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                      darkMode ? 'translate-x-7' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <hr className="border-gray-200 dark:border-gray-600" />
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">Reset Coins</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Restore balance to 150◎</p>
+                  </div>
+                  <button
+                    onClick={handleResetCoins}
+                    className="bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 dark:text-red-300 text-red-700 font-semibold text-sm px-3 py-1.5 rounded"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div key={resetKey} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-4">
           {/* Target word */}
           <div className="text-center mb-4">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Get from</p>
