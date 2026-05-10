@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { generatePuzzle } from './generatePuzzle';
 import { useGameState } from './useGameState';
 import { Rung } from './Rung';
@@ -41,6 +41,9 @@ export const App: React.FC = () => {
     type: 'won' | 'lost';
     coinsDelta: number;
   } | null>(null);
+
+  const [submissionError, setSubmissionError] = useState(false);
+  const prevFailedRef = useRef(game.state.failedSubmissions);
 
   useEffect(() => {
     localStorage.setItem('wordladder-coins', String(coins));
@@ -119,6 +122,16 @@ export const App: React.FC = () => {
       setLastGamePhase('playing');
     }
   }, [game.state.phase, isGameOver]);
+
+  // Show error message when a word is rejected
+  useEffect(() => {
+    if (game.state.failedSubmissions > prevFailedRef.current) {
+      prevFailedRef.current = game.state.failedSubmissions;
+      setSubmissionError(true);
+      const timer = setTimeout(() => setSubmissionError(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [game.state.failedSubmissions]);
 
   const loadNewPuzzle = () => {
     const newPuzzle = generatePuzzle(4, 'medium');
@@ -469,6 +482,12 @@ export const App: React.FC = () => {
                 ))}
               </div>
             </div>
+          )}
+
+          {submissionError && (
+            <p className="text-center text-red-500 dark:text-red-400 text-sm mt-2 font-semibold">
+              Not a valid word
+            </p>
           )}
 
           {/* Game Over Message with Countdown and Button */}
