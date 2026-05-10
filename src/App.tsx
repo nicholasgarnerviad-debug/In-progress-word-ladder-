@@ -55,7 +55,11 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem('wordladder-dark', String(darkMode));
-    document.documentElement.classList.toggle('dark', darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [darkMode]);
 
   // Calculate coin changes when game ends
