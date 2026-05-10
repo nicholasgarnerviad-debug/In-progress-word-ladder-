@@ -13,16 +13,16 @@ const StatusIcon: React.FC<{ status?: 'correct' | 'wrong' | 'neutral' }> = ({ st
   switch (status) {
     case 'correct':
       return (
-        <div className="w-6 h-6 rounded-full bg-green-100 border-2 border-green-500 flex items-center justify-center">
-          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 border-2 border-green-500 dark:border-green-400 flex items-center justify-center">
+          <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
           </svg>
         </div>
       );
     case 'wrong':
       return (
-        <div className="w-6 h-6 rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center">
-          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/40 border-2 border-red-500 dark:border-red-400 flex items-center justify-center">
+          <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
@@ -72,7 +72,7 @@ export const Rung: React.FC<RungProps> = ({
           flex items-center gap-3 p-4 rounded-lg
           transition-all duration-200
           ${isShaking ? 'shake-animation' : ''}
-          ${status === 'wrong' ? 'bg-red-50' : status === 'correct' ? 'bg-green-50' : 'bg-white'}
+          ${status === 'wrong' ? 'bg-red-50 dark:bg-red-900/20' : status === 'correct' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-white dark:bg-gray-800'}
         `}
       >
         <div className="flex gap-2">
