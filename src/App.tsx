@@ -59,7 +59,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     if ((game.state.phase === 'won' || game.state.phase === 'lost') && lastGamePhase === 'playing') {
       if (game.state.phase === 'won') {
-        const extraSteps = (game.state.history.length - 1) - puzzle.optimal;
+        const extraSteps = (game.state.history.length - 1) - (puzzle.optimal - 1);
         const mistakes = game.state.failedSubmissions;
         const baseReward = 100;
         const efficiency = Math.max(0, baseReward - (extraSteps * 15));
@@ -254,7 +254,7 @@ export const App: React.FC = () => {
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-blue-700 dark:text-blue-300 text-sm">▶ In Progress</span>
                     <span className="text-xs bg-blue-200 dark:bg-blue-700 dark:text-blue-200 px-2 py-1 rounded">
-                      {puzzle.optimal} steps optimal
+                      {puzzle.optimal - 1} steps optimal
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm mb-2">
@@ -268,7 +268,7 @@ export const App: React.FC = () => {
                         {word.join('').toUpperCase()}
                       </span>
                     ))}
-                    {Array.from({ length: Math.max(0, puzzle.optimal - (game.state.history.length - 1)) }).map((_, i) => (
+                    {Array.from({ length: Math.max(0, puzzle.optimal - 1 - game.state.history.length) }).map((_, i) => (
                       <span key={`lock-${i}`} className="font-mono bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-500 border border-dashed border-gray-300 dark:border-gray-500 px-2 py-0.5 rounded">
                         ???
                       </span>
@@ -544,7 +544,7 @@ export const App: React.FC = () => {
           </div>
           <div className="bg-white dark:bg-gray-800 rounded p-3 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">Best</p>
-            <p className="text-xl font-bold text-gray-800 dark:text-gray-100">{puzzle.optimal}</p>
+            <p className="text-xl font-bold text-gray-800 dark:text-gray-100">{puzzle.optimal - 1}</p>
           </div>
         </div>
 
