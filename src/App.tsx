@@ -433,9 +433,12 @@ export const App: React.FC = () => {
             {game.state.history.length > 0 ? (
               game.state.history.map((word, i) => {
                 const isLastWord = i === game.state.history.length - 1;
-                const tileStates = word.map((_, j) =>
-                  isLastWord && game.state.lastHintedIndex === j ? 'hinted' : 'idle'
-                );
+                const prevWord = i > 0 ? game.state.history[i - 1] : null;
+                const tileStates = word.map((letter, j) => {
+                  if (isLastWord && game.state.lastHintedIndex === j) return 'hinted';
+                  if (prevWord && letter !== prevWord[j]) return 'changed';
+                  return 'idle';
+                });
                 return <Rung key={i} word={word} tileStates={tileStates} />;
               })
             ) : (
