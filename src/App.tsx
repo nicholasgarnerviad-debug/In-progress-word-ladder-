@@ -110,23 +110,25 @@ export const App: React.FC = () => {
     game.submitWord();
   };
 
-  const handleUseHint = () => {
-    if (coins < 30 || game.state.phase !== 'playing') return;
-
+  const getCorrectHintLetter = () => {
     const nextWordIndex = game.state.history.length;
-    if (nextWordIndex >= puzzle.chain.length) return;
+    if (nextWordIndex >= puzzle.chain.length) return null;
 
     const nextWord = puzzle.chain[nextWordIndex];
     const currentWord = game.state.history[game.state.history.length - 1].join('');
 
-    let hintedLetter = '';
     for (let i = 0; i < nextWord.length; i++) {
       if (nextWord[i] !== currentWord[i]) {
-        hintedLetter = nextWord[i];
-        break;
+        return nextWord[i];
       }
     }
+    return null;
+  };
 
+  const handleUseHint = () => {
+    if (coins < 30 || game.state.phase !== 'playing') return;
+
+    const hintedLetter = getCorrectHintLetter();
     if (!hintedLetter) return;
 
     setCoins(prev => prev - 30);
