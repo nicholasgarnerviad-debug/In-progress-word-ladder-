@@ -27,13 +27,13 @@ const KeyButton: React.FC<{
 
   const variantClasses = {
     letter: `
-      flex-1 min-w-0 bg-gray-200 text-gray-900
-      hover:bg-gray-300 active:bg-gray-400
+      flex-1 min-w-0 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100
+      hover:bg-gray-300 dark:hover:bg-gray-600 active:bg-gray-400
       disabled:opacity-50 disabled:cursor-not-allowed
     `,
     delete: `
-      flex-1 min-w-0 bg-red-100 text-red-900 border border-red-300
-      hover:bg-red-200 active:bg-red-300
+      flex-1 min-w-0 bg-red-100 dark:bg-red-900/40 text-red-900 dark:text-red-300 border border-red-300 dark:border-red-700
+      hover:bg-red-200 dark:hover:bg-red-900/60 active:bg-red-300
       disabled:opacity-50 disabled:cursor-not-allowed
     `,
     submit: `
