@@ -1,164 +1,129 @@
-# Word Graph - Word Ladder & Puzzle Generator
+# Word Ladder — Interactive Game & Puzzle Generator
 
-TypeScript modules for word ladder pathfinding, BFS-based shortest paths, and deterministic daily puzzle generation.
+A modern word ladder game with routing, persistent stats, theme customization, and a Wordle-inspired aesthetic.
 
 ## Features
 
-- **getNeighbors(word: string)**: Returns all valid one-letter-edit neighbors from the dictionary
-- **shortestPath(start: string, end: string)**: Finds the shortest word ladder path using BFS
-- **Cached adjacency list**: Pre-computed at import time for O(1) neighbor lookups
-- **Dictionary**: 600+ common English words (3-5 letters)
+- **Word Ladder Game** — Find shortest paths between words by changing one letter at a time
+- **Persistent Stats** — Track games played, win %, current streak, and max streak across sessions
+- **Theme System** — System, Light, or Dark mode (syncs with OS preference)
+- **Responsive Design** — Works on mobile (375px) through desktop
+- **Dark Mode Support** — Full Tailwind CSS dark mode with `class` strategy
+- **Accessible Navigation** — Full keyboard support, focus rings, proper ARIA labels
+- **Multi-path Discovery** — Find alternative valid solutions, not just the optimal path
 
-## Usage
+## Tech Stack
 
-```typescript
-import { getNeighbors, shortestPath } from './wordGraph';
+- **React 19** with TypeScript
+- **React Router v6** for client-side routing
+- **Tailwind CSS** with dark mode
+- **Jest** for testing (146 tests)
+- **Vite** for bundling
 
-// Find all one-letter edits of a word
-const neighbors = getNeighbors('cat');
-// → ['bat', 'eat', 'fat', 'hat', 'mat', 'oat', 'pat', 'rat']
+## Pages
 
-// Find shortest path between two words
-const path = shortestPath('cat', 'dog');
-// → ['cat', 'cot', 'dot', 'dog']
+### `/` — Home
+- **StatsStrip**: Game statistics (Played, Win %, Streak, Max)
+- **Game Modes**:
+  - Classic (active) → navigates to `/play/classic`
+  - Daily Puzzle, Endless, Time Attack (coming soon)
+- **Header**: Settings gear icon links to `/settings`
 
-// Case-insensitive
-const pathUpper = shortestPath('CAT', 'DOG');
-// → ['cat', 'cot', 'dot', 'dog']
+### `/play/classic` — Game
+- **Classic Mode**: Find the shortest path between two 4-letter words
+- **Game UI**: 
+  - Start and end words displayed at top
+  - Word history showing player's path
+  - Virtual keyboard for input
+  - Power-ups: Hint (30◎), Reveal (60◎), Undo (20◎)
+  - Stats showing current steps vs optimal
+- **Puzzle History Modal**: View all completed games
+- **Coins System**: Earn/spend on power-ups (win bonus ~20-100◎, loss penalty -50◎)
 
-// Returns null if unreachable
-const unreachable = shortestPath('cat', 'zzz');
-// → null
-```
-
-## Test Results
-
-All 13 tests pass:
-
-- ✅ getNeighbors returns valid neighbors for words
-- ✅ Case-insensitive input handling
-- ✅ Returns empty array for invalid/out-of-range words
-- ✅ **CAT→DOG path length ≤ 4** ✓ (returns 4-word path: CAT→COT→DOT→DOG)
-- ✅ BFS validation (each step differs by exactly one letter)
-- ✅ Unreachable word detection
-- ✅ Self-reference handling
-- ✅ Multi-word ladder paths
+### `/settings` — Settings
+- **Theme**: Select System, Light, or Dark mode
+  - System mode follows OS preference and reacts to OS changes
+  - Light/Dark modes persist across sessions
+- **Default Difficulty**: Choose Easy, Medium, or Hard (ready for future use)
+- **Back navigation**: Returns to home
 
 ## Architecture
 
-```
-wordList (600+ words)
-         ↓
-Filter 3-5 letter words
-         ↓
-Build adjacency list cache at import
-         ↓
-getNeighbors() - O(1) lookup
-shortestPath() - BFS with visited set
-```
+### Core Modules
 
-## Puzzle Generator Module
+- **`src/lib/stats.ts`** — Game statistics with localStorage persistence
+- **`src/lib/theme.ts`** — Theme management (system, light, dark)
+- **`src/wordGraph.ts`** — BFS pathfinding, neighbor lookup, multi-path discovery
+- **`src/useGameState.ts`** — Game state reducer with React hook API
+- **`src/dictionary/`** — Curated word lists (3–7 letters, ~4,500 words)
 
-Generate word ladder puzzles with configurable difficulty and word lengths.
+### Components
 
-### API
+- **`ModeTile`** — Game mode selector (active/coming-soon states)
+- **`StatsStrip`** — Horizontal stats display (4 cells with labels)
 
-```typescript
-import { generatePuzzle, getDailyPuzzle } from './generatePuzzle';
+### Storage Keys
 
-// Generate a seeded puzzle
-const puzzle = generatePuzzle(3, 'easy', 'my-seed');
-// → {
-//     start: 'how',
-//     end: 'rap',
-//     optimal: 4,
-//     chain: ['how', 'row', 'raw', 'rap'],
-//     lockedIndices: [2],
-//     extraRungs: 2
-//   }
+- `wordLadder.stats` — Game statistics (played, won, streaks)
+- `wordLadder.theme` — Theme preference (system/light/dark)
+- `wordLadder.difficulty` — Default difficulty setting
+- `wordLadder-coins` — In-game coin balance
+- `wordLadder-records` — Puzzle completion history
 
-// Get today's deterministic daily puzzle
-const daily = getDailyPuzzle(4, 'medium');
+## Getting Started
+
+```bash
+npm install
+npm run dev
 ```
 
-### Features
+Visit `http://localhost:3014` (or whatever port Vite assigns).
 
-- **Difficulty levels**: easy (4 steps), medium (5 steps), hard (6 steps)
-- **Word lengths**: 3, 4, or 5 letters
-- **Seeded randomness**: Use `seedrandom` for deterministic puzzles
-- **Daily puzzles**: Same puzzle all day, different each day (seeded with `Date.toDateString()`)
-- **Locked indices**: 0-2 random non-first-letter positions (for puzzle variants)
-- **Extra rungs**: Always 2 (for difficulty multiplier)
+## Testing
 
-### Example Puzzle Generation
-
-```
-Easy 3-letter (4 steps):    how → row → raw → rap
-Medium 3-letter (5 steps):  peg → leg → lag → hag → hug
-Hard 4-letter (6 steps):    wool → pool → poll → roll → role → rose
+```bash
+npm test              # Run all tests
+npm test -- --watch  # Watch mode
 ```
 
-## Game State Hook (`useGameState`)
+**Current test coverage**: 146 tests across 7 suites
+- Stats module: 25 tests (default state, loading, saving, win/loss logic, streaks)
+- Game state: 50+ tests (reducer actions, phase transitions)
+- Word graph: 9 tests (neighbors, shortest paths, validation)
+- Game components: 60+ tests (UI rendering, interactions)
 
-React hook that manages word ladder game state with pure reducer pattern.
+## Keyboard Navigation
 
-### API
+- **Tab** — Navigate between interactive elements
+- **Enter / Space** — Activate buttons and links
+- **Arrow keys** — Radio button groups
+- **Focus rings** — Visible in both light and dark mode
 
-```typescript
-import { useGameState } from './useGameState';
+## Routing
 
-const { state, pressLetter, deleteLetter, submitWord, useHint, undoStep } = 
-  useGameState(puzzle);
-```
-
-### State Shape
-
-```typescript
-{
-  history: string[][];      // Word path progression
-  burned: number;            // Wrong guess count
-  currentInput: string[];    // Current word being typed
-  selectedIdx: number;       // Cursor position
-  hintsLeft: number;         // Remaining hints available
-  score: number;             // Game score
-  phase: 'playing'|'won'|'lost'; // Game state
-}
-```
-
-### Methods
-
-- **pressLetter(letter)** - Add letter to current word (auto-lowercased)
-- **deleteLetter()** - Remove last letter
-- **submitWord()** - Validate and submit word:
-  - Must be in dictionary
-  - Must differ by exactly 1 letter
-  - Cannot be same as previous word
-  - Wrong attempts increment `burned` count
-- **useHint()** - Reveal one letter (if available)
-- **undoStep()** - Revert to previous word in chain
-
-### Score System
-
-| Action | Points |
-|--------|--------|
-| Correct word | -20 |
-| Wrong word | -50 |
-| Use hint | -60 |
-| Undo step | -10 |
-| Win bonus (optimal) | +150 |
-
-### Game Flow
-
-- Start with puzzle start word
-- Type and submit guesses
-- 3 wrong guesses → "lost" phase
-- Reach puzzle end word → "won" phase
-- Cannot submit after game ends
+- `/` → HomePage
+- `/settings` → SettingsPage
+- `/play/classic` → ClassicGame
+- `/_preview` → ComponentsPreview (dev only)
+- All other routes → redirect to `/`
 
 ## Performance
 
-- **Build time**: O(n × m²) where n = word count, m = word length (pre-computed once)
-- **getNeighbors**: O(1) lookup
-- **shortestPath**: O(V + E) where V = vertices, E = edges in reachable subgraph
-- **Puzzle generation**: O(maxAttempts × V) with seeded RNG for determinism
-- **State updates**: O(1) for all reducer actions
+- **Build**: < 1.1s (Vite)
+- **Bundle**: ~90 KB gzipped (281 KB uncompressed)
+- **Tests**: < 5s full suite
+- **App load**: Theme applied before first render (no flash)
+
+## Styling
+
+- **Aesthetic**: Wordle-inspired (minimal, hairline borders, generous whitespace)
+- **Colors**: Gray-based palette with blue accents for interactive elements
+- **Typography**: System fonts, clean hierarchy
+- **No gradients** — Flat, minimal design
+- **Dark mode**: Fully supported throughout
+
+## Known Limitations
+
+- Daily Puzzle, Endless, and Time Attack modes are UI placeholders (coming soon)
+- Difficulty setting not yet used by puzzle generation
+- Limited to 4-letter word puzzles currently (extensible to 3–7 letters)

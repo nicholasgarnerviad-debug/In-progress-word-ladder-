@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ModeTile } from '../components/ModeTile';
 import { StatsStrip } from '../components/StatsStrip';
 
 export const HomePage: React.FC = () => {
+  useEffect(() => {
+    document.title = 'Word Ladder';
+  }, []);
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       {/* Header strip */}
@@ -11,7 +14,7 @@ export const HomePage: React.FC = () => {
         <div />
         <Link
           to="/settings"
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
           aria-label="Settings"
         >
           <svg

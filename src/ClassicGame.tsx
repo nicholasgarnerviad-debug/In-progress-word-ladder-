@@ -19,6 +19,10 @@ export const ClassicGame: React.FC = () => {
   const [resetKey, setResetKey] = useState(0);
   const [puzzle, setPuzzle] = useState(() => generatePuzzle(4, 'medium'));
   const game = useGameState(puzzle);
+
+  useEffect(() => {
+    document.title = 'Word Ladder — Classic';
+  }, []);
   const [isGameOver, setIsGameOver] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [showPuzzleList, setShowPuzzleList] = useState(false);

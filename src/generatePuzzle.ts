@@ -1,8 +1,9 @@
 import seedrandom from 'seedrandom';
-import { shortestPath } from './wordGraph';
+import { shortestPath, findAllShortestPaths } from './wordGraph';
+import { getWordsByLength } from './dictionary';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type WordLength = 3 | 4 | 5;
+export type WordLength = 3 | 4 | 5 | 6 | 7;
 
 export interface WordPuzzle {
   start: string;
@@ -11,10 +12,11 @@ export interface WordPuzzle {
   chain: string[];
   lockedIndices: number[];
   extraRungs: number;
+  alternativePaths?: string[][];
 }
 
-// Word list filtered by length (from wordGraph)
-const allWords = [
+// Deprecated: word list now loaded from dictionary
+const allWords_DEPRECATED = [
   'ace', 'act', 'add', 'age', 'ago', 'aid', 'aim', 'air', 'all', 'and', 'any', 'are', 'ark', 'arm', 'art', 'ash', 'ask', 'ate', 'awe',
   'axe', 'bad', 'bag', 'ban', 'bar', 'bat', 'bay', 'bed', 'bee', 'bet', 'bid', 'big', 'bin', 'bit', 'boa', 'bog', 'bow', 'box', 'boy',
   'bud', 'bug', 'bus', 'but', 'buy', 'cab', 'can', 'cap', 'car', 'cat', 'cot', 'cow', 'cry', 'cup', 'cut', 'dad', 'dam', 'day', 'den', 'did',
@@ -119,9 +121,7 @@ const allWords = [
   'wrist', 'write', 'wrong', 'young'
 ];
 
-function getWordsByLength(length: WordLength): string[] {
-  return allWords.filter(w => w.length === length);
-}
+// Note: getWordsByLength is now imported from ./dictionary
 
 function getTargetPathLength(difficulty: Difficulty): number {
   switch (difficulty) {
@@ -200,13 +200,21 @@ export function generatePuzzle(
 
   const lockedIndices = pickLockedIndices(chain.length, rng);
 
+  // Find alternative paths to the same destination
+  const alternativePaths = findAllShortestPaths(
+    chain[0],
+    chain[chain.length - 1],
+    5
+  ).filter(path => path.join(',') !== chain.join(','));
+
   return {
     start: chain[0],
     end: chain[chain.length - 1],
     optimal: chain.length,
     chain,
     lockedIndices,
-    extraRungs: 2
+    extraRungs: 2,
+    alternativePaths: alternativePaths.length > 0 ? alternativePaths : undefined
   };
 }
 

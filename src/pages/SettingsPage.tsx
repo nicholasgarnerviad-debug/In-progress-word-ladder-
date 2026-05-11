@@ -30,6 +30,10 @@ export const SettingsPage: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(loadTheme());
   const [difficulty, setDifficulty] = useState<Difficulty>(loadDifficulty());
 
+  React.useEffect(() => {
+    document.title = 'Word Ladder — Settings';
+  }, []);
+
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
     saveTheme(newTheme);
@@ -47,8 +51,8 @@ export const SettingsPage: React.FC = () => {
       <div className="h-12 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4">
         <Link
           to="/"
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded transition-colors"
-          aria-label="Back"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+          aria-label="Back to home"
         >
           <svg
             width="20"
@@ -84,7 +88,7 @@ export const SettingsPage: React.FC = () => {
                   value={themeOption}
                   checked={theme === themeOption}
                   onChange={(e) => handleThemeChange(e.target.value as Theme)}
-                  className="w-4 h-4 text-blue-600 accent-blue-600 dark:accent-blue-500"
+                  className="w-4 h-4 text-blue-600 accent-blue-600 dark:accent-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
                 />
                 <span className="ml-3 capitalize text-sm">
                   {themeOption === 'system' ? 'System' : themeOption.charAt(0).toUpperCase() + themeOption.slice(1)}
@@ -108,7 +112,7 @@ export const SettingsPage: React.FC = () => {
                   value={diffOption}
                   checked={difficulty === diffOption}
                   onChange={(e) => handleDifficultyChange(e.target.value as Difficulty)}
-                  className="w-4 h-4 text-blue-600 accent-blue-600 dark:accent-blue-500"
+                  className="w-4 h-4 text-blue-600 accent-blue-600 dark:accent-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
                 />
                 <span className="ml-3 capitalize text-sm">
                   {diffOption.charAt(0).toUpperCase() + diffOption.slice(1)}
