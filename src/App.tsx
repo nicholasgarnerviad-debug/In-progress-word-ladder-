@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { generatePuzzle } from './generatePuzzle';
+import { shortestPath } from './wordGraph';
 import { useGameState } from './useGameState';
 import { Rung } from './Rung';
 import { GameKeyboard } from './GameKeyboard';
@@ -170,12 +171,11 @@ export const App: React.FC = () => {
   };
 
   const getHintIndex = (): number | null => {
-    const nextWordIndex = game.state.history.length;
-    if (nextWordIndex >= puzzle.chain.length) return null;
-
-    const nextWord = puzzle.chain[nextWordIndex];
     const currentWord = game.state.history[game.state.history.length - 1].join('');
-
+    if (currentWord === puzzle.end) return null;
+    const path = shortestPath(currentWord, puzzle.end);
+    if (!path || path.length < 2) return null;
+    const nextWord = path[1];
     for (let i = 0; i < nextWord.length; i++) {
       if (nextWord[i] !== currentWord[i]) return i;
     }
@@ -194,13 +194,12 @@ export const App: React.FC = () => {
 
   const handleRevealStep = () => {
     if (coins < 60 || game.state.phase !== 'playing') return;
-
-    const nextWordIndex = game.state.history.length;
-    if (nextWordIndex >= puzzle.chain.length) return;
-
-    const nextWord = puzzle.chain[nextWordIndex].split('');
+    const currentWord = game.state.history[game.state.history.length - 1].join('');
+    if (currentWord === puzzle.end) return;
+    const path = shortestPath(currentWord, puzzle.end);
+    if (!path || path.length < 2) return;
     setCoins(prev => prev - 60);
-    game.applyReveal(nextWord);
+    game.applyReveal(path[1].split(''));
   };
 
   const handleResetCoins = () => {
@@ -522,6 +521,16 @@ export const App: React.FC = () => {
               >
                 New Puzzle Now
               </button>
+              {puzzle.alternativePaths && puzzle.alternativePaths.length > 0 && (
+                <div className="mt-3 text-left">
+                  <p className="text-xs font-semibold mb-1 opacity-70">Other valid paths:</p>
+                  {puzzle.alternativePaths.slice(0, 3).map((path, i) => (
+                    <p key={i} className="text-xs font-mono opacity-60">
+                      {path.join(' → ')}
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
