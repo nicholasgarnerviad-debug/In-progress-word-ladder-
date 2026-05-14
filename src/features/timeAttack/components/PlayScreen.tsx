@@ -5,6 +5,8 @@ import { HomeButton } from '../../../components/HomeButton';
 import { Clock } from './Clock';
 import { getSkipCostSeconds } from '../difficulty';
 import { DurationTier } from '../types';
+import { useEconomy } from '../../../lib/economy';
+import { ConsumableButton } from '../../../components/ConsumableButton';
 
 export type PlayScreenProps = {
   puzzle: WordPuzzle | null;
@@ -33,6 +35,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
 }) => {
   const [skipDisabled, setSkipDisabled] = useState(false);
   const [showLoadingPlaceholder, setShowLoadingPlaceholder] = useState(false);
+  const economy = useEconomy();
 
   useEffect(() => {
     if (puzzle === null) {
@@ -105,9 +108,41 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
         </div>
       </div>
 
-      {/* Bottom bar - Skip button */}
+      {/* Bottom bar - Consumables and Skip button */}
       <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-4">
         <div className="max-w-md mx-auto">
+          {/* Consumables row (above Skip button) */}
+          <div className="flex gap-2 flex-wrap justify-center mb-4">
+            <ConsumableButton
+              type="hint"
+              label="Hint"
+              count={economy.getCount('hint')}
+              cost={30}
+              disabled={skipDisabled}
+              onUse={() => {
+                // Call hint logic if available
+              }}
+              onBuy={() => {
+                economy.buyConsumable('hint', 30, 5);
+              }}
+            />
+            <ConsumableButton
+              type="time_extension_15s"
+              label="+15s"
+              count={economy.getCount('time_extension_15s')}
+              cost={40}
+              disabled={skipDisabled}
+              onUse={() => {
+                if (economy.useItem('time_extension_15s')) {
+                  // Add time to timer (15000ms)
+                }
+              }}
+              onBuy={() => {
+                economy.buyConsumable('time_extension_15s', 40, 5);
+              }}
+            />
+          </div>
+
           <button
             onClick={handleSkip}
             disabled={skipDisabled}
