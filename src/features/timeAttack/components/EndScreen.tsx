@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimeAttackMode, DurationTier, Difficulty } from '../types';
+import { useEconomy } from '../../../lib/economy';
 
 export type EndScreenProps = {
   mode: TimeAttackMode;
@@ -60,9 +61,28 @@ export const EndScreen: React.FC<EndScreenProps> = ({
   onBackToHome,
 }) => {
   const navigate = useNavigate();
+  const economy = useEconomy();
+  const [rewardAwarded, setRewardAwarded] = useState(false);
 
   const isPersonalBest = previousBestAtRunEnd === null || solvedCount > previousBestAtRunEnd.solved;
   const isFirstRun = previousBestAtRunEnd === null;
+
+  // Award reward on mount (only once)
+  useEffect(() => {
+    if (rewardAwarded) return;
+
+    const baseCoins = solvedCount * 20;
+    const personalBestBonus = isPersonalBest && !isFirstRun ? 50 : 0;
+    const totalCoins = baseCoins + personalBestBonus;
+
+    const baseXp = solvedCount * 10;
+    const streakBonus = longestStreak >= 5 ? 50 : 0;
+    const totalXp = baseXp + streakBonus;
+
+    economy.earnCoins(totalCoins, 'time_attack_run');
+    economy.addXp(totalXp, 'time_attack_run');
+    setRewardAwarded(true);
+  }, [solvedCount, longestStreak, isPersonalBest, isFirstRun, economy, rewardAwarded]);
 
   const handleBackToHome = () => {
     onBackToHome();
@@ -125,10 +145,16 @@ export const EndScreen: React.FC<EndScreenProps> = ({
               {averageSolveMs !== null ? formatMs(averageSolveMs) : '—'}
             </span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-800">
             <span className="text-gray-600 dark:text-gray-400">Best Difficulty</span>
             <span className="font-mono font-semibold text-lg">
               {bestDifficulty ? bestDifficulty.charAt(0).toUpperCase() + bestDifficulty.slice(1) : '—'}
+            </span>
+          </div>
+          <div className="flex justify-between items-center pt-2">
+            <span className="text-gray-600 dark:text-gray-400">Earned</span>
+            <span className="font-mono font-semibold text-lg">
+              +{Math.round(solvedCount * 20 + (isPersonalBest && !isFirstRun ? 50 : 0))} coins
             </span>
           </div>
         </div>
