@@ -113,4 +113,89 @@ describe('useTimer', () => {
       expect(result.current.remainingMs).toBeLessThan(secondRemaining);
     });
   });
+
+  describe('pause and resume', () => {
+    it('pause() stops time accumulation', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(1000);
+      });
+
+      const afterFirstAdvance = result.current.remainingMs;
+
+      act(() => {
+        result.current.pause();
+      });
+
+      expect(result.current.isRunning).toBe(false);
+
+      // Advance time while paused
+      act(() => {
+        advanceTimeAndRAF(1000);
+      });
+
+      // Should not have advanced further
+      expect(result.current.remainingMs).toBe(afterFirstAdvance);
+    });
+
+    it('resume() continues from pause point without losing time', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(1000);
+      });
+
+      const beforePause = result.current.remainingMs;
+
+      act(() => {
+        result.current.pause();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(2000); // This time should not count
+      });
+
+      act(() => {
+        result.current.resume();
+      });
+
+      expect(result.current.isRunning).toBe(true);
+      expect(result.current.remainingMs).toBe(beforePause);
+
+      act(() => {
+        advanceTimeAndRAF(500);
+      });
+
+      expect(result.current.remainingMs).toBeCloseTo(beforePause - 500, 0);
+    });
+
+    it('pause() is a no-op if not running', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.pause();
+      });
+
+      expect(result.current.isRunning).toBe(false);
+    });
+
+    it('resume() is a no-op if not paused', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.resume();
+      });
+
+      expect(result.current.isRunning).toBe(false);
+    });
+  });
 });
