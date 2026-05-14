@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 export type CountdownOverlayProps = {
   /** Timestamp when countdown started (used to derive current count) */
@@ -23,6 +23,11 @@ export const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
   const [currentCount, setCurrentCount] = useState<number | null>(null);
   const [isVisible, setIsVisible] = useState(true);
 
+  // Wrap onComplete in useCallback to ensure stable dependency
+  const stableOnComplete = useCallback(() => {
+    onComplete?.();
+  }, [onComplete]);
+
   useEffect(() => {
     // Initial render: show current count
     const updateCountdown = () => {
@@ -31,7 +36,7 @@ export const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
       // Countdown duration: 3000ms
       if (elapsed >= 3000) {
         setIsVisible(false);
-        onComplete?.();
+        stableOnComplete();
         return;
       }
 
@@ -49,7 +54,7 @@ export const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
     return () => {
       cancelAnimationFrame(rafId);
     };
-  }, [startTime, onComplete]);
+  }, [startTime, stableOnComplete]);
 
   if (!isVisible || currentCount === null) {
     return null;

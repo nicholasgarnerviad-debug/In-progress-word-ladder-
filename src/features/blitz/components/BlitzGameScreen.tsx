@@ -23,6 +23,23 @@ export type BlitzGameScreenProps = {
  */
 export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) => {
   const room = useBlitzRoom();
+
+  // Validate required room functions are available
+  if (!room.postPuzzleResult || !room.updateMyState) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 text-lg font-semibold mb-2">
+            Configuration Error
+          </p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Unable to initialize game.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const game = useBlitzGame({
     room: room.room,
     me: room.me,
@@ -45,7 +62,7 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
 
   // Current player info
   const me = room.me;
-  const totalPuzzles = (room.room as any)?.puzzles?.length ?? 0;
+  const totalPuzzles = room.room?.puzzles?.length ?? 0;
   const currentPuzzleNum = game.currentPuzzleIndex + 1;
 
   // Handle puzzle solved
@@ -53,9 +70,9 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
     await game.reportSolved({ wrongAttempts: 0, hintsUsed: 0 });
   }, [game]);
 
-  // Handle wrong guess
+  // Handle wrong guess - puzzle board handles feedback internally
   const handleWrongGuess = useCallback(() => {
-    // Feedback only - puzzle board handles wrong guesses
+    // Feedback is handled by PuzzleBoard component
   }, []);
 
   // Handle skip puzzle
@@ -69,6 +86,23 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
     onGameEnd?.();
   }, [room, onGameEnd]);
 
+  // Error state
+  if (room.error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 text-lg font-semibold mb-2">
+            Game Error
+          </p>
+          <p className="text-gray-600 dark:text-gray-400">
+            {room.error.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
   if (!room.room || !me || !game.currentPuzzle) {
     return (
       <div className="flex items-center justify-center h-screen">

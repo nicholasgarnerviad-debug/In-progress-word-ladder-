@@ -31,8 +31,8 @@ describe('CountdownOverlay', () => {
         <CountdownOverlay startTime={Date.now()} onComplete={mockOnComplete} />
       );
 
-      // Simulate timer after 3 seconds
-      jest.useFakeTimers();
+      // Simulate timer after 3 seconds with modern timers to preserve RAF
+      jest.useFakeTimers('modern');
       jest.advanceTimersByTime(3500);
 
       // After advancing time, re-render should show null

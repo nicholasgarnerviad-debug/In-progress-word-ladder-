@@ -41,6 +41,7 @@ export interface BlitzMeta {
 export interface BlitzRoom {
   meta: BlitzMeta;
   players: Map<PlayerId, BlitzPlayer>;
+  puzzles: string[];
   currentPuzzleIndex: number;
   currentPhase: BlitzPhase;
 }

@@ -33,6 +33,7 @@ jest.mock('../../useBlitzRoom', () => ({
           },
         ],
       ]),
+      puzzles: ['start', 'end', 'middle'],
       currentPuzzleIndex: 0,
       currentPhase: 'playing',
     },
@@ -48,6 +49,9 @@ jest.mock('../../useBlitzRoom', () => ({
       wrongAt: [],
       hintsUsedAt: [],
     },
+    error: null,
+    postPuzzleResult: jest.fn(),
+    updateMyState: jest.fn(),
     endGame: jest.fn(),
   })),
 }));
@@ -79,6 +83,58 @@ jest.mock('../../../../components/PuzzleBoard', () => ({
 }));
 
 describe('BlitzGameScreen', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Reset mocks to default state
+    const { useBlitzTimer } = require('../../useBlitzTimer');
+    const { useBlitzRoom } = require('../../useBlitzRoom');
+    useBlitzTimer.mockReturnValue({
+      remainingMs: 45000,
+      isExpired: false,
+      isRunning: true,
+    });
+    useBlitzRoom.mockReturnValue({
+      room: {
+        meta: { roomCode: 'TEST123', wordLength: 5, difficulty: 'easy' },
+        players: new Map([
+          [
+            createPlayerId('p1'),
+            {
+              id: createPlayerId('p1'),
+              name: 'Player 1',
+              score: 100,
+              solved: 2,
+              wrong: 0,
+              hints: 0,
+              solvedAt: null,
+              wrongAt: [],
+              hintsUsedAt: [],
+            },
+          ],
+        ]),
+        puzzles: ['start', 'end', 'middle'],
+        currentPuzzleIndex: 0,
+        currentPhase: 'playing',
+      },
+      myPlayerId: createPlayerId('p1'),
+      me: {
+        id: createPlayerId('p1'),
+        name: 'Player 1',
+        score: 100,
+        solved: 2,
+        wrong: 0,
+        hints: 0,
+        solvedAt: null,
+        wrongAt: [],
+        hintsUsedAt: [],
+      },
+      error: null,
+      postPuzzleResult: jest.fn(),
+      updateMyState: jest.fn(),
+      endGame: jest.fn(),
+    });
+  });
+
   describe('timer display', () => {
     it('renders timer in MM:SS format', () => {
       render(<BlitzGameScreen />);
@@ -162,7 +218,23 @@ describe('BlitzGameScreen', () => {
       useBlitzRoom.mockReturnValue({
         room: {
           meta: { roomCode: 'TEST123', wordLength: 5, difficulty: 'easy' },
-          players: new Map(),
+          players: new Map([
+            [
+              createPlayerId('p1'),
+              {
+                id: createPlayerId('p1'),
+                name: 'Player 1',
+                score: 100,
+                solved: 2,
+                wrong: 0,
+                hints: 0,
+                solvedAt: null,
+                wrongAt: [],
+                hintsUsedAt: [],
+              },
+            ],
+          ]),
+          puzzles: ['start', 'end', 'middle'],
           currentPuzzleIndex: 0,
           currentPhase: 'playing',
         },
@@ -178,6 +250,9 @@ describe('BlitzGameScreen', () => {
           wrongAt: [],
           hintsUsedAt: [],
         },
+        error: null,
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
         endGame: mockEndGame,
       });
 
@@ -201,7 +276,8 @@ describe('BlitzGameScreen', () => {
     it('displays player name and puzzle progress', () => {
       render(<BlitzGameScreen />);
 
-      expect(screen.getByText('Player 1')).toBeInTheDocument();
+      expect(screen.getAllByText('Player 1')[0]).toBeInTheDocument();
+      expect(screen.getByText(/Puzzle 1\/\d+/)).toBeInTheDocument();
     });
   });
 });
