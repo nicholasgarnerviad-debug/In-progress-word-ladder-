@@ -30,6 +30,7 @@ export const CreateRoomForm: React.FC<CreateRoomFormProps> = ({
       durationMs: timerSeconds * 1000,
       difficulty,
       wordLength,
+      puzzleCount,
       timerTier: 'tier1', // Default tier, could be derived from duration
     };
 
