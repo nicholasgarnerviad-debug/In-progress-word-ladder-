@@ -79,7 +79,14 @@ export const EndScreen: React.FC<EndScreenProps> = ({
     const streakBonus = longestStreak >= 5 ? 50 : 0;
     const totalXp = baseXp + streakBonus;
 
-    economy.earnCoins(totalCoins, 'time_attack_run');
+    // Award coins for solving puzzles, plus bonus for personal best
+    if (solvedCount > 0) {
+      economy.earnCoins(solvedCount * 20, 'time_attack_solve');
+    }
+    if (isPersonalBest && !isFirstRun) {
+      economy.earnCoins(50, 'time_attack_personal_best');
+    }
+    // Award XP for time attack run
     economy.addXp(totalXp, 'time_attack_run');
     setRewardAwarded(true);
   }, [solvedCount, longestStreak, isPersonalBest, isFirstRun, economy, rewardAwarded]);
@@ -151,10 +158,16 @@ export const EndScreen: React.FC<EndScreenProps> = ({
               {bestDifficulty ? bestDifficulty.charAt(0).toUpperCase() + bestDifficulty.slice(1) : '—'}
             </span>
           </div>
-          <div className="flex justify-between items-center pt-2">
-            <span className="text-gray-600 dark:text-gray-400">Earned</span>
+          <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-800">
+            <span className="text-gray-600 dark:text-gray-400">Coins Earned</span>
             <span className="font-mono font-semibold text-lg">
-              +{Math.round(solvedCount * 20 + (isPersonalBest && !isFirstRun ? 50 : 0))} coins
+              +{Math.round(solvedCount * 20 + (isPersonalBest && !isFirstRun ? 50 : 0))}
+            </span>
+          </div>
+          <div className="flex justify-between items-center pt-2">
+            <span className="text-gray-600 dark:text-gray-400">XP Earned</span>
+            <span className="font-mono font-semibold text-lg">
+              +{Math.round(solvedCount * 10 + (longestStreak >= 5 ? 50 : 0))}
             </span>
           </div>
         </div>

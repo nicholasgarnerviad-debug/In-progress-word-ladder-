@@ -7,6 +7,10 @@ import { HomeButton } from './components/HomeButton';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
 import { useEconomy } from './lib/economy';
 
+const XP_REWARDS = {
+  puzzleSolve: { easy: 10, medium: 15, hard: 20 },
+};
+
 interface PuzzleRecord {
   puzzle: WordPuzzle;
   playerPath: string[];
@@ -17,7 +21,15 @@ interface PuzzleRecord {
 
 export const ClassicGame: React.FC = () => {
   const [resetKey, setResetKey] = useState(0);
-  const [puzzle, setPuzzle] = useState(() => generatePuzzleWithRetry(4, 'medium'));
+  const [puzzle, setPuzzle] = useState(() => generatePuzzleWithRetry(4, 'medium') || {
+    start: 'cat',
+    end: 'dog',
+    optimal: 3,
+    chain: ['cat', 'cot', 'cog', 'dog'],
+    lockedIndices: [],
+    extraRungs: 0,
+  });
+  const [puzzleDifficulty, setPuzzleDifficulty] = useState<Difficulty>('medium');
   const game = useGameState(puzzle);
   const [puzzleBoardKey, setPuzzleBoardKey] = useState(0);
 
@@ -40,6 +52,7 @@ export const ClassicGame: React.FC = () => {
   });
 
   const economy = useEconomy();
+  const xpAwardedRef = useRef(false);
 
   const [roundResult, setRoundResult] = useState<{
     type: 'won' | 'lost';
@@ -114,6 +127,23 @@ export const ClassicGame: React.FC = () => {
     }
   }, [game.state.phase, lastGamePhase, puzzle.optimal, game.state.history.length, game.state.failedSubmissions]);
 
+  // Award XP when game is won (single-fire guard prevents double-awarding)
+  useEffect(() => {
+    // Reset the guard if game is not in 'won' state
+    if (game.state.phase !== 'won') {
+      xpAwardedRef.current = false;
+      return;
+    }
+
+    // Guard: if already awarded, don't award again
+    if (xpAwardedRef.current) return;
+    xpAwardedRef.current = true;
+
+    // Award XP based on puzzle difficulty
+    const xpAmount = XP_REWARDS.puzzleSolve[puzzleDifficulty] || 10;
+    economy.addXp(xpAmount, `puzzle_solve_${puzzleDifficulty}`);
+  }, [game.state.phase, puzzleDifficulty, economy]);
+
   // Countdown effect - decrements every second
   useEffect(() => {
     if (countdown <= 0) return;
@@ -135,8 +165,10 @@ export const ClassicGame: React.FC = () => {
 
 
   const loadNewPuzzle = () => {
-    const newPuzzle = generatePuzzleWithRetry(4, 'medium');
+    const difficulty: Difficulty = 'medium';
+    const newPuzzle = generatePuzzleWithRetry(4, difficulty) || puzzle;
     setPuzzle(newPuzzle);
+    setPuzzleDifficulty(difficulty);
     setIsGameOver(false);
     setCountdown(-1);
     setResetKey(prev => prev + 1);
