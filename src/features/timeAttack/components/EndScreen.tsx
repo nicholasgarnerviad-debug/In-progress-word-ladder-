@@ -16,7 +16,8 @@ export type EndScreenProps = {
 };
 
 const formatMs = (ms: number): string => {
-  const totalSeconds = Math.floor(ms / 1000);
+  const validMs = Math.max(0, ms);
+  const totalSeconds = Math.floor(validMs / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -26,6 +27,8 @@ const getDurationLabel = (mode: TimeAttackMode, tier: DurationTier): string => {
   if (mode === 'sprint') {
     return `${tier}s`;
   } else {
+    // Survival tiers: 60=Short(45s), 90=Medium(75s), 120=Long(120s)
+    // Tier values are SHORT_DURATION constants; base times are determined by difficulty config
     const labels: Record<DurationTier, string> = { 60: 'Short (45s base)', 90: 'Medium (75s base)', 120: 'Long (120s base)' };
     return labels[tier] || `${tier}s`;
   }
@@ -33,13 +36,13 @@ const getDurationLabel = (mode: TimeAttackMode, tier: DurationTier): string => {
 
 const computeElapsedTime = (mode: TimeAttackMode, tier: DurationTier, timeRemainingMs: number): string => {
   if (mode === 'sprint') {
-    // Sprint: tier is total time, timeRemainingMs is what's left, so elapsed = tier*1000 - timeRemaining
+    // Sprint: tier is total time in seconds, timeRemainingMs is what's left on the timer
+    // Elapsed time = total tier duration - remaining time
     const elapsedMs = tier * 1000 - timeRemainingMs;
-    return formatMs(Math.max(0, elapsedMs));
+    return formatMs(elapsedMs);
   } else {
-    // Survival: timeRemainingMs is actual remaining time, so elapsed = initial - remaining
-    // We'd need initial base time, but for simplicity, we show what stats.ts calculates
-    // This will be passed from parent as calculated in endRun
+    // Survival: timeRemainingMs represents elapsed time (computed by parent as current time - runStartedAt)
+    // Parent is responsible for calculating actual elapsed duration and passing it here
     return formatMs(timeRemainingMs);
   }
 };
