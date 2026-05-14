@@ -69,7 +69,7 @@ export const HomePage: React.FC = () => {
           <ModeTile
             name="Time Attack"
             description="Race the clock. Max puzzles in 90 seconds."
-            comingSoon
+            to="/play/time-attack"
           />
         </div>
 
