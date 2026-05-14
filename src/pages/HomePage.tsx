@@ -63,6 +63,16 @@ export const HomePage: React.FC = () => {
             to="/play/classic"
           />
           <ModeTile
+            name="Blitz"
+            description="Race against others. Real-time competitive mode."
+            to="/blitz"
+          />
+          <ModeTile
+            name="Time Attack"
+            description="Race the clock. Max puzzles in 90 seconds."
+            to="/play/time-attack"
+          />
+          <ModeTile
             name="Daily Puzzle"
             description="One puzzle. Everyone plays the same one."
             comingSoon
@@ -71,11 +81,6 @@ export const HomePage: React.FC = () => {
             name="Endless"
             description="Solve as many as you can in a row."
             comingSoon
-          />
-          <ModeTile
-            name="Time Attack"
-            description="Race the clock. Max puzzles in 90 seconds."
-            to="/play/time-attack"
           />
         </div>
 
