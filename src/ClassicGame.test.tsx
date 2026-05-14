@@ -2,6 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ClassicGame } from './ClassicGame';
 import { useEconomy } from './lib/economy';
+import { useGameState } from './useGameState';
+import * as generatePuzzleModule from './generatePuzzle';
 
 jest.mock('./lib/economy', () => ({
   useEconomy: jest.fn(),
@@ -13,6 +15,14 @@ jest.mock('./components/PuzzleBoard', () => ({
 
 jest.mock('./components/HomeButton', () => ({
   HomeButton: () => <div>Home Button</div>,
+}));
+
+jest.mock('./useGameState', () => ({
+  useGameState: jest.fn(),
+}));
+
+jest.mock('./generatePuzzle', () => ({
+  generatePuzzleWithRetry: jest.fn(),
 }));
 
 describe('ClassicGame Power-ups with Inventory', () => {
@@ -29,9 +39,37 @@ describe('ClassicGame Power-ups with Inventory', () => {
     getCount: jest.fn(),
   };
 
+  const mockPuzzle = {
+    start: 'cat',
+    end: 'dog',
+    chain: ['cat', 'hat', 'hot', 'dot', 'dog'],
+    optimal: 5,
+    alternativePaths: null,
+  };
+
+  const mockGameState = {
+    state: {
+      history: [['c', 'a', 't'], ['h', 'a', 't']],  // Start with at least 2 moves for Undo to work
+      lives: 3,
+      currentInput: [],
+      selectedIdx: 0,
+      phase: 'playing' as const,
+      lastHintedIndex: null,
+      lastRevealedWord: null,
+      powerUpsUsed: { hints: 0, reveals: 0, undos: 0 },
+      failedSubmissions: 0,
+    },
+    applyHint: jest.fn(),
+    applyReveal: jest.fn(),
+    undoStep: jest.fn(),
+    submitWord: jest.fn(),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useEconomy as jest.Mock).mockReturnValue(mockEconomy);
+    (useGameState as jest.Mock).mockReturnValue(mockGameState);
+    (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock).mockReturnValue(mockPuzzle);
   });
 
   describe('Hint button behavior', () => {

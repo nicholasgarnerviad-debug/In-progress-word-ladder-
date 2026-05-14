@@ -85,7 +85,7 @@ export const ClassicGame: React.FC = () => {
         const mistakePenalty = mistakes * 20;
         const winReward = Math.max(20, efficiency - mistakePenalty);
 
-        economy.earnCoins(winReward, 'classic_win');
+        economy.earnCoins(winReward, 'classic_solve');
         setRoundResult({ type: 'won', coinsDelta: winReward });
 
         const wonRecord: PuzzleRecord = {
@@ -118,7 +118,9 @@ export const ClassicGame: React.FC = () => {
       }
 
       const newPuzzle = generatePuzzleWithRetry(4, 'medium');
-      setPuzzle(newPuzzle);
+      if (newPuzzle) {
+        setPuzzle(newPuzzle);
+      }
       setIsGameOver(true);
       setCountdown(3);
       setResetKey(prev => prev + 1);
@@ -190,36 +192,70 @@ export const ClassicGame: React.FC = () => {
   };
 
   const handleUseHint = () => {
-    if (economy.coins < 30 || game.state.phase !== 'playing') return;
+    const hintCount = economy.getCount('hint');
+    if (game.state.phase !== 'playing') return;
 
     const hintIndex = getHintIndex();
     if (hintIndex === null) return;
 
-    if (!economy.spend(30)) return;
+    if (hintCount > 0) {
+      // Use from inventory
+      economy.useItem('hint');
+    } else {
+      // Buy new hints (5-pack for 30 coins)
+      if (!economy.buyConsumable('hint', 30, 5)) {
+        return; // Not enough coins
+      }
+    }
+
     game.applyHint(hintIndex);
   };
 
   const handleRevealStep = () => {
-    if (economy.coins < 60 || game.state.phase !== 'playing') return;
+    const revealCount = economy.getCount('reveal_next_word');
+    if (game.state.phase !== 'playing') return;
     const currentWord = game.state.history[game.state.history.length - 1].join('');
     if (currentWord === puzzle.end) return;
     const path = shortestPath(currentWord, puzzle.end);
     if (!path || path.length < 2) return;
-    if (!economy.spend(60)) return;
+
+    if (revealCount > 0) {
+      // Use from inventory
+      economy.useItem('reveal_next_word');
+    } else {
+      // Buy new reveals (2-pack for 60 coins)
+      if (!economy.buyConsumable('reveal_next_word', 60, 2)) {
+        return; // Not enough coins
+      }
+    }
+
     game.applyReveal(path[1].split(''));
   };
 
   const handleResetCoins = () => {
     const difference = 150 - economy.coins;
     if (difference > 0) {
-      economy.earnCoins(difference, 'manual_reset');
+      economy.earnCoins(difference, 'admin_grant');
     }
   };
 
   const handleUndoStep = () => {
-    if (economy.coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing') return;
+    const undoCount = economy.getCount('undo_step');
+    if (game.state.phase !== 'playing') return;
 
-    if (!economy.spend(20)) return;
+    const historyLength = game.state.history.length;
+    if (historyLength <= 1) return;
+
+    if (undoCount > 0) {
+      // Use from inventory
+      economy.useItem('undo_step');
+    } else {
+      // Buy new undos (3-pack for 20 coins)
+      if (!economy.buyConsumable('undo_step', 20, 3)) {
+        return; // Not enough coins
+      }
+    }
+
     game.undoStep();
   };
 
@@ -481,39 +517,73 @@ export const ClassicGame: React.FC = () => {
 
         {/* Power-ups */}
         <div className="flex gap-2 mb-4">
-          <button
-            onClick={handleUseHint}
-            disabled={economy.coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null}
-            className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
-              economy.coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null
-                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
-                : 'bg-amber-400 text-amber-900 hover:bg-amber-500'
-            }`}
-          >
-            Hint (30◎)
-          </button>
-          <button
-            onClick={handleRevealStep}
-            disabled={economy.coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null}
-            className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
-              economy.coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null
-                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
-                : 'bg-cyan-400 text-cyan-900 hover:bg-cyan-500'
-            }`}
-          >
-            Reveal (60◎)
-          </button>
-          <button
-            onClick={handleUndoStep}
-            disabled={economy.coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'}
-            className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
-              economy.coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'
-                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
-                : 'bg-purple-400 text-purple-900 hover:bg-purple-500'
-            }`}
-          >
-            Undo (20◎)
-          </button>
+          {/* Hint button */}
+          {(() => {
+            const hintCount = economy.getCount('hint');
+            const canUseHint = hintCount > 0 && game.state.phase === 'playing' && game.state.lastHintedIndex === null;
+            const canBuyHint = economy.coins >= 30 && game.state.phase === 'playing' && game.state.lastHintedIndex === null;
+
+            return (
+              <button
+                onClick={handleUseHint}
+                disabled={!canUseHint && !canBuyHint}
+                className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
+                  !canUseHint && !canBuyHint
+                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
+                    : canUseHint
+                      ? 'bg-amber-400 text-amber-900 hover:bg-amber-500'
+                      : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200'
+                }`}
+              >
+                Hint {hintCount > 0 ? `(${hintCount})` : '(30◎)'}
+              </button>
+            );
+          })()}
+
+          {/* Reveal button */}
+          {(() => {
+            const revealCount = economy.getCount('reveal_next_word');
+            const canUseReveal = revealCount > 0 && game.state.phase === 'playing' && game.state.lastRevealedWord === null;
+            const canBuyReveal = economy.coins >= 60 && game.state.phase === 'playing' && game.state.lastRevealedWord === null;
+
+            return (
+              <button
+                onClick={handleRevealStep}
+                disabled={!canUseReveal && !canBuyReveal}
+                className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
+                  !canUseReveal && !canBuyReveal
+                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
+                    : canUseReveal
+                      ? 'bg-cyan-400 text-cyan-900 hover:bg-cyan-500'
+                      : 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-200'
+                }`}
+              >
+                Reveal {revealCount > 0 ? `(${revealCount})` : '(60◎)'}
+              </button>
+            );
+          })()}
+          {/* Undo button */}
+          {(() => {
+            const undoCount = economy.getCount('undo_step');
+            const canUseUndo = undoCount > 0 && game.state.history.length > 1 && game.state.phase === 'playing';
+            const canBuyUndo = economy.coins >= 20 && game.state.history.length > 1 && game.state.phase === 'playing';
+
+            return (
+              <button
+                onClick={handleUndoStep}
+                disabled={!canUseUndo && !canBuyUndo}
+                className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
+                  !canUseUndo && !canBuyUndo
+                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
+                    : canUseUndo
+                      ? 'bg-purple-400 text-purple-900 hover:bg-purple-500'
+                      : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200'
+                }`}
+              >
+                Undo {undoCount > 0 ? `(${undoCount})` : '(20◎)'}
+              </button>
+            );
+          })()}
         </div>
       </div>
     </div>
