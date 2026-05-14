@@ -6,6 +6,7 @@ import { WordPuzzle } from './generatePuzzle';
 import { PuzzleBoard } from './components/PuzzleBoard';
 import { HomeButton } from './components/HomeButton';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
+import { useEconomy } from './lib/economy';
 
 // Helper: Generate puzzle with retry logic. Falls back to easier difficulty if generation fails.
 function generatePuzzleWithRetry(wordLength: number, difficulty: Difficulty): WordPuzzle {
@@ -69,19 +70,12 @@ export const ClassicGame: React.FC = () => {
     return localStorage.getItem('wordladder-dark') === 'true';
   });
 
-  const [coins, setCoins] = useState<number>(() => {
-    const saved = localStorage.getItem('wordladder-coins');
-    return saved ? parseInt(saved, 10) : 150;
-  });
+  const economy = useEconomy();
 
   const [roundResult, setRoundResult] = useState<{
     type: 'won' | 'lost';
     coinsDelta: number;
   } | null>(null);
-
-  useEffect(() => {
-    localStorage.setItem('wordladder-coins', String(coins));
-  }, [coins]);
 
   useEffect(() => {
     localStorage.setItem('wordladder-records', JSON.stringify(puzzleRecords));
@@ -109,7 +103,7 @@ export const ClassicGame: React.FC = () => {
         const mistakePenalty = mistakes * 20;
         const winReward = Math.max(20, efficiency - mistakePenalty);
 
-        setCoins(prev => prev + winReward);
+        economy.earnCoins(winReward, 'classic_win');
         setRoundResult({ type: 'won', coinsDelta: winReward });
 
         const wonRecord: PuzzleRecord = {
@@ -125,7 +119,7 @@ export const ClassicGame: React.FC = () => {
         saveStats(stats);
       } else {
         const lossPenalty = 50;
-        setCoins(prev => Math.max(0, prev - lossPenalty));
+        economy.spend(lossPenalty);
         setRoundResult({ type: 'lost', coinsDelta: -lossPenalty });
 
         const lostRecord: PuzzleRecord = {
@@ -194,33 +188,36 @@ export const ClassicGame: React.FC = () => {
   };
 
   const handleUseHint = () => {
-    if (coins < 30 || game.state.phase !== 'playing') return;
+    if (economy.coins < 30 || game.state.phase !== 'playing') return;
 
     const hintIndex = getHintIndex();
     if (hintIndex === null) return;
 
-    setCoins(prev => prev - 30);
+    if (!economy.spend(30)) return;
     game.applyHint(hintIndex);
   };
 
   const handleRevealStep = () => {
-    if (coins < 60 || game.state.phase !== 'playing') return;
+    if (economy.coins < 60 || game.state.phase !== 'playing') return;
     const currentWord = game.state.history[game.state.history.length - 1].join('');
     if (currentWord === puzzle.end) return;
     const path = shortestPath(currentWord, puzzle.end);
     if (!path || path.length < 2) return;
-    setCoins(prev => prev - 60);
+    if (!economy.spend(60)) return;
     game.applyReveal(path[1].split(''));
   };
 
   const handleResetCoins = () => {
-    setCoins(150);
+    const difference = 150 - economy.coins;
+    if (difference > 0) {
+      economy.earnCoins(difference, 'manual_reset');
+    }
   };
 
   const handleUndoStep = () => {
-    if (coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing') return;
+    if (economy.coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing') return;
 
-    setCoins(prev => prev - 20);
+    if (!economy.spend(20)) return;
     game.undoStep();
   };
 
@@ -250,7 +247,7 @@ export const ClassicGame: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-1">
             <span className="text-2xl">◎</span>
-            <span className="text-lg font-bold text-gray-800 dark:text-gray-100">{coins}</span>
+            <span className="text-lg font-bold text-gray-800 dark:text-gray-100">{economy.coins}</span>
           </div>
           <div className="flex gap-1">
             {[0, 1, 2].map(i => (
@@ -484,9 +481,9 @@ export const ClassicGame: React.FC = () => {
         <div className="flex gap-2 mb-4">
           <button
             onClick={handleUseHint}
-            disabled={coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null}
+            disabled={economy.coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null}
             className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
-              coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null
+              economy.coins < 30 || game.state.phase !== 'playing' || game.state.lastHintedIndex !== null
                 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-amber-400 text-amber-900 hover:bg-amber-500'
             }`}
@@ -495,9 +492,9 @@ export const ClassicGame: React.FC = () => {
           </button>
           <button
             onClick={handleRevealStep}
-            disabled={coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null}
+            disabled={economy.coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null}
             className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
-              coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null
+              economy.coins < 60 || game.state.phase !== 'playing' || game.state.lastRevealedWord !== null
                 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-cyan-400 text-cyan-900 hover:bg-cyan-500'
             }`}
@@ -506,9 +503,9 @@ export const ClassicGame: React.FC = () => {
           </button>
           <button
             onClick={handleUndoStep}
-            disabled={coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'}
+            disabled={economy.coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'}
             className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
-              coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'
+              economy.coins < 20 || game.state.history.length <= 1 || game.state.phase !== 'playing'
                 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-purple-400 text-purple-900 hover:bg-purple-500'
             }`}
