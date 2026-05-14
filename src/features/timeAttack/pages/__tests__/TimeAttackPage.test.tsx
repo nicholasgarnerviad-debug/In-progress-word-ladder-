@@ -28,6 +28,7 @@ describe('TimeAttackPage', () => {
     runStartedAt: null,
     solveTimings: [],
     lastSolveStartedAt: null,
+    previousBestAtRunEnd: null,
     chooseMode: jest.fn(),
     chooseTier: jest.fn(),
     backToModeSelect: jest.fn(),
@@ -70,7 +71,7 @@ describe('TimeAttackPage', () => {
     expect(screen.getByText('Streak')).toBeInTheDocument();
   });
 
-  it('renders ResultsScreen when phase is ended', () => {
+  it('renders EndScreen when phase is ended', () => {
     (useTimeAttackModule.useTimeAttack as jest.Mock).mockReturnValue({
       ...mockState,
       phase: 'ended' as const,
@@ -80,10 +81,12 @@ describe('TimeAttackPage', () => {
       longestStreak: 3,
       bestDifficulty: 'hard' as const,
       runStartedAt: performance.now() - 30000,
+      previousBestAtRunEnd: null,
     });
 
     renderWithRouter(<TimeAttackPage />);
-    expect(screen.getByText(/Run Complete/i)).toBeInTheDocument();
+    expect(screen.getByText('Puzzles Solved')).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument();
   });
 
   it('sets document title', () => {

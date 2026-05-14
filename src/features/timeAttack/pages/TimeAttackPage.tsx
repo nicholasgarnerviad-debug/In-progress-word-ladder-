@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useTimeAttack } from '../useTimeAttack';
 import { SetupScreen } from '../components/SetupScreen';
 import { PlayScreen } from '../components/PlayScreen';
-import { ResultsScreen } from '../components/ResultsScreen';
+import { EndScreen } from '../components/EndScreen';
 
 export const TimeAttackPage: React.FC = () => {
   const state = useTimeAttack();
@@ -40,18 +40,19 @@ export const TimeAttackPage: React.FC = () => {
       )}
 
       {state.phase === 'ended' && (
-        <ResultsScreen
+        <EndScreen
           mode={state.mode!}
           tier={state.tier!}
           solvedCount={state.solvedCount}
           longestStreak={state.longestStreak}
-          timeTakenMs={state.runStartedAt ? performance.now() - state.runStartedAt : 0}
+          timeRemainingMs={state.timeRemainingMs}
           averageSolveMs={
             state.solveTimings.length > 0
               ? Math.round(state.solveTimings.reduce((a, b) => a + b, 0) / state.solveTimings.length)
               : null
           }
           bestDifficulty={state.bestDifficulty}
+          previousBestAtRunEnd={state.previousBestAtRunEnd}
           onPlayAgain={state.playAgain}
           onBackToHome={state.reset}
         />
