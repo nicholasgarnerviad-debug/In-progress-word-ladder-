@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { useBlitzRoom } from '../useBlitzRoom';
+import { useEconomy } from '../../../lib/economy';
+import { calculateBlitzCoins, calculateBlitzXP } from '../economy';
 import type { BlitzPlayer, PlayerId } from '../types';
 
 export type BlitzResultsScreenProps = {
@@ -27,10 +29,14 @@ export type BlitzResultsScreenProps = {
 export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): React.ReactElement | null => {
   const navigate = useNavigate();
   const room = useBlitzRoom();
+  const economy = useEconomy();
 
   const [showConfetti, setShowConfetti] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [earnedCoins, setEarnedCoins] = useState(0);
+  const [earnedXP, setEarnedXP] = useState(0);
+  const [leveledUp, setLeveledUp] = useState(false);
 
   // Ref to track current room without causing re-renders
   const roomRef = useRef(room);
@@ -46,6 +52,36 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Calculate and apply economy rewards on mount
+  useEffect(() => {
+    if (!room.room || !room.me) return;
+
+    const coins = calculateBlitzCoins({
+      solved: room.me.solved,
+      wrong: room.me.wrong,
+      hints: room.me.hints,
+      score: room.me.score,
+      difficulty: room.room.meta.difficulty,
+    });
+
+    const xp = calculateBlitzXP({
+      solved: room.me.solved,
+      wrong: room.me.wrong,
+      hints: room.me.hints,
+      score: room.me.score,
+      difficulty: room.room.meta.difficulty,
+    });
+
+    // Apply rewards
+    economy.earnCoins(coins, 'blitz_win');
+    const xpResult = economy.addXp(xp, 'blitz_win');
+
+    // Store for display
+    setEarnedCoins(coins);
+    setEarnedXP(xp);
+    setLeveledUp(xpResult.leveledUp);
+  }, [room.room, room.me, economy]);
 
   // Get current player's final rank
   const finalRank = useMemo(() => {
@@ -256,6 +292,26 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Earnings Summary */}
+        <div className="mt-8 rounded-lg bg-blue-50 dark:bg-blue-900 p-6">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">Earnings Summary</h3>
+          <div className="flex gap-8 flex-wrap">
+            <div className="coin-reward flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-100">
+              <span>💰</span>
+              <span>+{earnedCoins} coins</span>
+            </div>
+            <div className="xp-reward flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-100">
+              <span>⭐</span>
+              <span>+{earnedXP} XP</span>
+            </div>
+          </div>
+          {leveledUp && (
+            <div className="mt-4 p-3 rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 font-semibold">
+              🎉 Congratulations! You reached level {economy.level}!
+            </div>
+          )}
         </div>
 
         {/* Button group */}

@@ -1,13 +1,4 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { BlitzResultsScreen } from '../BlitzResultsScreen';
-import { useBlitzRoom } from '../../useBlitzRoom';
-import { useNavigate } from 'react-router-dom';
-import type { BlitzRoom, BlitzPlayer, PlayerId } from '../../types';
-import { createPlayerId, createRoomCode } from '../../types';
-
-// Mock react-confetti
+// Mock setup must come before imports
 jest.mock('react-confetti', () => {
   return {
     __esModule: true,
@@ -22,12 +13,27 @@ jest.mock('react-confetti', () => {
   };
 });
 
-// Mock hooks
 jest.mock('../../useBlitzRoom');
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: jest.fn(),
 }));
+
+const mockUseEconomy = jest.fn();
+jest.mock('../../../../lib/economy', () => ({
+  ...jest.requireActual('../../../../lib/economy'),
+  useEconomy: mockUseEconomy,
+}));
+
+// Now we can import
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import { BlitzResultsScreen } from '../BlitzResultsScreen';
+import { useBlitzRoom } from '../../useBlitzRoom';
+import { useNavigate } from 'react-router-dom';
+import type { BlitzRoom, BlitzPlayer, PlayerId } from '../../types';
+import { createPlayerId, createRoomCode } from '../../types';
 
 const mockUseBlitzRoom = useBlitzRoom as jest.MockedFunction<typeof useBlitzRoom>;
 const mockUseNavigate = useNavigate as jest.MockedFunction<typeof useNavigate>;
@@ -116,6 +122,19 @@ describe('BlitzResultsScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseNavigate.mockReturnValue(mockNavigate);
+    // Default economy hook mock
+    mockUseEconomy.mockReturnValue({
+      coins: 100,
+      xp: 50,
+      level: 1,
+      inventory: {},
+      earnCoins: jest.fn(),
+      spend: jest.fn(),
+      addXp: jest.fn(() => ({ leveledUp: false, rewards: [] })),
+      buyConsumable: jest.fn(),
+      useItem: jest.fn(),
+      getCount: jest.fn(),
+    });
   });
 
   describe('rendering', () => {
@@ -773,6 +792,270 @@ describe('BlitzResultsScreen', () => {
       const mainContainer = container.querySelector('[data-testid="results-container"]');
       expect(mainContainer).toBeInTheDocument();
       expect(mainContainer).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
+    });
+  });
+
+  describe('economy rewards', () => {
+    it('should call economy hook with correct coins on mount', async () => {
+      const mockEarnCoins = jest.fn();
+      const mockAddXp = jest.fn(() => ({ leveledUp: false, rewards: [] }));
+
+      mockUseEconomy.mockReturnValue({
+        coins: 100,
+        xp: 50,
+        level: 1,
+        inventory: {},
+        earnCoins: mockEarnCoins,
+        spend: jest.fn(),
+        addXp: mockAddXp,
+        buyConsumable: jest.fn(),
+        useItem: jest.fn(),
+        getCount: jest.fn(),
+      });
+
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId1,
+        me: mockPlayer1,
+        isHost: true,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      render(
+        <BrowserRouter>
+          <BlitzResultsScreen />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(mockEarnCoins).toHaveBeenCalled();
+      });
+    });
+
+    it('should call economy hook with correct XP on mount', async () => {
+      const mockEarnCoins = jest.fn();
+      const mockAddXp = jest.fn(() => ({ leveledUp: false, rewards: [] }));
+
+      mockUseEconomy.mockReturnValue({
+        coins: 100,
+        xp: 50,
+        level: 1,
+        inventory: {},
+        earnCoins: mockEarnCoins,
+        spend: jest.fn(),
+        addXp: mockAddXp,
+        buyConsumable: jest.fn(),
+        useItem: jest.fn(),
+        getCount: jest.fn(),
+      });
+
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId1,
+        me: mockPlayer1,
+        isHost: true,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      render(
+        <BrowserRouter>
+          <BlitzResultsScreen />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(mockAddXp).toHaveBeenCalled();
+      });
+    });
+
+    it('should display Earnings Summary section', () => {
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId1,
+        me: mockPlayer1,
+        isHost: true,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      render(
+        <BrowserRouter>
+          <BlitzResultsScreen />
+        </BrowserRouter>
+      );
+
+      expect(screen.getByText(/Earnings Summary/i)).toBeInTheDocument();
+    });
+
+    it('should display coins earned with coin icon', () => {
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId1,
+        me: mockPlayer1,
+        isHost: true,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      render(
+        <BrowserRouter>
+          <BlitzResultsScreen />
+        </BrowserRouter>
+      );
+
+      // Should display coins earned text with coin emoji
+      expect(screen.getByText(/coins/i)).toBeInTheDocument();
+    });
+
+    it('should display XP earned with XP icon', () => {
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId1,
+        me: mockPlayer1,
+        isHost: true,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      render(
+        <BrowserRouter>
+          <BlitzResultsScreen />
+        </BrowserRouter>
+      );
+
+      // Should display XP earned text with star emoji
+      expect(screen.getByText(/XP/i)).toBeInTheDocument();
+    });
+
+    it('should show "New Level!" message when leveledUp is true', async () => {
+      const mockAddXp = jest.fn(() => ({ leveledUp: true, rewards: [] }));
+
+      mockUseEconomy.mockReturnValue({
+        coins: 100,
+        xp: 150,
+        level: 2,
+        inventory: {},
+        earnCoins: jest.fn(),
+        spend: jest.fn(),
+        addXp: mockAddXp,
+        buyConsumable: jest.fn(),
+        useItem: jest.fn(),
+        getCount: jest.fn(),
+      });
+
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId1,
+        me: mockPlayer1,
+        isHost: true,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      render(
+        <BrowserRouter>
+          <BlitzResultsScreen />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/Congratulations!.*level/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should have animation classes on earnings elements', () => {
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId1,
+        me: mockPlayer1,
+        isHost: true,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      const { container } = render(
+        <BrowserRouter>
+          <BlitzResultsScreen />
+        </BrowserRouter>
+      );
+
+      const coinRewardDiv = container.querySelector('.coin-reward');
+      const xpRewardDiv = container.querySelector('.xp-reward');
+
+      expect(coinRewardDiv).toBeInTheDocument();
+      expect(xpRewardDiv).toBeInTheDocument();
     });
   });
 });
