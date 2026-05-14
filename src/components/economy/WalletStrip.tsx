@@ -16,26 +16,34 @@ export function WalletStrip({ compact = false, linkToProfile = true }: WalletStr
   const progress = xpProgressInLevel(xp);
   const toNext = xpToNextLevel(xp);
 
-  const handleClick = linkToProfile ? () => navigate('/profile') : undefined;
+  const baseClassName = [
+    'w-full text-left flex items-center gap-4 rounded-lg border border-gray-200 dark:border-gray-800',
+    compact ? 'px-3 py-2' : 'px-4 py-3',
+  ].join(' ');
 
-  const Wrapper = linkToProfile ? 'button' : 'div';
-
-  return (
-    <Wrapper
-      onClick={handleClick}
-      className={[
-        'w-full text-left flex items-center gap-4 rounded-lg border border-gray-200 dark:border-gray-800',
-        compact ? 'px-3 py-2' : 'px-4 py-3',
-        linkToProfile
-          ? 'hover:bg-gray-50 dark:hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition cursor-pointer'
-          : '',
-      ].join(' ')}
-      aria-label={linkToProfile ? 'Open profile' : undefined}
-    >
+  const contentElement = (
+    <>
       <CoinDisplay coins={coins} compact={compact} />
       <LevelDisplay level={level} xpToNext={toNext} progress={progress} compact={compact} />
-    </Wrapper>
+    </>
   );
+
+  if (linkToProfile) {
+    return (
+      <button
+        onClick={() => navigate('/profile')}
+        className={[
+          baseClassName,
+          'hover:bg-gray-50 dark:hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition cursor-pointer',
+        ].join(' ')}
+        aria-label="Open profile"
+      >
+        {contentElement}
+      </button>
+    );
+  }
+
+  return <div className={baseClassName}>{contentElement}</div>;
 }
 
 function CoinDisplay({ coins, compact }: { coins: number; compact: boolean }) {

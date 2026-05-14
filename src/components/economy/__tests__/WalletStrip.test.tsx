@@ -1,10 +1,15 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { WalletStrip } from '../WalletStrip';
 import { useEconomy } from '../../../lib/economy/useEconomy';
 
 jest.mock('../../../lib/economy/useEconomy');
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: jest.fn(),
+}));
 
 describe('WalletStrip', () => {
   beforeEach(() => {
@@ -168,5 +173,108 @@ describe('WalletStrip', () => {
     // The coin number should be somewhere in the document
     const allText = coinContainer?.textContent || '';
     expect(allText).toMatch(/1/);
+  });
+
+  // Edge case tests
+  it('handles zero coins state correctly', () => {
+    (useEconomy as jest.Mock).mockReturnValue({
+      coins: 0,
+      xp: 150,
+      level: 1,
+      inventory: {},
+    });
+    render(
+      <BrowserRouter>
+        <WalletStrip />
+      </BrowserRouter>
+    );
+    expect(screen.getByText('0')).toBeInTheDocument();
+  });
+
+  it('handles zero XP state at level 1 (0% progress)', () => {
+    (useEconomy as jest.Mock).mockReturnValue({
+      coins: 500,
+      xp: 0,
+      level: 1,
+      inventory: {},
+    });
+    const { container } = render(
+      <BrowserRouter>
+        <WalletStrip />
+      </BrowserRouter>
+    );
+    // Progress bar should be at 0%
+    const progressFill = container.querySelector('[style*="width"]') as HTMLElement;
+    expect(progressFill).toBeInTheDocument();
+    expect(progressFill.style.width).toBe('0%');
+  });
+
+  it('handles near level-up state (high XP progress)', () => {
+    (useEconomy as jest.Mock).mockReturnValue({
+      coins: 500,
+      xp: 299, // High XP value approaching next level
+      level: 1,
+      inventory: {},
+    });
+    const { container } = render(
+      <BrowserRouter>
+        <WalletStrip />
+      </BrowserRouter>
+    );
+    // Progress bar should be at high percentage (99%+)
+    const progressFill = container.querySelector('[style*="width"]') as HTMLElement;
+    expect(progressFill).toBeInTheDocument();
+    const widthValue = parseInt(progressFill.style.width);
+    expect(widthValue).toBeGreaterThan(95); // Should be 99% or more
+  });
+
+  it('does not render onClick handler when linkToProfile is false', () => {
+    render(
+      <BrowserRouter>
+        <WalletStrip linkToProfile={false} />
+      </BrowserRouter>
+    );
+    // Should render as a div, not a button
+    const div = screen.queryByRole('button');
+    expect(div).not.toBeInTheDocument();
+  });
+
+  it('does not render aria-label when linkToProfile is false', () => {
+    const { container } = render(
+      <BrowserRouter>
+        <WalletStrip linkToProfile={false} />
+      </BrowserRouter>
+    );
+    // Should not have aria-label on the div
+    const outerDiv = container.firstChild as HTMLElement;
+    expect(outerDiv.getAttribute('aria-label')).toBeNull();
+  });
+
+  it('calls navigate with /profile when button is clicked', () => {
+    const mockNavigate = jest.fn();
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+
+    render(
+      <BrowserRouter>
+        <WalletStrip linkToProfile={true} />
+      </BrowserRouter>
+    );
+
+    const button = screen.getByRole('button', { name: /Open profile/i });
+    fireEvent.click(button);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/profile');
+  });
+
+  it('does not render aria-label on div element when linkToProfile is false', () => {
+    const { container } = render(
+      <BrowserRouter>
+        <WalletStrip linkToProfile={false} />
+      </BrowserRouter>
+    );
+    // Get the root wrapper element
+    const wrapper = container.querySelector('.w-full') as HTMLElement;
+    expect(wrapper.tagName.toLowerCase()).toBe('div');
+    expect(wrapper.getAttribute('aria-label')).toBeNull();
   });
 });
