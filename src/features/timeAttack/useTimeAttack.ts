@@ -116,7 +116,8 @@ function timeAttackReducer(state: TimeAttackState, action: ReducerAction): TimeA
       };
 
     case 'REPORT_SOLVED': {
-      const timeTaken = action.currentTime - state.lastSolveStartedAt!;
+      if (!state.lastSolveStartedAt) return state;
+      const timeTaken = action.currentTime - state.lastSolveStartedAt;
       const newTimings = [...state.solveTimings, timeTaken];
       const newStreak = state.currentStreak + 1;
       const newLongestStreak = Math.max(state.longestStreak, newStreak);
@@ -283,7 +284,7 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
         );
       }
     }
-  }, [state, generateNextPuzzle, timer]);
+  }, [state.phase, state.currentPuzzle, state.mode, state.currentDifficulty, state.runStartedAt, state.currentPuzzleIndex, generateNextPuzzle, timer]);
 
   const skipPuzzle = useCallback(() => {
     if (state.phase !== 'playing' || !state.mode || !state.tier) {
@@ -302,7 +303,7 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
         dispatch({ type: 'SKIP_PUZZLE', puzzle: nextPuzzle, nextIndex });
       }
     }
-  }, [state, generateNextPuzzle, timer]);
+  }, [state.phase, state.mode, state.tier, state.freeSkipsRemaining, state.runStartedAt, state.currentPuzzleIndex, generateNextPuzzle, timer]);
 
   const endRun = useCallback(() => {
     if (state.phase !== 'playing') {
@@ -330,7 +331,7 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
     const stats = loadStats();
     const updatedStats = recordRun(stats, summary);
     saveStats(updatedStats);
-  }, [state, timer]);
+  }, [state.phase, state.mode, state.tier, state.solvedCount, state.longestStreak, state.runStartedAt, state.bestDifficulty, state.solveTimings, timer]);
 
   const playAgain = useCallback(() => {
     dispatch({ type: 'PLAY_AGAIN' });
