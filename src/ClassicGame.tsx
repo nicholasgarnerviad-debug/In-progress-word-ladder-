@@ -1,10 +1,40 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { generatePuzzle } from './generatePuzzle';
+import { generatePuzzle, Difficulty } from './generatePuzzle';
 import { shortestPath } from './wordGraph';
 import { useGameState } from './useGameState';
 import { WordPuzzle } from './generatePuzzle';
 import { PuzzleBoard } from './components/PuzzleBoard';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
+
+// Helper: Generate puzzle with retry logic. Falls back to easier difficulty if generation fails.
+function generatePuzzleWithRetry(wordLength: number, difficulty: Difficulty): WordPuzzle {
+  const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
+  const startIdx = difficulties.indexOf(difficulty);
+
+  for (let diffIdx = startIdx; diffIdx < difficulties.length; diffIdx++) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const seed = `${Date.now()}-${Math.random()}-attempt${attempt}`;
+        return generatePuzzle(wordLength, difficulties[diffIdx], seed);
+      } catch {
+        // Try next attempt
+      }
+    }
+  }
+
+  // Last resort: try easy difficulty from scratch
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const seed = `${Date.now()}-${Math.random()}-fallback${attempt}`;
+      return generatePuzzle(wordLength, 'easy', seed);
+    } catch {
+      // Keep trying
+    }
+  }
+
+  // This should never happen for 4-letter words (they have 90% connectivity)
+  throw new Error(`Failed to generate puzzle after all retry attempts`);
+}
 
 interface PuzzleRecord {
   puzzle: WordPuzzle;
@@ -16,7 +46,7 @@ interface PuzzleRecord {
 
 export const ClassicGame: React.FC = () => {
   const [resetKey, setResetKey] = useState(0);
-  const [puzzle, setPuzzle] = useState(() => generatePuzzle(4, 'medium'));
+  const [puzzle, setPuzzle] = useState(() => generatePuzzleWithRetry(4, 'medium'));
   const game = useGameState(puzzle);
   const [puzzleBoardKey, setPuzzleBoardKey] = useState(0);
 
@@ -110,7 +140,7 @@ export const ClassicGame: React.FC = () => {
         saveStats(stats);
       }
 
-      const newPuzzle = generatePuzzle(4, 'medium');
+      const newPuzzle = generatePuzzleWithRetry(4, 'medium');
       setPuzzle(newPuzzle);
       setIsGameOver(true);
       setCountdown(3);
@@ -141,7 +171,7 @@ export const ClassicGame: React.FC = () => {
 
 
   const loadNewPuzzle = () => {
-    const newPuzzle = generatePuzzle(4, 'medium');
+    const newPuzzle = generatePuzzleWithRetry(4, 'medium');
     setPuzzle(newPuzzle);
     setIsGameOver(false);
     setCountdown(-1);
