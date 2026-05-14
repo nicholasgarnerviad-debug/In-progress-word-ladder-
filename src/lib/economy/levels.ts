@@ -2,20 +2,22 @@
  * Level math module for the economy system.
  * Returns the level for a given total XP.
  * Level 1 is the floor (0 XP = level 1).
- * Level N requires cumulative XP of `100 * N * (N+1) / 2`.
+ * Level N requires cumulative XP of `XP_PER_LEVEL_UNIT * N * (N+1) / 2`.
  *
- * Formula: S = 100 * N * (N+1) / 2
- * Solving for N: N = (-1 + sqrt(1 + 8*S/100)) / 2, then floor
+ * Formula: S = XP_PER_LEVEL_UNIT * N * (N+1) / 2
+ * Solving for N: N = (-1 + sqrt(1 + 8*S/XP_PER_LEVEL_UNIT)) / 2, then floor
  */
+
+const XP_PER_LEVEL_UNIT = 100;
 
 export function computeLevel(xp: number): number {
   if (xp < 0) {
     return 1;
   }
-  // Quadratic formula to invert cumulative XP: S = 100 * N * (N+1) / 2
-  // Solve: 100*N^2 + 100*N - 2*S = 0
-  // N = (-1 + sqrt(1 + 8*S/100)) / 2
-  const level = Math.floor((-1 + Math.sqrt(1 + (8 * xp) / 100)) / 2);
+  // Quadratic formula to invert cumulative XP: S = XP_PER_LEVEL_UNIT * N * (N+1) / 2
+  // Solve: XP_PER_LEVEL_UNIT*N^2 + XP_PER_LEVEL_UNIT*N - 2*S = 0
+  // N = (-1 + sqrt(1 + 8*S/XP_PER_LEVEL_UNIT)) / 2
+  const level = Math.floor((-1 + Math.sqrt(1 + (8 * xp) / XP_PER_LEVEL_UNIT)) / 2);
   return Math.max(1, level);
 }
 
@@ -32,7 +34,7 @@ export function xpRequiredForLevel(level: number): number {
   if (level <= 1) {
     return 0;
   }
-  return (100 * level * (level + 1)) / 2;
+  return (XP_PER_LEVEL_UNIT * level * (level + 1)) / 2;
 }
 
 /**

@@ -4,6 +4,7 @@ import type { Wallet, AddXpResult } from './wallet';
 import { loadInventory, saveInventory, addConsumable, useConsumable, getConsumableCount } from './inventory';
 import type { Inventory } from './inventory';
 import { ConsumableType } from './shop';
+import type { CoinSource, XpSource } from './types';
 
 export interface EconomyState {
   coins: number;
@@ -26,9 +27,9 @@ export function useEconomy() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const earnCoins = useCallback((amount: number, source: string) => {
+  const earnCoins = useCallback((amount: number, source: CoinSource) => {
     const current = loadWallet();
-    const updated = walletEarnCoins(current, amount, source as any);
+    const updated = walletEarnCoins(current, amount, source);
     saveWallet(updated);
     setWallet(updated);
   }, []);
@@ -44,9 +45,9 @@ export function useEconomy() {
     return true;
   }, []);
 
-  const addXp = useCallback((amount: number, source: string): AddXpResult => {
+  const addXp = useCallback((amount: number, source: XpSource): AddXpResult => {
     const current = loadWallet();
-    const result = walletAddXp(current, amount, source as any);
+    const result = walletAddXp(current, amount, source);
     saveWallet(result.newState);
     setWallet(result.newState);
     return result;
