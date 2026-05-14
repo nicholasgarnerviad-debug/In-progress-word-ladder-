@@ -27,6 +27,8 @@ export type TimeAttackState = {
   runStartedAt: number | null;
   solveTimings: number[];
   lastSolveStartedAt: number | null;
+
+  previousBestAtRunEnd: { solved: number; longestStreak: number; achievedAt: string } | null;
 };
 
 export type TimeAttackActions = {
@@ -48,8 +50,8 @@ type ReducerAction =
   | { type: 'START_RUN'; initialTimerMs: number; firstPuzzle: Puzzle }
   | { type: 'REPORT_SOLVED'; currentTime: number; puzzle: Puzzle; nextIndex: number }
   | { type: 'SKIP_PUZZLE'; puzzle: Puzzle; nextIndex: number }
-  | { type: 'END_RUN'; currentTime: number }
-  | { type: 'TIMER_EXPIRED' }
+  | { type: 'END_RUN'; currentTime: number; previousBest: { solved: number; longestStreak: number; achievedAt: string } | null }
+  | { type: 'TIMER_EXPIRED'; previousBest: { solved: number; longestStreak: number; achievedAt: string } | null }
   | { type: 'PLAY_AGAIN' }
   | { type: 'RESET' }
   | { type: 'SET_TIME_REWARD_FLASH' }
@@ -72,6 +74,7 @@ const initialState: TimeAttackState = {
   runStartedAt: null,
   solveTimings: [],
   lastSolveStartedAt: null,
+  previousBestAtRunEnd: null,
 };
 
 function timeAttackReducer(state: TimeAttackState, action: ReducerAction): TimeAttackState {
@@ -168,6 +171,7 @@ function timeAttackReducer(state: TimeAttackState, action: ReducerAction): TimeA
       return {
         ...state,
         phase: 'ended',
+        previousBestAtRunEnd: action.previousBest,
       };
 
     case 'PLAY_AGAIN':
@@ -187,6 +191,7 @@ function timeAttackReducer(state: TimeAttackState, action: ReducerAction): TimeA
         lastSolveStartedAt: null,
         timeRemainingMs: 0,
         isTimeRewardFlashing: false,
+        previousBestAtRunEnd: null,
       };
 
     case 'RESET':
@@ -203,7 +208,14 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
 
   const timer = useTimer({
     initialMs: 0,
-    onExpire: () => dispatch({ type: 'TIMER_EXPIRED' }),
+    onExpire: () => {
+      // Capture previous best before dispatching TIMER_EXPIRED
+      const currentStats = loadStats();
+      const key = state.mode && state.tier ? `${state.mode}:${state.tier}` : null;
+      const previousBest = key ? (currentStats.bests[key] ?? null) : null;
+
+      dispatch({ type: 'TIMER_EXPIRED', previousBest });
+    },
   });
 
   const generateNextPuzzle = useCallback(
@@ -315,8 +327,12 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
     const currentTime = performance.now();
     timer.pause();
 
-    dispatch({ type: 'END_RUN', currentTime });
+    // Capture previous best BEFORE recording the run
+    const currentStats = loadStats();
+    const key = `${state.mode}:${state.tier}`;
+    const previousBest = currentStats.bests[key] ?? null;
 
+    // Record the run and update stats
     const timeTakenMs = state.runStartedAt ? (currentTime - state.runStartedAt) : 0;
     const summary: RunSummary = {
       mode: state.mode!,
@@ -330,9 +346,11 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
         : null,
     };
 
-    const stats = loadStats();
-    const updatedStats = recordRun(stats, summary);
+    const updatedStats = recordRun(currentStats, summary);
     saveStats(updatedStats);
+
+    // Dispatch END_RUN with previous best snapshot
+    dispatch({ type: 'END_RUN', currentTime, previousBest });
   }, [state.phase, state.mode, state.tier, state.solvedCount, state.longestStreak, state.runStartedAt, state.bestDifficulty, state.solveTimings, timer]);
 
   const playAgain = useCallback(() => {

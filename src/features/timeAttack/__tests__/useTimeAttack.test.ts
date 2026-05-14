@@ -80,6 +80,7 @@ describe('useTimeAttack hook', () => {
       expect(result.current.currentStreak).toBe(0);
       expect(result.current.longestStreak).toBe(0);
       expect(result.current.freeSkipsRemaining).toBe(2);
+      expect(result.current.previousBestAtRunEnd).toBeNull();
     });
 
     it('exposes all expected actions', () => {
@@ -538,6 +539,116 @@ describe('useTimeAttack hook', () => {
       // We should have 3 solves, so it should be calculated
       expect(summary.solvedCount).toBe(3);
     });
+
+    it('captures previousBestAtRunEnd when ending a run with no prior best', () => {
+      (generatePuzzleModule.generatePuzzle as jest.Mock)
+        .mockReturnValueOnce(mockPuzzle)
+        .mockReturnValueOnce(mockPuzzle2);
+
+      (statsModule.loadStats as jest.Mock).mockReturnValue({
+        bests: {},
+        totalRuns: 0,
+        totalSolved: 0,
+      });
+
+      const { result } = renderHook(() => useTimeAttack());
+
+      act(() => {
+        result.current.chooseMode('sprint');
+        result.current.chooseTier(60);
+      });
+
+      act(() => {
+        result.current.startRun();
+      });
+
+      act(() => {
+        result.current.reportSolved();
+      });
+
+      act(() => {
+        result.current.endRun();
+      });
+
+      expect(result.current.phase).toBe('ended');
+      expect(result.current.previousBestAtRunEnd).toBeNull();
+    });
+
+    it('captures previousBestAtRunEnd when ending a run with existing best', () => {
+      (generatePuzzleModule.generatePuzzle as jest.Mock)
+        .mockReturnValueOnce(mockPuzzle)
+        .mockReturnValueOnce(mockPuzzle2);
+
+      const priorBest = { solved: 5, longestStreak: 3, achievedAt: '2026-05-13' };
+      (statsModule.loadStats as jest.Mock).mockReturnValue({
+        bests: { 'sprint:60': priorBest },
+        totalRuns: 3,
+        totalSolved: 15,
+      });
+
+      const { result } = renderHook(() => useTimeAttack());
+
+      act(() => {
+        result.current.chooseMode('sprint');
+        result.current.chooseTier(60);
+      });
+
+      act(() => {
+        result.current.startRun();
+      });
+
+      act(() => {
+        result.current.reportSolved();
+      });
+
+      act(() => {
+        result.current.endRun();
+      });
+
+      expect(result.current.phase).toBe('ended');
+      expect(result.current.previousBestAtRunEnd).toEqual(priorBest);
+    });
+  });
+
+  describe('timer expiration', () => {
+    it('captures previousBestAtRunEnd when timer expires', () => {
+      (generatePuzzleModule.generatePuzzle as jest.Mock)
+        .mockReturnValueOnce(mockPuzzle);
+
+      const priorBest = { solved: 2, longestStreak: 1, achievedAt: '2026-05-12' };
+      (statsModule.loadStats as jest.Mock).mockReturnValue({
+        bests: { 'sprint:60': priorBest },
+        totalRuns: 1,
+        totalSolved: 2,
+      });
+
+      let timerExpireCallback: (() => void) | null = null;
+      (useTimer as jest.Mock).mockImplementation((config) => {
+        timerExpireCallback = config.onExpire;
+        return mockTimerInstance;
+      });
+
+      const { result } = renderHook(() => useTimeAttack());
+
+      act(() => {
+        result.current.chooseMode('sprint');
+        result.current.chooseTier(60);
+      });
+
+      act(() => {
+        result.current.startRun();
+      });
+
+      // Trigger timer expiration
+      act(() => {
+        if (timerExpireCallback) {
+          timerExpireCallback();
+        }
+      });
+
+      expect(result.current.phase).toBe('ended');
+      expect(result.current.previousBestAtRunEnd).toEqual(priorBest);
+    });
   });
 
   describe('playAgain', () => {
@@ -577,6 +688,46 @@ describe('useTimeAttack hook', () => {
       expect(result.current.solvedCount).toBe(0);
       expect(result.current.currentStreak).toBe(0);
       expect(result.current.longestStreak).toBe(0);
+    });
+
+    it('clears previousBestAtRunEnd when playing again', () => {
+      (generatePuzzleModule.generatePuzzle as jest.Mock)
+        .mockReturnValueOnce(mockPuzzle)
+        .mockReturnValueOnce(mockPuzzle2);
+
+      const priorBest = { solved: 4, longestStreak: 2, achievedAt: '2026-05-13' };
+      (statsModule.loadStats as jest.Mock).mockReturnValue({
+        bests: { 'sprint:60': priorBest },
+        totalRuns: 2,
+        totalSolved: 8,
+      });
+
+      const { result } = renderHook(() => useTimeAttack());
+
+      act(() => {
+        result.current.chooseMode('sprint');
+        result.current.chooseTier(60);
+      });
+
+      act(() => {
+        result.current.startRun();
+      });
+
+      act(() => {
+        result.current.reportSolved();
+      });
+
+      act(() => {
+        result.current.endRun();
+      });
+
+      expect(result.current.previousBestAtRunEnd).toEqual(priorBest);
+
+      act(() => {
+        result.current.playAgain();
+      });
+
+      expect(result.current.previousBestAtRunEnd).toBeNull();
     });
   });
 
