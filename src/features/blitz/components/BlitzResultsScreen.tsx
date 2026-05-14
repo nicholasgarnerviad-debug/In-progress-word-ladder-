@@ -1,0 +1,316 @@
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Confetti from 'react-confetti';
+import { useBlitzRoom } from '../useBlitzRoom';
+import type { BlitzPlayer, PlayerId } from '../types';
+
+export type BlitzResultsScreenProps = {
+  /** Optional callback when leaving room */
+  onLeaveRoom?: () => void;
+};
+
+/**
+ * Results screen displayed after a Blitz game ends.
+ *
+ * Features:
+ * - Displays "Game Over" or "You Won!" based on current player's rank
+ * - Shows confetti animation on mount
+ * - Displays final leaderboard with all players sorted by score
+ * - Shows medal icons (🥇🥈🥉) for top 3 players
+ * - Highlights current player's row
+ * - "Play Again" button (host only) resets to lobby
+ * - "Leave Room" button (all players) exits the game
+ * - "Home" button (all players) navigates to home
+ * - Loading states and error handling
+ * - Responsive design (desktop + mobile)
+ */
+export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): React.ReactElement | null => {
+  const navigate = useNavigate();
+  const room = useBlitzRoom();
+
+  const [showConfetti, setShowConfetti] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  // Ref to track current room without causing re-renders
+  const roomRef = useRef(room);
+  useEffect(() => {
+    roomRef.current = room;
+  }, [room]);
+
+  // Auto-hide confetti after 5 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowConfetti(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Get current player's final rank
+  const finalRank = useMemo(() => {
+    if (!room.room || !room.me) return null;
+
+    const sortedPlayers = [...room.room.players.values()].sort((a, b) => b.score - a.score);
+    return sortedPlayers.findIndex((p) => p.id === room.me!.id) + 1;
+  }, [room.room, room.me]);
+
+  // Get total players
+  const totalPlayers = useMemo(() => {
+    return room.room?.players.size ?? 0;
+  }, [room.room]);
+
+  // Sorted players for leaderboard
+  const sortedPlayers = useMemo(() => {
+    if (!room.room) return [];
+    return [...room.room.players.values()].sort((a, b) => b.score - a.score);
+  }, [room.room]);
+
+  /**
+   * Handle Play Again button click
+   */
+  const handlePlayAgain = useCallback(async () => {
+    setIsProcessing(true);
+    setLocalError(null);
+
+    try {
+      const success = await roomRef.current.playAgain();
+      if (!success && roomRef.current.error) {
+        setLocalError(roomRef.current.error.message);
+      }
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Failed to play again');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, []);
+
+  /**
+   * Handle Leave Room button click
+   */
+  const handleLeaveRoom = useCallback(async () => {
+    setIsProcessing(true);
+    setLocalError(null);
+
+    try {
+      await roomRef.current.leaveRoom();
+      onLeaveRoom?.();
+      navigate('/');
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Failed to leave room');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [onLeaveRoom, navigate]);
+
+  /**
+   * Handle Home button click
+   */
+  const handleHome = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
+  /**
+   * Get medal emoji for rank
+   */
+  const getMedal = (rank: number): string => {
+    if (rank === 1) return '🥇 ';
+    if (rank === 2) return '🥈 ';
+    if (rank === 3) return '🥉 ';
+    return '';
+  };
+
+  // Loading state
+  if (!room.room || !room.me) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500 dark:text-gray-400">Loading results...</p>
+      </div>
+    );
+  }
+
+  const isWinner = finalRank === 1;
+
+  return (
+    <div
+      data-testid="results-container"
+      className="min-h-screen w-full bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4 overflow-auto"
+    >
+      {/* Confetti animation */}
+      {showConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          gravity={0.4}
+          wind={0}
+          recycle={false}
+          numberOfPieces={200}
+        />
+      )}
+
+      {/* Main content container */}
+      <div className="w-full max-w-2xl space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1
+            className={`
+              text-5xl md:text-6xl font-bold tracking-tight
+              transition-colors duration-300
+            `}
+          >
+            {isWinner ? (
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 dark:from-yellow-300 dark:to-yellow-500">
+                You Won!
+              </span>
+            ) : (
+              <span className="text-gray-800 dark:text-gray-100">Game Over</span>
+            )}
+          </h1>
+
+          {/* Final score */}
+          <div className="space-y-2">
+            <p className="text-lg text-gray-600 dark:text-gray-400">Your Final Score</p>
+            <p className="text-5xl font-bold text-blue-600 dark:text-blue-400">{room.me.score}</p>
+          </div>
+
+          {/* Rank message */}
+          {finalRank && (
+            <p className="text-xl text-gray-700 dark:text-gray-300 font-semibold">
+              You placed #{finalRank} out of {totalPlayers}
+            </p>
+          )}
+        </div>
+
+        {/* Error message */}
+        {(localError || room.error) && (
+          <div
+            className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4"
+            role="alert"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <p className="text-red-700 dark:text-red-400">
+              {localError || room.error?.message}
+            </p>
+          </div>
+        )}
+
+        {/* Final Leaderboard */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+            Final Rankings
+          </h2>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm" aria-label="Final leaderboard rankings">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700 pb-3">
+                  <th scope="col" className="font-semibold text-gray-600 dark:text-gray-400 pb-3">
+                    Rank
+                  </th>
+                  <th scope="col" className="font-semibold text-gray-600 dark:text-gray-400 pb-3">
+                    Player
+                  </th>
+                  <th scope="col" className="font-semibold text-gray-600 dark:text-gray-400 pb-3 text-right">
+                    Score
+                  </th>
+                  <th scope="col" className="font-semibold text-gray-600 dark:text-gray-400 pb-3 text-right">
+                    Solved
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="space-y-1">
+                {sortedPlayers.map((player, index) => {
+                  const rank = index + 1;
+                  const isCurrentPlayer = player.id === room.me!.id;
+
+                  return (
+                    <tr
+                      key={player.id}
+                      data-testid={`leaderboard-row-${player.id}`}
+                      className={`
+                        transition-colors py-3 px-3 rounded
+                        ${
+                          isCurrentPlayer
+                            ? 'bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-600'
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                        }
+                      `}
+                    >
+                      <td className="font-bold text-gray-700 dark:text-gray-300 w-12">
+                        {getMedal(rank)}
+                        {rank}.
+                      </td>
+                      <td className="font-semibold text-gray-800 dark:text-gray-100 truncate">
+                        {player.name}
+                      </td>
+                      <td className="text-right font-bold text-gray-800 dark:text-gray-100">
+                        {player.score}
+                      </td>
+                      <td className="text-right font-bold text-gray-800 dark:text-gray-100">
+                        {player.solved}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Button group */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* Play Again button (host only) */}
+          {room.isHost && (
+            <button
+              onClick={handlePlayAgain}
+              disabled={isProcessing || room.isLoading}
+              className="
+                px-6 py-3 rounded-lg font-semibold
+                bg-blue-500 hover:bg-blue-600 text-white
+                dark:bg-blue-600 dark:hover:bg-blue-700
+                disabled:opacity-50 disabled:cursor-not-allowed
+                transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                dark:focus:ring-offset-gray-900
+              "
+            >
+              {isProcessing ? 'Loading...' : 'Play Again'}
+            </button>
+          )}
+
+          {/* Leave Room button */}
+          <button
+            onClick={handleLeaveRoom}
+            disabled={isProcessing || room.isLoading}
+            className="
+              px-6 py-3 rounded-lg font-semibold
+              bg-red-500 hover:bg-red-600 text-white
+              dark:bg-red-600 dark:hover:bg-red-700
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+              dark:focus:ring-offset-gray-900
+            "
+          >
+            {isProcessing ? 'Loading...' : 'Leave Room'}
+          </button>
+
+          {/* Home button */}
+          <button
+            onClick={handleHome}
+            disabled={isProcessing || room.isLoading}
+            className="
+              px-6 py-3 rounded-lg font-semibold
+              bg-gray-600 hover:bg-gray-700 text-white
+              dark:bg-gray-700 dark:hover:bg-gray-600
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+              dark:focus:ring-offset-gray-900
+            "
+          >
+            Home
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
