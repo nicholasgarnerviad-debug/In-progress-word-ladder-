@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CreateRoomForm } from '../CreateRoomForm';
 import type { BlitzRoomSettings } from '../../types';
@@ -113,6 +113,27 @@ describe('CreateRoomForm', () => {
       expect(timerSlider.min).toBe('30');
       expect(timerSlider.max).toBe('300');
       // Value is updated by the component's onChange handler
+    });
+
+    it('converts timer seconds to milliseconds in submitted settings', async () => {
+      const user = userEvent.setup();
+      renderForm();
+
+      const displayNameInput = screen.getByLabelText(/display name/i);
+      await user.type(displayNameInput, 'TestPlayer');
+
+      const timerSlider = screen.getByLabelText(/timer/i) as HTMLInputElement;
+      fireEvent.change(timerSlider, { target: { value: '90' } });
+
+      const submitBtn = screen.getByRole('button', { name: /Create Room/i });
+      await user.click(submitBtn);
+
+      expect(mockHandlers.onCreateRoom).toHaveBeenCalledWith(
+        'TestPlayer',
+        expect.objectContaining({
+          durationMs: 90000, // 90 seconds * 1000
+        })
+      );
     });
   });
 
