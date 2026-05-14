@@ -54,4 +54,63 @@ describe('useTimer', () => {
       expect(result.current.remainingMs).toBe(5000);
     });
   });
+
+  describe('start and running', () => {
+    it('calls start() sets isRunning to true', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      expect(result.current.isRunning).toBe(true);
+    });
+
+    it('decreases remainingMs as performance.now() advances', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      const initialRemaining = result.current.remainingMs;
+
+      // Simulate 1000ms passing
+      act(() => {
+        advanceTimeAndRAF(1000);
+      });
+
+      expect(result.current.remainingMs).toBeLessThan(initialRemaining);
+      expect(result.current.remainingMs).toBeCloseTo(4000, 0);
+    });
+
+    it('is a no-op if start() called when already running', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      const firstRemaining = result.current.remainingMs;
+
+      // Advance time
+      act(() => {
+        advanceTimeAndRAF(500);
+      });
+
+      const secondRemaining = result.current.remainingMs;
+
+      // Call start again
+      act(() => {
+        result.current.start();
+      });
+
+      // Should still be decreasing (no reset)
+      act(() => {
+        advanceTimeAndRAF(500);
+      });
+
+      expect(result.current.remainingMs).toBeLessThan(secondRemaining);
+    });
+  });
 });
