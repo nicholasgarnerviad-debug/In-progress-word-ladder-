@@ -123,13 +123,13 @@ describe('LocalSyncAdapter', () => {
 
       const { code } = await adapter.createRoom('Player1', settings);
 
-      // Add 7 more players (8 total)
-      for (let i = 2; i <= 8; i++) {
+      // Add 5 more players (6 total, which is MAX_PLAYERS)
+      for (let i = 2; i <= 6; i++) {
         await adapter.joinRoom(code, `Player${i}`);
       }
 
-      // 9th player should fail
-      const error = await adapter.joinRoom(code, 'Player9').catch((e) => e);
+      // 7th player should fail
+      const error = await adapter.joinRoom(code, 'Player7').catch((e) => e);
       expect((error as BlitzSyncError).code).toBe(BlitzSyncErrorCode.ROOM_FULL);
     });
 
@@ -336,7 +336,7 @@ describe('LocalSyncAdapter', () => {
 
       expect(listener).toHaveBeenCalledTimes(1);
       const room = listener.mock.calls[0][0];
-      expect(room.currentPhase).toBe('playing');
+      expect(room.currentPhase).toBe('countdown');
       expect(room.meta.startedAt).toBeDefined();
       expect(room.meta.startedAt).not.toBeNull();
     });
@@ -539,7 +539,7 @@ describe('LocalSyncAdapter', () => {
       expect(listener).toHaveBeenCalledTimes(1);
       const room = listener.mock.calls[0][0];
       expect(room.players.size).toBe(0);
-      expect(room.currentPhase).toBe('results');
+      expect(room.currentPhase).toBe('finished');
     });
 
     it('throws ROOM_NOT_FOUND if room does not exist', async () => {
@@ -586,7 +586,7 @@ describe('LocalSyncAdapter', () => {
 
       expect(listener).toHaveBeenCalledTimes(1);
       const room = listener.mock.calls[0][0];
-      expect(room.currentPhase).toBe('results');
+      expect(room.currentPhase).toBe('finished');
       expect(room.meta.endedAt).toBeDefined();
       expect(room.meta.endedAt).not.toBeNull();
     });
@@ -648,7 +648,7 @@ describe('LocalSyncAdapter', () => {
 
       expect(listener).toHaveBeenCalledTimes(1);
       const room = listener.mock.calls[0][0];
-      expect(room.currentPhase).toBe('setup');
+      expect(room.currentPhase).toBe('lobby');
       expect(room.meta.startedAt).toBeNull();
       expect(room.meta.endedAt).toBeNull();
 
@@ -735,7 +735,7 @@ describe('LocalSyncAdapter', () => {
       adapter.subscribe(code, listener);
 
       const room = listener.mock.calls[0][0];
-      expect(room.currentPhase).toBe('results');
+      expect(room.currentPhase).toBe('finished');
       expect(room.players.size).toBe(2);
       expect(room.players.get(aliceId)?.score).toBe(300);
       expect(room.players.get(bobId)?.score).toBe(200);

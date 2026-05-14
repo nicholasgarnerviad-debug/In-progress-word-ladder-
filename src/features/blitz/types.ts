@@ -1,4 +1,4 @@
-export type BlitzPhase = 'setup' | 'playing' | 'review' | 'results';
+export type BlitzPhase = 'idle' | 'lobby' | 'countdown' | 'playing' | 'finished';
 export type BlitzDifficulty = 'easy' | 'medium' | 'hard';
 export type BlitzWordLength = 4 | 5 | 6;
 export type BlitzTimerTier = 'tier1' | 'tier2' | 'tier3' | 'tier4';
@@ -82,13 +82,14 @@ export interface BlitzRunSummary {
 
 export const BLITZ_LIMITS = {
   MIN_PLAYERS: 1,
-  MAX_PLAYERS: 8,
+  MAX_PLAYERS: 6,
   ROOM_CODE_LENGTH: 6,
   MIN_DURATION_MS: 30000,
   MAX_DURATION_MS: 300000,
   WORD_LENGTHS: [4, 5, 6] as const,
   DIFFICULTIES: ['easy', 'medium', 'hard'] as const,
   TIMER_TIERS: ['tier1', 'tier2', 'tier3', 'tier4'] as const,
+  COUNTDOWN_MS: 3000,
   SCORE_PER_SOLVE: 100,
   PENALTY_PER_WRONG: 40,
   PENALTY_PER_HINT: 50,

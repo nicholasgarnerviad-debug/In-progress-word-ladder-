@@ -5,15 +5,12 @@ import {
   BlitzSyncErrorCode,
 } from './SyncAdapter';
 import type { PlayerId, RoomCode, BlitzRoom, BlitzRoomSettings, BlitzPlayer } from '../types';
-import { createPlayerId, createRoomCode } from '../types';
+import { createPlayerId, createRoomCode, BLITZ_LIMITS } from '../types';
 import {
   generateRoomCode,
   generateBlitzPuzzleBatch,
   generateSessionSeed,
 } from '../utils';
-
-const COUNTDOWN_MS = 3000;
-const MAX_PLAYERS = 8;
 
 /**
  * LocalSyncAdapter: In-memory implementation of BlitzSyncAdapter.
@@ -78,7 +75,7 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
       },
       players: new Map([[hostId, host]]),
       currentPuzzleIndex: 0,
-      currentPhase: 'setup',
+      currentPhase: 'lobby',
     };
 
     // Store hostId in meta for host checking
@@ -99,11 +96,11 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
       throw new BlitzSyncError(BlitzSyncErrorCode.ROOM_NOT_FOUND, `Room ${code} not found`);
     }
 
-    if (room.players.size >= MAX_PLAYERS) {
+    if (room.players.size >= BLITZ_LIMITS.MAX_PLAYERS) {
       throw new BlitzSyncError(BlitzSyncErrorCode.ROOM_FULL, `Room ${code} is full`);
     }
 
-    if (room.currentPhase !== 'setup') {
+    if (room.currentPhase !== 'lobby') {
       throw new BlitzSyncError(
         BlitzSyncErrorCode.GAME_ALREADY_STARTED,
         `Game in room ${code} has already started`
@@ -168,7 +165,7 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
 
     this.checkIsHost(room, playerId);
 
-    if (room.currentPhase !== 'setup') {
+    if (room.currentPhase !== 'lobby') {
       throw new BlitzSyncError(
         BlitzSyncErrorCode.GAME_ALREADY_STARTED,
         `Cannot update settings after game has started`
@@ -211,18 +208,34 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
       );
     }
 
+    // Clear any existing countdown timer
+    const existingTimerId = this.countdownTimers.get(code);
+    if (existingTimerId !== undefined) {
+      clearTimeout(existingTimerId);
+    }
+
     // Set countdown phase
     const now = Date.now();
-    room.meta.startedAt = now + COUNTDOWN_MS;
-    room.currentPhase = 'playing';
+    const countdownEndTime = now + BLITZ_LIMITS.COUNTDOWN_MS;
+    room.meta.startedAt = countdownEndTime;
+    room.currentPhase = 'countdown';
     room.currentPuzzleIndex = 0;
 
-    // Notify immediately with 'playing' phase
+    // Notify immediately with 'countdown' phase
     this.notifySubscribers(code);
 
-    // Schedule transition from countdown to actual playing
-    // (in a real implementation, this would be when the timer starts)
-    // For LocalSyncAdapter, we're immediately in playing phase after countdown setup
+    // Schedule transition to 'playing' state
+    const timerId = window.setTimeout(() => {
+      const r = this.rooms.get(code);
+      if (r && r.currentPhase === 'countdown') {
+        r.currentPhase = 'playing';
+        this.notifySubscribers(code);
+      }
+      this.countdownTimers.delete(code);
+    }, BLITZ_LIMITS.COUNTDOWN_MS);
+
+    // Store timer ID for cleanup
+    this.countdownTimers.set(code, timerId);
   }
 
   async updateMyState(
@@ -300,7 +313,7 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
 
     // If last player left, end game and clean up
     if (room.players.size === 0) {
-      room.currentPhase = 'results';
+      room.currentPhase = 'finished';
       room.meta.endedAt = Date.now();
 
       // Clear countdown timer if running
@@ -329,11 +342,11 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
     }
 
     // Idempotent: if already finished, return immediately
-    if (room.currentPhase === 'results') {
+    if (room.currentPhase === 'finished') {
       return;
     }
 
-    room.currentPhase = 'results';
+    room.currentPhase = 'finished';
     room.meta.endedAt = Date.now();
 
     // Clear countdown timer if running
@@ -382,7 +395,7 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
     room.meta.endedAt = null;
     (room as any).puzzles = [];
     room.currentPuzzleIndex = 0;
-    room.currentPhase = 'setup';
+    room.currentPhase = 'lobby';
 
     // Clear any pending countdown timer
     const timerId = this.countdownTimers.get(code);

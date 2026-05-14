@@ -10,6 +10,7 @@ export enum BlitzSyncErrorCode {
   NOT_HOST = 'NOT_HOST',
   NOT_IN_ROOM = 'NOT_IN_ROOM',
   INVALID_SETTINGS = 'INVALID_SETTINGS',
+  NETWORK_ERROR = 'NETWORK_ERROR',
 }
 
 /**
