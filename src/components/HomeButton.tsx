@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface HomeButtonProps {
@@ -12,6 +12,20 @@ export const HomeButton: React.FC<HomeButtonProps> = ({
 }) => {
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Handle escape key to dismiss confirmation dialog
+  useEffect(() => {
+    if (!showConfirm) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowConfirm(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showConfirm]);
 
   const handleClick = () => {
     if (isGameInProgress) {
@@ -50,8 +64,14 @@ export const HomeButton: React.FC<HomeButtonProps> = ({
       </button>
 
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-sm mx-4">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => setShowConfirm(false)}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-sm mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">
               Leave game?
             </h2>
