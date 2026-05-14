@@ -18,7 +18,7 @@ export const JoinRoomForm: React.FC<JoinRoomFormProps> = ({
   const [displayName, setDisplayName] = useState('');
   const [roomCode, setRoomCode] = useState('');
 
-  const isFormValid = displayName.trim().length > 0 && roomCode.trim().length === 6;
+  const isFormValid = displayName.trim().length > 0 && roomCode.length === 6;
 
   const handleRoomCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
