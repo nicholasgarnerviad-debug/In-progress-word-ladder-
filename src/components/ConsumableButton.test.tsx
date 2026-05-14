@@ -86,4 +86,23 @@ describe('ConsumableButton', () => {
     const button = screen.getByText('Hint (3)') as HTMLButtonElement;
     expect(button.disabled).toBe(true);
   });
+
+  it('does not call callbacks when disabled and clicked', () => {
+    const onUse = jest.fn();
+    const onBuy = jest.fn();
+    render(
+      <ConsumableButton
+        type="hint"
+        label="Hint"
+        count={3}
+        cost={30}
+        disabled={true}
+        onUse={onUse}
+        onBuy={onBuy}
+      />
+    );
+    fireEvent.click(screen.getByText('Hint (3)'));
+    expect(onUse).not.toHaveBeenCalled();
+    expect(onBuy).not.toHaveBeenCalled();
+  });
 });

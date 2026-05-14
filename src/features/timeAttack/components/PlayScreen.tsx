@@ -120,7 +120,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
               cost={30}
               disabled={skipDisabled}
               onUse={() => {
-                // Call hint logic if available
+                economy.useItem('hint');
               }}
               onBuy={() => {
                 economy.buyConsumable('hint', 30, 5);
@@ -133,9 +133,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
               cost={40}
               disabled={skipDisabled}
               onUse={() => {
-                if (economy.useItem('time_extension_15s')) {
-                  // Add time to timer (15000ms)
-                }
+                economy.useItem('time_extension_15s');
               }}
               onBuy={() => {
                 economy.buyConsumable('time_extension_15s', 40, 5);
