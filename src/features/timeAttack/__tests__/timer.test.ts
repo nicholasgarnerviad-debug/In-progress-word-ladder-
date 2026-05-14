@@ -2,28 +2,24 @@
 import { useTimer } from '../timer';
 
 describe('useTimer', () => {
-  let performanceNow: number;
+  let performanceNow = 1000;
+  let rafCallbacks: Map<number, FrameRequestCallback>;
+  let rafId = 0;
 
   beforeEach(() => {
     performanceNow = 1000;
+    rafId = 0;
+    rafCallbacks = new Map();
+
     jest.useFakeTimers();
 
     // Mock performance.now()
     jest.spyOn(performance, 'now').mockImplementation(() => performanceNow);
 
-    // Mock requestAnimationFrame to fire when timers advance
-    let rafId = 0;
-    const rafCallbacks = new Map<number, FrameRequestCallback>();
-
+    // Mock requestAnimationFrame to store callbacks for manual triggering
     jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
       const id = ++rafId;
       rafCallbacks.set(id, callback);
-      // Schedule the callback to fire after current synchronous code
-      setTimeout(() => {
-        if (rafCallbacks.has(id)) {
-          callback(performanceNow);
-        }
-      }, 0);
       return id;
     });
 
@@ -36,6 +32,18 @@ describe('useTimer', () => {
     jest.useRealTimers();
     jest.restoreAllMocks();
   });
+
+  // Helper to manually trigger all pending RAF callbacks with current performanceNow
+  const triggerRAF = () => {
+    const callbacks = Array.from(rafCallbacks.values());
+    callbacks.forEach(cb => cb(performanceNow));
+  };
+
+  // Helper to advance time and trigger RAF callbacks
+  const advanceTimeAndRAF = (ms: number) => {
+    performanceNow += ms;
+    triggerRAF();
+  };
 
   describe('initial state', () => {
     it('starts in non-running state when autoStart is false or undefined', () => {
