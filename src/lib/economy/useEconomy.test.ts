@@ -6,10 +6,11 @@ describe('useEconomy', () => {
     localStorage.clear();
   });
 
-  it('initializes with default wallet (150 coins, 0 xp)', () => {
+  it('initializes with default wallet (150 coins, 0 xp, level 1)', () => {
     const { result } = renderHook(() => useEconomy());
     expect(result.current.coins).toBe(150);
     expect(result.current.xp).toBe(0);
+    expect(result.current.level).toBe(1);
   });
 
   it('earnCoins increases balance', () => {
@@ -40,12 +41,27 @@ describe('useEconomy', () => {
     expect(result.current.coins).toBe(150);
   });
 
-  it('addXp increases xp', () => {
+  it('addXp increases xp and returns result', () => {
     const { result } = renderHook(() => useEconomy());
+    let xpResult: any;
     act(() => {
-      result.current.addXp(50, 'test');
+      xpResult = result.current.addXp(50, 'test');
     });
     expect(result.current.xp).toBe(50);
+    expect(xpResult.leveledUp).toBe(false);
+    expect(xpResult.rewards).toEqual([]);
+  });
+
+  it('addXp triggers level-up and returns rewards', () => {
+    const { result } = renderHook(() => useEconomy());
+    let xpResult: any;
+    act(() => {
+      xpResult = result.current.addXp(300, 'test');
+    });
+    expect(result.current.xp).toBe(300);
+    expect(result.current.level).toBe(2);
+    expect(xpResult.leveledUp).toBe(true);
+    expect(xpResult.rewards).toHaveLength(1);
   });
 
   it('buyConsumable spends coins and adds item to inventory', () => {

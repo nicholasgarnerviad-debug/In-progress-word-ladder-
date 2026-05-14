@@ -1,103 +1,100 @@
 import { useState, useCallback, useEffect } from 'react';
-import { loadWallet, earnCoins as walletEarnCoins, spendCoins } from './wallet';
-import { earnXp } from './wallet';
-import { loadInventory, addConsumable, useConsumable, getConsumableCount } from './inventory';
+import { loadWallet, saveWallet, earnCoins as walletEarnCoins, spendCoins, addXp as walletAddXp } from './wallet';
+import type { Wallet, AddXpResult } from './wallet';
+import { loadInventory, saveInventory, addConsumable, useConsumable, getConsumableCount } from './inventory';
+import type { Inventory } from './inventory';
 import { ConsumableType } from './shop';
 
 export interface EconomyState {
   coins: number;
   xp: number;
+  level: number;
   inventory: { [key: string]: number };
 }
 
 export function useEconomy() {
-  const [state, setState] = useState<EconomyState>(() => {
-    const wallet = loadWallet();
-    const inventory = loadInventory();
-    return {
-      coins: wallet.coins,
-      xp: wallet.xp,
-      inventory
-    };
-  });
+  const [wallet, setWallet] = useState<Wallet>(() => loadWallet());
+  const [inventory, setInventory] = useState<Inventory>(() => loadInventory());
 
-  // Listen for storage changes (when other tabs/windows change economy)
+  // Listen for storage changes (other tabs/windows)
   useEffect(() => {
     const handleStorageChange = () => {
-      const wallet = loadWallet();
-      const inventory = loadInventory();
-      setState({
-        coins: wallet.coins,
-        xp: wallet.xp,
-        inventory
-      });
+      setWallet(loadWallet());
+      setInventory(loadInventory());
     };
-
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const earnCoins = useCallback((amount: number, source: string) => {
-    walletEarnCoins(amount);
-    setState(prev => ({ ...prev, coins: prev.coins + amount }));
+    const current = loadWallet();
+    const updated = walletEarnCoins(current, amount, source as any);
+    saveWallet(updated);
+    setWallet(updated);
   }, []);
 
   const spend = useCallback((amount: number): boolean => {
-    if (state.coins < amount) {
+    const current = loadWallet();
+    if (current.coins < amount) {
       return false;
     }
-    spendCoins(amount);
-    setState(prev => ({ ...prev, coins: Math.max(0, prev.coins - amount) }));
+    const updated = spendCoins(current, amount, 'admin_grant');
+    saveWallet(updated);
+    setWallet(updated);
     return true;
   }, []);
 
-  const addXp = useCallback((amount: number, source: string) => {
-    earnXp(amount);
-    setState(prev => ({ ...prev, xp: prev.xp + amount }));
+  const addXp = useCallback((amount: number, source: string): AddXpResult => {
+    const current = loadWallet();
+    const result = walletAddXp(current, amount, source as any);
+    saveWallet(result.newState);
+    setWallet(result.newState);
+    return result;
   }, []);
 
   const buyConsumable = useCallback((type: ConsumableType, cost: number, count: number): boolean => {
     if (!spend(cost)) {
       return false;
     }
-    addConsumable(type, count);
-    setState(prev => ({
-      ...prev,
-      inventory: {
-        ...prev.inventory,
-        [type]: (prev.inventory[type] || 0) + count
-      }
-    }));
+    const current = loadInventory();
+    const updated = addConsumable(current, type, count);
+    saveInventory(updated);
+    setInventory(updated);
     return true;
   }, [spend]);
 
   const useItem = useCallback((type: ConsumableType): boolean => {
-    const success = useConsumable(type);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        inventory: {
-          ...prev.inventory,
-          [type]: Math.max(0, (prev.inventory[type] || 0) - 1)
-        }
-      }));
+    const current = loadInventory();
+    const updated = useConsumable(current, type);
+    if (updated === current) {
+      // No change means we didn't have any
+      return false;
     }
-    return success;
+    saveInventory(updated);
+    setInventory(updated);
+    return true;
   }, []);
 
   const getCount = useCallback((type: ConsumableType): number => {
-    return getConsumableCount(type);
+    const current = loadInventory();
+    return getConsumableCount(current, type);
   }, []);
 
+  // Flatten inventory back to old shape for backward compatibility
+  const inventoryFlat = {
+    ...inventory.consumables,
+  };
+
   return {
-    coins: state.coins,
-    xp: state.xp,
-    inventory: state.inventory,
+    coins: wallet.coins,
+    xp: wallet.xp,
+    level: wallet.level,
+    inventory: inventoryFlat,
     earnCoins,
     spend,
     addXp,
     buyConsumable,
     useItem,
-    getCount
+    getCount,
   };
 }
