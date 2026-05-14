@@ -33,7 +33,8 @@ describe('useTimeAttack hook', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    (generatePuzzleModule.generatePuzzle as jest.Mock).mockReturnValue(mockPuzzle);
+    (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock).mockReturnValue(mockPuzzle);
+    (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock).mockReturnValue(mockPuzzle);
     (statsModule.loadStats as jest.Mock).mockReturnValue({
       bests: {},
       totalRuns: 0,
@@ -210,14 +211,9 @@ describe('useTimeAttack hook', () => {
     });
 
     it('retries puzzle generation on failure', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
-        .mockImplementationOnce(() => {
-          throw new Error('Failed to generate');
-        })
-        .mockImplementationOnce(() => {
-          throw new Error('Failed to generate');
-        })
-        .mockImplementationOnce(() => mockPuzzle);
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(mockPuzzle);
 
       const { result } = renderHook(() => useTimeAttack());
 
@@ -231,7 +227,7 @@ describe('useTimeAttack hook', () => {
       });
 
       expect(result.current.currentPuzzle).toEqual(mockPuzzle);
-      expect(generatePuzzleModule.generatePuzzle).toHaveBeenCalledTimes(3);
+      expect(generatePuzzleModule.generatePuzzleWithRetry).toHaveBeenCalledTimes(2);
     });
 
     it('does not start if not in setup phase', () => {
@@ -270,7 +266,7 @@ describe('useTimeAttack hook', () => {
     });
 
     it('tracks longest streak across solve cycles', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValue(mockPuzzle);
 
       const { result } = renderHook(() => useTimeAttack());
@@ -294,7 +290,7 @@ describe('useTimeAttack hook', () => {
     });
 
     it('generates next puzzle with correct difficulty', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
@@ -309,7 +305,7 @@ describe('useTimeAttack hook', () => {
         result.current.startRun();
       });
 
-      const firstCall = (generatePuzzleModule.generatePuzzle as jest.Mock).mock.calls[0];
+      const firstCall = (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock).mock.calls[0];
       expect(firstCall[0]).toBe(3); // wordLength for index 0
       expect(firstCall[1]).toBe('easy'); // difficulty for index 0
 
@@ -317,13 +313,13 @@ describe('useTimeAttack hook', () => {
         result.current.reportSolved();
       });
 
-      const secondCall = (generatePuzzleModule.generatePuzzle as jest.Mock).mock.calls[1];
+      const secondCall = (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock).mock.calls[1];
       expect(secondCall[0]).toBe(3); // wordLength for index 1
       expect(secondCall[1]).toBe('easy'); // difficulty for index 1
     });
 
     it('adds time reward in survival mode', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
@@ -348,7 +344,7 @@ describe('useTimeAttack hook', () => {
     });
 
     it('does not add time reward in sprint mode', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
@@ -375,7 +371,7 @@ describe('useTimeAttack hook', () => {
 
   describe('skipPuzzle', () => {
     it('resets streak to 0', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
@@ -405,7 +401,7 @@ describe('useTimeAttack hook', () => {
     });
 
     it('uses free skips before deducting time', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2)
         .mockReturnValueOnce(mockPuzzle);
@@ -434,7 +430,7 @@ describe('useTimeAttack hook', () => {
     });
 
     it('deducts time after free skips are exhausted', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValue(mockPuzzle);
 
       const { result } = renderHook(() => useTimeAttack());
@@ -467,7 +463,7 @@ describe('useTimeAttack hook', () => {
 
   describe('endRun', () => {
     it('builds RunSummary and persists to stats', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
@@ -506,7 +502,7 @@ describe('useTimeAttack hook', () => {
     });
 
     it('calculates average solve time correctly', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValue(mockPuzzle);
 
       const { result } = renderHook(() => useTimeAttack());
@@ -541,7 +537,7 @@ describe('useTimeAttack hook', () => {
     });
 
     it('captures previousBestAtRunEnd when ending a run with no prior best', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
@@ -575,7 +571,7 @@ describe('useTimeAttack hook', () => {
     });
 
     it('captures previousBestAtRunEnd when ending a run with existing best', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
@@ -613,7 +609,7 @@ describe('useTimeAttack hook', () => {
       // This test mechanically verifies the critical sequencing requirement:
       // previousBest must be captured from loadStats() BEFORE recordRun() mutates it.
 
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
@@ -675,7 +671,7 @@ describe('useTimeAttack hook', () => {
 
   describe('timer expiration', () => {
     it('captures previousBestAtRunEnd when timer expires', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle);
 
       const priorBest = { solved: 2, longestStreak: 1, achievedAt: '2026-05-12' };
@@ -716,7 +712,7 @@ describe('useTimeAttack hook', () => {
 
   describe('playAgain', () => {
     it('resets state but keeps mode and tier selected', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
@@ -754,7 +750,7 @@ describe('useTimeAttack hook', () => {
     });
 
     it('clears previousBestAtRunEnd when playing again', () => {
-      (generatePuzzleModule.generatePuzzle as jest.Mock)
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock)
         .mockReturnValueOnce(mockPuzzle)
         .mockReturnValueOnce(mockPuzzle2);
 
