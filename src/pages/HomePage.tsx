@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ModeTile } from '../components/ModeTile';
+import { WalletStrip } from '../components/economy/WalletStrip';
 import { StatsStrip } from '../components/StatsStrip';
 
 export const HomePage: React.FC = () => {
@@ -42,6 +43,11 @@ export const HomePage: React.FC = () => {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Climb the rungs. One letter at a time.
           </p>
+        </div>
+
+        {/* Wallet strip */}
+        <div className="mb-4">
+          <WalletStrip />
         </div>
 
         {/* Stats strip */}
