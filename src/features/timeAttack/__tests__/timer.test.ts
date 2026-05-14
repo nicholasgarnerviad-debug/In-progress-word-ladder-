@@ -389,4 +389,97 @@ describe('useTimer', () => {
       expect(result.current.remainingMs).toBe(5000);
     });
   });
+
+  describe('expiration', () => {
+    it('fires onExpire exactly once when timer reaches zero', () => {
+      const onExpire = jest.fn();
+      const { result } = renderHook(() =>
+        useTimer({ initialMs: 2000, onExpire })
+      );
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(2100);
+      });
+
+      expect(result.current.isExpired).toBe(true);
+      expect(onExpire).toHaveBeenCalledTimes(1);
+
+      // Advance more time
+      act(() => {
+        advanceTimeAndRAF(1000);
+      });
+
+      // Should still only have fired once
+      expect(onExpire).toHaveBeenCalledTimes(1);
+    });
+
+    it('sets remainingMs to 0 or lower when expired', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 2000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(3000);
+      });
+
+      expect(result.current.remainingMs).toBe(0);
+    });
+
+    it('sets isRunning to false when expired', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 2000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(2100);
+      });
+
+      expect(result.current.isRunning).toBe(false);
+    });
+  });
+
+  describe('autoStart', () => {
+    it('starts timer automatically when autoStart is true', () => {
+      const { result } = renderHook(() =>
+        useTimer({ initialMs: 5000, autoStart: true })
+      );
+
+      // May not be running immediately due to RAF scheduling
+      act(() => {
+        advanceTimeAndRAF(0);
+      });
+
+      expect(result.current.isRunning).toBe(true);
+    });
+
+    it('does not start when autoStart is false', () => {
+      const { result } = renderHook(() =>
+        useTimer({ initialMs: 5000, autoStart: false })
+      );
+
+      expect(result.current.isRunning).toBe(false);
+    });
+
+    it('respects autoStart on mount', () => {
+      const onExpire = jest.fn();
+      const { result } = renderHook(() =>
+        useTimer({ initialMs: 1000, autoStart: true, onExpire })
+      );
+
+      act(() => {
+        advanceTimeAndRAF(1100);
+      });
+
+      expect(result.current.isExpired).toBe(true);
+      expect(onExpire).toHaveBeenCalled();
+    });
+  });
 });
