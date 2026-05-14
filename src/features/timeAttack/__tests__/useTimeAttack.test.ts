@@ -608,6 +608,69 @@ describe('useTimeAttack hook', () => {
       expect(result.current.phase).toBe('ended');
       expect(result.current.previousBestAtRunEnd).toEqual(priorBest);
     });
+
+    it('captures previousBestAtRunEnd from stats BEFORE recordRun is called', () => {
+      // This test mechanically verifies the critical sequencing requirement:
+      // previousBest must be captured from loadStats() BEFORE recordRun() mutates it.
+
+      (generatePuzzleModule.generatePuzzle as jest.Mock)
+        .mockReturnValueOnce(mockPuzzle)
+        .mockReturnValueOnce(mockPuzzle2);
+
+      const callOrder: string[] = [];
+
+      (statsModule.loadStats as jest.Mock).mockImplementation(() => {
+        callOrder.push('loadStats');
+        // Return existing best (what was captured before recordRun updated it)
+        return {
+          bests: { 'sprint:60': { solved: 2, longestStreak: 1, achievedAt: '2026-05-13' } },
+          totalRuns: 1,
+          totalSolved: 2,
+        };
+      });
+
+      (statsModule.recordRun as jest.Mock).mockImplementation((stats) => {
+        callOrder.push('recordRun');
+        return {
+          ...stats,
+          bests: { 'sprint:60': { solved: 5, longestStreak: 3, achievedAt: '2026-05-14' } },
+        };
+      });
+
+      (statsModule.saveStats as jest.Mock).mockImplementation(() => {
+        callOrder.push('saveStats');
+      });
+
+      const { result } = renderHook(() => useTimeAttack());
+
+      act(() => {
+        result.current.chooseMode('sprint');
+        result.current.chooseTier(60);
+      });
+
+      act(() => {
+        result.current.startRun();
+      });
+
+      act(() => {
+        result.current.reportSolved();
+      });
+
+      // Reset call order to focus on endRun sequencing
+      callOrder.length = 0;
+
+      // End the run
+      act(() => {
+        result.current.endRun();
+      });
+
+      // Verify previousBestAtRunEnd captured from stats (before recordRun mutated it)
+      expect(result.current.previousBestAtRunEnd?.solved).toBe(2);
+      expect(result.current.previousBestAtRunEnd?.longestStreak).toBe(1);
+
+      // Verify correct call sequence: loadStats BEFORE recordRun BEFORE saveStats
+      expect(callOrder).toEqual(['loadStats', 'recordRun', 'saveStats']);
+    });
   });
 
   describe('timer expiration', () => {
