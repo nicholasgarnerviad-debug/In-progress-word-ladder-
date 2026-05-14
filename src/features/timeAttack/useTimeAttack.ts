@@ -235,8 +235,10 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
   }, []);
 
   const backToModeSelect = useCallback(() => {
-    dispatch({ type: 'BACK_TO_MODE_SELECT' });
-  }, []);
+    if (state.phase === 'setup') {
+      dispatch({ type: 'BACK_TO_MODE_SELECT' });
+    }
+  }, [state.phase]);
 
   const startRun = useCallback(() => {
     if (state.phase !== 'setup' || !state.mode || !state.tier) {
