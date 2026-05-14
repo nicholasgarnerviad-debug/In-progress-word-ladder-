@@ -223,8 +223,8 @@ export const ClassicGame: React.FC = () => {
       // Use from inventory
       economy.useItem('reveal_next_word');
     } else {
-      // Buy new reveals (2-pack for 60 coins)
-      if (!economy.buyConsumable('reveal_next_word', 60, 2)) {
+      // Buy new reveals (3-pack for 60 coins)
+      if (!economy.buyConsumable('reveal_next_word', 60, 3)) {
         return; // Not enough coins
       }
     }
@@ -250,8 +250,8 @@ export const ClassicGame: React.FC = () => {
       // Use from inventory
       economy.useItem('undo_step');
     } else {
-      // Buy new undos (3-pack for 20 coins)
-      if (!economy.buyConsumable('undo_step', 20, 3)) {
+      // Buy new undos (3-pack for 25 coins)
+      if (!economy.buyConsumable('undo_step', 25, 3)) {
         return; // Not enough coins
       }
     }
@@ -566,7 +566,7 @@ export const ClassicGame: React.FC = () => {
           {(() => {
             const undoCount = economy.getCount('undo_step');
             const canUseUndo = undoCount > 0 && game.state.history.length > 1 && game.state.phase === 'playing';
-            const canBuyUndo = economy.coins >= 20 && game.state.history.length > 1 && game.state.phase === 'playing';
+            const canBuyUndo = economy.coins >= 25 && game.state.history.length > 1 && game.state.phase === 'playing';
 
             return (
               <button
@@ -580,7 +580,7 @@ export const ClassicGame: React.FC = () => {
                       : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200'
                 }`}
               >
-                Undo {undoCount > 0 ? `(${undoCount})` : '(20◎)'}
+                Undo {undoCount > 0 ? `(${undoCount})` : '(25◎)'}
               </button>
             );
           })()}
