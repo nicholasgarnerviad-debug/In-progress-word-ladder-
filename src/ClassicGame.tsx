@@ -119,7 +119,7 @@ export const ClassicGame: React.FC = () => {
         saveStats(stats);
       } else {
         const lossPenalty = 50;
-        economy.spend(lossPenalty);
+        if (!economy.spend(lossPenalty)) return;
         setRoundResult({ type: 'lost', coinsDelta: -lossPenalty });
 
         const lostRecord: PuzzleRecord = {
