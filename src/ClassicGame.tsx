@@ -139,7 +139,8 @@ export const ClassicGame: React.FC = () => {
     if (xpAwardedRef.current) return;
     xpAwardedRef.current = true;
 
-    // Award XP based on puzzle difficulty
+    // Award fixed XP per difficulty: easier puzzles are still rewarding,
+    // but harder puzzles get more baseline XP (not multiplied by performance)
     const xpAmount = XP_REWARDS.puzzleSolve[puzzleDifficulty] || 10;
     economy.addXp(xpAmount, `puzzle_solve_${puzzleDifficulty}`);
   }, [game.state.phase, puzzleDifficulty, economy]);

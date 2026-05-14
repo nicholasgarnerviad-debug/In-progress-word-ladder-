@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { TimeAttackMode, DurationTier, Difficulty } from '../types';
 import { useEconomy } from '../../../lib/economy';
 
+// XP multiplier for each difficulty in Time Attack mode
+const DIFFICULTY_MULTIPLIERS: Record<Difficulty, number> = { easy: 1.0, medium: 1.5, hard: 2.0 };
+
 export type EndScreenProps = {
   mode: TimeAttackMode;
   tier: DurationTier;
@@ -63,6 +66,7 @@ export const EndScreen: React.FC<EndScreenProps> = ({
   const navigate = useNavigate();
   const economy = useEconomy();
   const [rewardAwarded, setRewardAwarded] = useState(false);
+  const [awardedXp, setAwardedXp] = useState(0);
 
   const isPersonalBest = previousBestAtRunEnd === null || solvedCount > previousBestAtRunEnd.solved;
   const isFirstRun = previousBestAtRunEnd === null;
@@ -75,11 +79,10 @@ export const EndScreen: React.FC<EndScreenProps> = ({
     const personalBestBonus = isPersonalBest && !isFirstRun ? 50 : 0;
     const totalCoins = baseCoins + personalBestBonus;
 
-    // Define difficulty multipliers
-    const difficultyMultipliers: Record<string, number> = { easy: 1.0, medium: 1.5, hard: 2.0 };
-
     // Calculate XP with difficulty multiplier
-    const multiplier = difficultyMultipliers[bestDifficulty ?? 'easy'];
+    // Award XP scaled by performance: solving more puzzles = more XP
+    // Difficulty multiplier rewards pushing into harder difficulties
+    const multiplier = DIFFICULTY_MULTIPLIERS[bestDifficulty ?? 'easy'];
     const totalXp = Math.round(solvedCount * 10 * multiplier);
 
     // Award coins for solving puzzles, plus bonus for personal best
@@ -91,8 +94,9 @@ export const EndScreen: React.FC<EndScreenProps> = ({
     }
     // Award XP for time attack run
     economy.addXp(totalXp, 'time_attack_run');
+    setAwardedXp(totalXp);
     setRewardAwarded(true);
-  }, [solvedCount, bestDifficulty, isPersonalBest, isFirstRun, economy, rewardAwarded]);
+  }, [solvedCount, bestDifficulty, previousBestAtRunEnd, economy, rewardAwarded]);
 
   const handleBackToHome = () => {
     onBackToHome();
@@ -105,7 +109,7 @@ export const EndScreen: React.FC<EndScreenProps> = ({
       <div className="h-12 border-b border-gray-200 dark:border-gray-800 flex items-center px-4">
         <button
           onClick={handleBackToHome}
-          className="text-2xl leading-none hover:opacity-60 transition-opacity"
+          className="text-2xl leading-none hover:opacity-60 transition-opacity focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
           aria-label="Back to home"
         >
           ←
@@ -170,7 +174,7 @@ export const EndScreen: React.FC<EndScreenProps> = ({
           <div className="flex justify-between items-center pt-2">
             <span className="text-gray-600 dark:text-gray-400">XP Earned</span>
             <span className="font-mono font-semibold text-lg">
-              +{Math.round(solvedCount * 10 * (({easy: 1.0, medium: 1.5, hard: 2.0}[bestDifficulty ?? 'easy'])))}
+              +{awardedXp}
             </span>
           </div>
         </div>

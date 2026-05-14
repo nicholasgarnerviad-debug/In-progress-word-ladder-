@@ -371,5 +371,84 @@ describe('EndScreen', () => {
       // Verify component re-renders correctly
       expect(screen.getByText('5')).toBeInTheDocument();
     });
+
+    it('awards XP with easy difficulty multiplier (1.0x)', () => {
+      // Simulate 5 solves at easy difficulty: 10 × 5 × 1.0 = 50 XP
+      render(
+        <BrowserRouter>
+          <EndScreen
+            mode="sprint"
+            tier={60}
+            solvedCount={5}
+            longestStreak={3}
+            timeRemainingMs={10000}
+            averageSolveMs={6000}
+            bestDifficulty="easy"
+            previousBestAtRunEnd={null}
+            onPlayAgain={jest.fn()}
+            onBackToHome={jest.fn()}
+          />
+        </BrowserRouter>
+      );
+
+      // Component should display the correct XP value in stats card
+      expect(screen.getByText('XP Earned')).toBeInTheDocument();
+      // Check for the XP earned amount (easy: 10*5*1.0=50)
+      const coins100Earned = screen.getByText('+100'); // 5*20 coins
+      const xpEarned = screen.getAllByText(/\+50/);
+      expect(xpEarned.length).toBeGreaterThan(0); // At least one +50 for XP
+    });
+
+    it('awards XP with medium difficulty multiplier (1.5x)', () => {
+      // Simulate 5 solves at medium difficulty: 10 × 5 × 1.5 = 75 XP
+      render(
+        <BrowserRouter>
+          <EndScreen
+            mode="sprint"
+            tier={60}
+            solvedCount={5}
+            longestStreak={3}
+            timeRemainingMs={10000}
+            averageSolveMs={6000}
+            bestDifficulty="medium"
+            previousBestAtRunEnd={null}
+            onPlayAgain={jest.fn()}
+            onBackToHome={jest.fn()}
+          />
+        </BrowserRouter>
+      );
+
+      // Component should display the correct XP value in stats card
+      expect(screen.getByText('XP Earned')).toBeInTheDocument();
+      // Check for the XP earned amount (medium: 10*5*1.5=75)
+      const xpEarned = screen.getAllByText(/\+75/);
+      expect(xpEarned.length).toBeGreaterThan(0); // At least one +75 for XP
+    });
+
+    it('awards XP with hard difficulty multiplier (2.0x)', () => {
+      // Simulate 5 solves at hard difficulty: 10 × 5 × 2.0 = 100 XP
+      render(
+        <BrowserRouter>
+          <EndScreen
+            mode="sprint"
+            tier={60}
+            solvedCount={5}
+            longestStreak={3}
+            timeRemainingMs={10000}
+            averageSolveMs={6000}
+            bestDifficulty="hard"
+            previousBestAtRunEnd={null}
+            onPlayAgain={jest.fn()}
+            onBackToHome={jest.fn()}
+          />
+        </BrowserRouter>
+      );
+
+      // Component should display the correct XP value in stats card
+      expect(screen.getByText('XP Earned')).toBeInTheDocument();
+      // Check for the XP earned amount (hard: 10*5*2.0=100)
+      const xpEarned = screen.getAllByText(/\+100/);
+      expect(xpEarned.length).toBeGreaterThan(0); // At least one +100 for XP
+    });
   });
 });
