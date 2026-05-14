@@ -4,7 +4,7 @@ import type { WordPuzzle as Puzzle } from '../../generatePuzzle';
 import { getDifficultyForIndex, getSkipCostSeconds, getTimeRewardSeconds, getSurvivalBaseSeconds, FREE_SKIPS_PER_RUN } from './difficulty';
 import { loadStats, saveStats, recordRun } from './stats';
 import { useTimer } from './timer';
-import { generatePuzzle } from '../../generatePuzzle';
+import { generatePuzzle, generatePuzzleWithRetry } from '../../generatePuzzle';
 
 export type TimeAttackState = {
   phase: Phase;
@@ -221,18 +221,22 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
   const generateNextPuzzle = useCallback(
     (index: number, runStartedAt: number): Puzzle | null => {
       const config = getDifficultyForIndex(index);
-      let puzzle: Puzzle | null = null;
-      let retryCount = 0;
+      const seed = `${runStartedAt}:${index}`;
 
-      while (!puzzle && retryCount < 3) {
-        try {
-          const seed = `${runStartedAt}:${index}${retryCount > 0 ? `:retry${retryCount}` : ''}`;
-          puzzle = generatePuzzle(config.wordLength, config.difficulty, seed);
-        } catch {
-          retryCount++;
+      const puzzle = generatePuzzleWithRetry(config.wordLength, config.difficulty, seed);
+      if (!puzzle) {
+        console.warn(
+          `Could not generate puzzle (${config.wordLength}-letter, ${config.difficulty}). Falling back to shorter words.`
+        );
+        // Try even shorter as last resort
+        const fallback = generatePuzzleWithRetry(4, 'easy', `${seed}:fallback`);
+        if (!fallback) {
+          console.error('Critical: Unable to generate any puzzle. Game may become unplayable.');
+          // Set an error state if your hook has one
+          return null;
         }
+        return fallback;
       }
-
       return puzzle;
     },
     []

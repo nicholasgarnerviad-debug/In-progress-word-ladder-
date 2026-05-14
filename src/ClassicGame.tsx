@@ -1,42 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { generatePuzzle, Difficulty } from './generatePuzzle';
+import { generatePuzzle, Difficulty, generatePuzzleWithRetry, WordPuzzle } from './generatePuzzle';
 import { shortestPath } from './wordGraph';
 import { useGameState } from './useGameState';
-import { WordPuzzle } from './generatePuzzle';
 import { PuzzleBoard } from './components/PuzzleBoard';
 import { HomeButton } from './components/HomeButton';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
 import { useEconomy } from './lib/economy';
-
-// Helper: Generate puzzle with retry logic. Falls back to easier difficulty if generation fails.
-function generatePuzzleWithRetry(wordLength: number, difficulty: Difficulty): WordPuzzle {
-  const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
-  const startIdx = difficulties.indexOf(difficulty);
-
-  for (let diffIdx = startIdx; diffIdx < difficulties.length; diffIdx++) {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const seed = `${Date.now()}-${Math.random()}-attempt${attempt}`;
-        return generatePuzzle(wordLength, difficulties[diffIdx], seed);
-      } catch {
-        // Try next attempt
-      }
-    }
-  }
-
-  // Last resort: try easy difficulty from scratch
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const seed = `${Date.now()}-${Math.random()}-fallback${attempt}`;
-      return generatePuzzle(wordLength, 'easy', seed);
-    } catch {
-      // Keep trying
-    }
-  }
-
-  // This should never happen for 4-letter words (they have 90% connectivity)
-  throw new Error(`Failed to generate puzzle after all retry attempts`);
-}
 
 interface PuzzleRecord {
   puzzle: WordPuzzle;

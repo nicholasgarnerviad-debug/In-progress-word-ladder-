@@ -237,3 +237,55 @@ export function getDailyPuzzle(
 ): WordPuzzle {
   return generatePuzzle(wordLength, difficulty, new Date().toDateString());
 }
+
+export function generatePuzzleWithRetry(
+  wordLength: WordLength,
+  difficulty: Difficulty,
+  seed?: string,
+  maxRetries: number = 3
+): WordPuzzle | null {
+  const baseSeed = seed || `${Date.now()}-${Math.random()}`;
+
+  const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
+  const startDiffIdx = difficulties.indexOf(difficulty);
+
+  // Try original difficulty first
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const attemptSeed = `${baseSeed}:attempt${attempt}`;
+      return generatePuzzle(wordLength, difficulty, attemptSeed);
+    } catch (e) {
+      // Continue to next attempt
+    }
+  }
+
+  // Fall back to easier difficulties
+  for (let diffIdx = startDiffIdx + 1; diffIdx < difficulties.length; diffIdx++) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const attemptSeed = `${baseSeed}:fallback${diffIdx}:attempt${attempt}`;
+        return generatePuzzle(wordLength, difficulties[diffIdx], attemptSeed);
+      } catch (e) {
+        // Continue to next attempt
+      }
+    }
+  }
+
+  // Fall back to shorter word length (if possible)
+  if (wordLength > 3) {
+    const shorterLength = (wordLength - 1) as WordLength;
+    for (let diffIdx = startDiffIdx; diffIdx < difficulties.length; diffIdx++) {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const attemptSeed = `${baseSeed}:shorter${shorterLength}:attempt${attempt}`;
+          return generatePuzzle(shorterLength, difficulties[diffIdx], attemptSeed);
+        } catch (e) {
+          // Continue to next attempt
+        }
+      }
+    }
+  }
+
+  // All fallbacks exhausted
+  return null;
+}
