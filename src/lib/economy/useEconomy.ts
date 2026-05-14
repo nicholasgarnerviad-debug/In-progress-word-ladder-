@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { loadWallet, saveWallet, earnCoins as walletEarnCoins, spendCoins, addXp as walletAddXp } from './wallet';
 import type { Wallet, AddXpResult } from './wallet';
-import { loadInventory, saveInventory, addConsumable, useConsumable, getConsumableCount } from './inventory';
+import { loadInventory, saveInventory, addConsumable, useConsumable, getConsumableCount, addUnlock, addDictionaryVouchers } from './inventory';
 import type { Inventory } from './inventory';
 import { ConsumableType } from './shop';
 import type { CoinSource, XpSource } from './types';
@@ -11,6 +11,11 @@ export interface EconomyState {
   xp: number;
   level: number;
   inventory: { [key: string]: number };
+}
+
+export interface EarnXpResult {
+  leveledUp: boolean;
+  rewards: Array<{ level: number; coins: number; description: string }>;
 }
 
 export function useEconomy() {
@@ -45,12 +50,51 @@ export function useEconomy() {
     return true;
   }, []);
 
-  const addXp = useCallback((amount: number, source: XpSource): AddXpResult => {
+  const addXp = useCallback((amount: number, source: XpSource): EarnXpResult => {
     const current = loadWallet();
     const result = walletAddXp(current, amount, source);
-    saveWallet(result.newState);
-    setWallet(result.newState);
-    return result;
+
+    let workingWallet = result.newState;
+    let workingInventory = loadInventory();
+
+    // Apply each level-up reward atomically
+    for (const reward of result.rewards) {
+      // Add bonus coins
+      workingWallet = walletEarnCoins(workingWallet, reward.coins, 'level_reward');
+
+      // Apply unlocks
+      for (const unlock of reward.unlocks) {
+        switch (unlock.type) {
+          case 'consumable':
+            workingInventory = addConsumable(workingInventory, unlock.consumableType as ConsumableType, unlock.count);
+            break;
+          case 'mode':
+            workingInventory = addUnlock(workingInventory, unlock.modeId);
+            break;
+          case 'badge':
+            workingInventory = addUnlock(workingInventory, `badge_${unlock.id}`);
+            break;
+          case 'dictionary_voucher':
+            workingInventory = addDictionaryVouchers(workingInventory, unlock.count);
+            break;
+        }
+      }
+    }
+
+    // Persist everything atomically
+    saveWallet(workingWallet);
+    saveInventory(workingInventory);
+    setWallet(workingWallet);
+    setInventory(workingInventory);
+
+    return {
+      leveledUp: result.leveledUp,
+      rewards: result.rewards.map(r => ({
+        level: r.level,
+        coins: r.coins,
+        description: r.description,
+      })),
+    };
   }, []);
 
   const buyConsumable = useCallback((type: ConsumableType, cost: number, count: number): boolean => {
