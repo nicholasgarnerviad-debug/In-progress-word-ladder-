@@ -67,7 +67,11 @@ export function useTimer(options: UseTimerOptions): TimerState & TimerControls {
 
     if (isExpired && !internal.hasExpired) {
       internal.hasExpired = true;
-      onExpireRef.current?.();
+      try {
+        onExpireRef.current?.();
+      } catch (error) {
+        console.error('Timer onExpire callback error:', error);
+      }
     }
 
     if (!isExpired) {
