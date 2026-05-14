@@ -49,7 +49,7 @@ export function useEconomy() {
     spendCoins(amount);
     setState(prev => ({ ...prev, coins: Math.max(0, prev.coins - amount) }));
     return true;
-  }, [state.coins]);
+  }, []);
 
   const addXp = useCallback((amount: number, source: string) => {
     earnXp(amount);
