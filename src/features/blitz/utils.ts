@@ -181,6 +181,21 @@ export function formatTime(ms: number): string {
 }
 
 /**
+ * Formats milliseconds as MM:SS format for Blitz timer display.
+ * Example: 65000ms -> "01:05", 45000ms -> "00:45"
+ * Handles edge cases: 0ms -> "00:00", negative -> "00:00"
+ */
+export function formatBlitzTime(ms: number): string {
+  if (ms < 0) return '00:00';
+
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+/**
  * Generates a session seed: timestamp + 5 random alphanumeric chars.
  */
 export function generateSessionSeed(): string {

@@ -3,6 +3,7 @@ import {
   isValidRoomCode,
   generateBlitzPuzzleBatch,
   formatTime,
+  formatBlitzTime,
   generateSessionSeed,
 } from '../utils';
 
@@ -126,6 +127,32 @@ describe('formatTime', () => {
   it('returns 0.0 for negative times', () => {
     expect(formatTime(-500)).toBe('0.0');
     expect(formatTime(-1000)).toBe('0.0');
+  });
+});
+
+describe('formatBlitzTime', () => {
+  it('formats milliseconds to MM:SS format', () => {
+    expect(formatBlitzTime(0)).toBe('00:00');
+    expect(formatBlitzTime(45000)).toBe('00:45');
+    expect(formatBlitzTime(65000)).toBe('01:05');
+    expect(formatBlitzTime(60000)).toBe('01:00');
+  });
+
+  it('handles large durations', () => {
+    expect(formatBlitzTime(300000)).toBe('05:00');
+    expect(formatBlitzTime(599000)).toBe('09:59');
+    expect(formatBlitzTime(600000)).toBe('10:00');
+  });
+
+  it('handles negative times', () => {
+    expect(formatBlitzTime(-1)).toBe('00:00');
+    expect(formatBlitzTime(-5000)).toBe('00:00');
+  });
+
+  it('pads minutes and seconds with leading zeros', () => {
+    expect(formatBlitzTime(1000)).toBe('00:01');
+    expect(formatBlitzTime(10000)).toBe('00:10');
+    expect(formatBlitzTime(61000)).toBe('01:01');
   });
 });
 
