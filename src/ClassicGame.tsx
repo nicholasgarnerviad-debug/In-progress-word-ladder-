@@ -4,6 +4,7 @@ import { shortestPath } from './wordGraph';
 import { useGameState } from './useGameState';
 import { WordPuzzle } from './generatePuzzle';
 import { PuzzleBoard } from './components/PuzzleBoard';
+import { HomeButton } from './components/HomeButton';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
 
 // Helper: Generate puzzle with retry logic. Falls back to easier difficulty if generation fails.
@@ -227,7 +228,10 @@ export const ClassicGame: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-2">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Word Ladder</h1>
+          <div className="flex items-center gap-2">
+            <HomeButton isGameInProgress={game.state.phase === 'playing'} />
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Word Ladder</h1>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowPuzzleList(!showPuzzleList)}

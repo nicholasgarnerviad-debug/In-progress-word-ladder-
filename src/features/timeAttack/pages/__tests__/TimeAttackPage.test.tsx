@@ -66,7 +66,7 @@ describe('TimeAttackPage', () => {
       },
     });
 
-    render(<TimeAttackPage />);
+    renderWithRouter(<TimeAttackPage />);
     expect(screen.getByText('Solved')).toBeInTheDocument();
     expect(screen.getByText('Streak')).toBeInTheDocument();
   });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { WordPuzzle } from '../../../generatePuzzle';
 import { PuzzleBoard } from '../../../components/PuzzleBoard';
+import { HomeButton } from '../../../components/HomeButton';
 import { Clock } from './Clock';
 import { getSkipCostSeconds } from '../difficulty';
 import { DurationTier } from '../types';
@@ -67,9 +68,12 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
       {/* Top bar */}
       <div className="border-b border-gray-200 dark:border-gray-800 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
-          <div className="text-sm">
-            <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Solved</p>
-            <p className="font-mono font-bold text-lg">{solvedCount}</p>
+          <div className="flex items-center gap-2">
+            <HomeButton isGameInProgress={true} />
+            <div className="text-sm">
+              <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Solved</p>
+              <p className="font-mono font-bold text-lg">{solvedCount}</p>
+            </div>
           </div>
 
           <div className="flex-1 flex justify-center">
