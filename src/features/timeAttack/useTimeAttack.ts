@@ -52,6 +52,7 @@ type ReducerAction =
   | { type: 'TIMER_EXPIRED' }
   | { type: 'PLAY_AGAIN' }
   | { type: 'RESET' }
+  | { type: 'SET_TIME_REWARD_FLASH' }
   | { type: 'CLEAR_FLASH_TIMEOUT' };
 
 const initialState: TimeAttackState = {
@@ -146,6 +147,13 @@ function timeAttackReducer(state: TimeAttackState, action: ReducerAction): TimeA
         currentPuzzle: action.puzzle,
         currentDifficulty: getDifficultyForIndex(action.nextIndex).difficulty,
         lastSolveStartedAt: performance.now(),
+        freeSkipsRemaining: Math.max(0, state.freeSkipsRemaining - 1),
+      };
+
+    case 'SET_TIME_REWARD_FLASH':
+      return {
+        ...state,
+        isTimeRewardFlashing: true,
       };
 
     case 'CLEAR_FLASH_TIMEOUT':
@@ -264,12 +272,11 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
         const reward = getTimeRewardSeconds(state.currentDifficulty) * 1000;
         timer.adjustTime(reward);
 
-        dispatch({ type: 'CLEAR_FLASH_TIMEOUT' });
         if (flashTimeoutRef.current) {
           clearTimeout(flashTimeoutRef.current);
         }
 
-        const newState = { ...state, isTimeRewardFlashing: true };
+        dispatch({ type: 'SET_TIME_REWARD_FLASH' });
         flashTimeoutRef.current = window.setTimeout(
           () => dispatch({ type: 'CLEAR_FLASH_TIMEOUT' }),
           600
