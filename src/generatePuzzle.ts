@@ -198,6 +198,19 @@ export function generatePuzzle(
     );
   }
 
+  // Verify puzzle is solvable
+  const verifyPath = shortestPath(chain[0], chain[chain.length - 1]);
+  if (!verifyPath || verifyPath.length !== chain.length) {
+    throw new Error(
+      `Generated puzzle is not solvable or path length mismatch: expected ${chain.length}, got ${verifyPath?.length || 'null'}`
+    );
+  }
+
+  // Ensure start !== end
+  if (chain[0] === chain[chain.length - 1]) {
+    throw new Error(`Puzzle start and end cannot be the same word: ${chain[0]}`);
+  }
+
   const lockedIndices = pickLockedIndices(chain.length, rng);
 
   // Find alternative paths to the same destination
