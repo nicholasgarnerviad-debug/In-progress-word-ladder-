@@ -98,7 +98,7 @@ export const EndScreen: React.FC<EndScreenProps> = ({
 
         {/* Centerpiece: large number */}
         <div className="text-center">
-          <div className="text-7xl font-bold font-mono tabular-nums">{solvedCount}</div>
+          <div className="text-8xl font-bold font-mono tabular-nums">{solvedCount}</div>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Puzzles Solved</p>
         </div>
 

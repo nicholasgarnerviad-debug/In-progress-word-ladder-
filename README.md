@@ -17,7 +17,7 @@ A modern word ladder game with routing, persistent stats, theme customization, a
 - **React 19** with TypeScript
 - **React Router v6** for client-side routing
 - **Tailwind CSS** with dark mode
-- **Jest** for testing (146 tests)
+- **Jest** for testing (295 tests)
 - **Vite** for bundling
 
 ## Pages
@@ -26,7 +26,8 @@ A modern word ladder game with routing, persistent stats, theme customization, a
 - **StatsStrip**: Game statistics (Played, Win %, Streak, Max)
 - **Game Modes**:
   - Classic (active) → navigates to `/play/classic`
-  - Daily Puzzle, Endless, Time Attack (coming soon)
+  - Time Attack (active) → navigates to `/play/time-attack`
+  - Daily Puzzle, Endless (coming soon)
 - **Header**: Settings gear icon links to `/settings`
 
 ### `/play/classic` — Game
@@ -39,6 +40,27 @@ A modern word ladder game with routing, persistent stats, theme customization, a
   - Stats showing current steps vs optimal
 - **Puzzle History Modal**: View all completed games
 - **Coins System**: Earn/spend on power-ups (win bonus ~20-100◎, loss penalty -50◎)
+
+### `/play/time-attack` — Time Attack
+- **Two Game Modes**:
+  - **Sprint**: Fixed timer (60s, 90s, or 120s). Solve as many puzzles as you can before time expires.
+  - **Survival**: Keep the clock alive. Each successful solve adds time (3–10s depending on difficulty).
+- **Duration Tiers**: 
+  - Sprint: 60s, 90s, 120s
+  - Survival: Short (45s base), Medium (75s base), Long (120s base)
+- **Skip System**:
+  - 2 free skips per run
+  - Additional skips cost time (5s penalty in Sprint 60, scales with tier)
+- **Difficulty Ramp**: Puzzles start easy and increase in difficulty as you solve more (Easy → Medium → Hard → Expert)
+- **Stats & Persistence**:
+  - Personal best tracking (puzzles solved and longest streak per mode+tier)
+  - Stored in `localStorage` under `wordLadder.timeAttackStats`
+- **Visuals**:
+  - Clock displays remaining/elapsed time with tenths of a second
+  - Sub-5s urgency: Red color and faster pulse
+  - Sub-10s urgency: Faster pulse
+  - Survival mode: Green flash on time reward
+  - End screen: Centerpiece solves count with personal best badge ("First Run!" or "New Personal Best!")
 
 ### `/settings` — Settings
 - **Theme**: Select System, Light, or Dark mode
@@ -69,6 +91,7 @@ A modern word ladder game with routing, persistent stats, theme customization, a
 - `wordLadder.difficulty` — Default difficulty setting
 - `wordLadder-coins` — In-game coin balance
 - `wordLadder-records` — Puzzle completion history
+- `wordLadder.timeAttackStats` — Time Attack statistics (personal bests by mode+tier)
 
 ## Getting Started
 
@@ -124,6 +147,6 @@ npm test -- --watch  # Watch mode
 
 ## Known Limitations
 
-- Daily Puzzle, Endless, and Time Attack modes are UI placeholders (coming soon)
-- Difficulty setting not yet used by puzzle generation
+- Daily Puzzle and Endless modes are UI placeholders (coming soon)
+- Difficulty setting not yet used by puzzle generation in Classic mode
 - Limited to 4-letter word puzzles currently (extensible to 3–7 letters)
