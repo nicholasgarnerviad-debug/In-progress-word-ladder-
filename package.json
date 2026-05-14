@@ -20,6 +20,7 @@
     "@types/seedrandom": "^3.0.8",
     "natural": "^6.7.0",
     "react": "^19.2.6",
+    "react-confetti": "^6.1.0",
     "react-dom": "^19.2.6",
     "react-router-dom": "^6.30.3",
     "seedrandom": "^3.0.5"

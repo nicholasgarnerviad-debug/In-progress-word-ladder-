@@ -74,6 +74,7 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
         sessionSeed: generateSessionSeed(),
       },
       players: new Map([[hostId, host]]),
+      puzzles: [],
       currentPuzzleIndex: 0,
       currentPhase: 'lobby',
     };
@@ -200,7 +201,7 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
         room.meta.sessionSeed,
         10 // Default 10 puzzles for now
       );
-      (room as any).puzzles = puzzles;
+      room.puzzles = puzzles;
     } catch (error) {
       throw new BlitzSyncError(
         BlitzSyncErrorCode.INVALID_SETTINGS,
@@ -374,6 +375,7 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
       difficulty: room.meta.difficulty,
       durationMs: room.meta.durationMs,
       timerTier: room.meta.timerTier,
+      puzzleCount: room.puzzles.length,
     };
     this.validateSettings(settings);
 
@@ -393,7 +395,7 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
     room.meta.sessionSeed = generateSessionSeed();
     room.meta.startedAt = null;
     room.meta.endedAt = null;
-    (room as any).puzzles = [];
+    room.puzzles = [];
     room.currentPuzzleIndex = 0;
     room.currentPhase = 'lobby';
 
@@ -493,18 +495,15 @@ export class LocalSyncAdapter implements BlitzSyncAdapter {
 
     // Deep copy the rest using JSON
     const metaCopy = JSON.parse(JSON.stringify(room.meta));
-    const puzzlesCopy = (room as any).puzzles ? JSON.parse(JSON.stringify((room as any).puzzles)) : undefined;
+    const puzzlesCopy = JSON.parse(JSON.stringify(room.puzzles));
 
     const copy: BlitzRoom = {
       meta: metaCopy,
       players: playersCopy,
+      puzzles: puzzlesCopy,
       currentPuzzleIndex: room.currentPuzzleIndex,
       currentPhase: room.currentPhase,
     };
-
-    if (puzzlesCopy) {
-      (copy as any).puzzles = puzzlesCopy;
-    }
 
     return copy;
   }

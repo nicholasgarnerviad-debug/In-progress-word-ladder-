@@ -1,8 +1,14 @@
 // Mock setup must come before imports
+interface ConfettiProps {
+  recycle: boolean;
+  gravity: number;
+  wind: number;
+}
+
 jest.mock('react-confetti', () => {
   return {
     __esModule: true,
-    default: ({ recycle, gravity, wind }: Record<string, any>) => (
+    default: ({ recycle, gravity, wind }: ConfettiProps) => (
       <div
         data-testid="confetti-mock"
         data-recycle={recycle}

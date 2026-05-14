@@ -37,6 +37,9 @@ export function getDifficultyMultiplier(difficulty: BlitzDifficulty): number {
       return 1.5;
     case 'hard':
       return 2.0;
+    default:
+      const exhaustiveCheck: never = difficulty;
+      throw new Error(`Unknown difficulty: ${exhaustiveCheck}`);
   }
 }
 
