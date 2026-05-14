@@ -198,4 +198,106 @@ describe('useTimer', () => {
       expect(result.current.isRunning).toBe(false);
     });
   });
+
+  describe('adjustTime', () => {
+    it('adjustTime(+5000) increases remainingMs by 5000', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 10000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(2000);
+      });
+
+      const beforeAdjust = result.current.remainingMs;
+
+      act(() => {
+        result.current.adjustTime(5000);
+      });
+
+      // Need to advance RAF to see the update
+      act(() => {
+        advanceTimeAndRAF(0);
+      });
+
+      expect(result.current.remainingMs).toBeCloseTo(beforeAdjust + 5000, 0);
+    });
+
+    it('adjustTime(-5000) decreases remainingMs by 5000', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 10000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(1000);
+      });
+
+      const beforeAdjust = result.current.remainingMs;
+
+      act(() => {
+        result.current.adjustTime(-5000);
+      });
+
+      // Need to advance RAF to see the update
+      act(() => {
+        advanceTimeAndRAF(0);
+      });
+
+      expect(result.current.remainingMs).toBeCloseTo(beforeAdjust - 5000, 0);
+    });
+
+    it('adjustTime driving remainingMs below zero triggers expiration on next RAF tick', () => {
+      const onExpire = jest.fn();
+      const { result } = renderHook(() =>
+        useTimer({ initialMs: 5000, onExpire })
+      );
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(3000);
+      });
+
+      expect(onExpire).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.adjustTime(-3000); // Drives it negative
+      });
+
+      act(() => {
+        advanceTimeAndRAF(0); // Next RAF tick
+      });
+
+      expect(result.current.isExpired).toBe(true);
+      expect(onExpire).toHaveBeenCalledTimes(1);
+    });
+
+    it('adjustTime does not fire onExpire synchronously', () => {
+      const onExpire = jest.fn();
+      const { result } = renderHook(() =>
+        useTimer({ initialMs: 5000, onExpire })
+      );
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(4000);
+      });
+
+      act(() => {
+        result.current.adjustTime(-5000); // Drives negative
+      });
+
+      // Should not have fired yet
+      expect(onExpire).not.toHaveBeenCalled();
+    });
+  });
 });
