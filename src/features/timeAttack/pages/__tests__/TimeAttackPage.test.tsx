@@ -82,9 +82,8 @@ describe('TimeAttackPage', () => {
       runStartedAt: performance.now() - 30000,
     });
 
-    render(<TimeAttackPage />);
-    expect(screen.getByText(/Mode:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Solved:/i)).toBeInTheDocument();
+    renderWithRouter(<TimeAttackPage />);
+    expect(screen.getByText(/Run Complete/i)).toBeInTheDocument();
   });
 
   it('sets document title', () => {
