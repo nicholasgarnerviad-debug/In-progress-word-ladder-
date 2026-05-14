@@ -300,4 +300,93 @@ describe('useTimer', () => {
       expect(onExpire).not.toHaveBeenCalled();
     });
   });
+
+  describe('reset', () => {
+    it('reset() returns timer to initial state with original initialMs', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(2000);
+      });
+
+      expect(result.current.remainingMs).toBeLessThan(5000);
+
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.isRunning).toBe(false);
+      expect(result.current.isExpired).toBe(false);
+      expect(result.current.remainingMs).toBe(5000);
+    });
+
+    it('reset(newInitialMs) uses the new initial value', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        advanceTimeAndRAF(2000);
+      });
+
+      act(() => {
+        result.current.reset(10000);
+      });
+
+      expect(result.current.remainingMs).toBe(10000);
+    });
+
+    it('reset() clears pause state', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        result.current.pause();
+      });
+
+      act(() => {
+        result.current.reset();
+      });
+
+      act(() => {
+        result.current.start();
+      });
+
+      // Timer should run normally
+      expect(result.current.isRunning).toBe(true);
+
+      act(() => {
+        advanceTimeAndRAF(1000);
+      });
+
+      expect(result.current.remainingMs).toBeLessThan(5000);
+    });
+
+    it('reset() clears adjustments', () => {
+      const { result } = renderHook(() => useTimer({ initialMs: 5000 }));
+
+      act(() => {
+        result.current.start();
+      });
+
+      act(() => {
+        result.current.adjustTime(3000);
+      });
+
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.remainingMs).toBe(5000);
+    });
+  });
 });
