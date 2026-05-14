@@ -75,9 +75,12 @@ export const EndScreen: React.FC<EndScreenProps> = ({
     const personalBestBonus = isPersonalBest && !isFirstRun ? 50 : 0;
     const totalCoins = baseCoins + personalBestBonus;
 
-    const baseXp = solvedCount * 10;
-    const streakBonus = longestStreak >= 5 ? 50 : 0;
-    const totalXp = baseXp + streakBonus;
+    // Define difficulty multipliers
+    const difficultyMultipliers: Record<string, number> = { easy: 1.0, medium: 1.5, hard: 2.0 };
+
+    // Calculate XP with difficulty multiplier
+    const multiplier = difficultyMultipliers[bestDifficulty ?? 'easy'];
+    const totalXp = Math.round(solvedCount * 10 * multiplier);
 
     // Award coins for solving puzzles, plus bonus for personal best
     if (solvedCount > 0) {
@@ -89,7 +92,7 @@ export const EndScreen: React.FC<EndScreenProps> = ({
     // Award XP for time attack run
     economy.addXp(totalXp, 'time_attack_run');
     setRewardAwarded(true);
-  }, [solvedCount, longestStreak, isPersonalBest, isFirstRun, economy, rewardAwarded]);
+  }, [solvedCount, bestDifficulty, isPersonalBest, isFirstRun, economy, rewardAwarded]);
 
   const handleBackToHome = () => {
     onBackToHome();
@@ -167,7 +170,7 @@ export const EndScreen: React.FC<EndScreenProps> = ({
           <div className="flex justify-between items-center pt-2">
             <span className="text-gray-600 dark:text-gray-400">XP Earned</span>
             <span className="font-mono font-semibold text-lg">
-              +{Math.round(solvedCount * 10 + (longestStreak >= 5 ? 50 : 0))}
+              +{Math.round(solvedCount * 10 * (({easy: 1.0, medium: 1.5, hard: 2.0}[bestDifficulty ?? 'easy'])))}
             </span>
           </div>
         </div>
