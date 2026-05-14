@@ -58,6 +58,7 @@ export interface BlitzRoomSettings {
   difficulty: BlitzDifficulty;
   durationMs: number;
   timerTier: BlitzTimerTier;
+  puzzleCount: number;
 }
 
 export interface BlitzRunSummary {
@@ -86,6 +87,8 @@ export const BLITZ_LIMITS = {
   ROOM_CODE_LENGTH: 6,
   MIN_DURATION_MS: 30000,
   MAX_DURATION_MS: 300000,
+  MIN_PUZZLE_COUNT: 5,
+  MAX_PUZZLE_COUNT: 20,
   WORD_LENGTHS: [4, 5, 6] as const,
   DIFFICULTIES: ['easy', 'medium', 'hard'] as const,
   TIMER_TIERS: ['tier1', 'tier2', 'tier3', 'tier4'] as const,
