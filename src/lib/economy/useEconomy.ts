@@ -15,7 +15,7 @@ export interface EconomyState {
 
 export interface EarnXpResult {
   leveledUp: boolean;
-  rewards: Array<{ level: number; coins: number; description: string }>;
+  rewards: Array<{ level: number; coins: number; description: string; unlocks: any[] }>;
 }
 
 export function useEconomy() {
@@ -93,6 +93,7 @@ export function useEconomy() {
         level: r.level,
         coins: r.coins,
         description: r.description,
+        unlocks: r.unlocks,
       })),
     };
   }, []);

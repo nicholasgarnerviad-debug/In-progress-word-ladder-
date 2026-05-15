@@ -25,6 +25,12 @@ jest.mock('./generatePuzzle', () => ({
   generatePuzzleWithRetry: jest.fn(),
 }));
 
+jest.mock('./components/economy/LevelUpProvider', () => ({
+  useLevelUpQueue: jest.fn(() => ({
+    push: jest.fn(),
+  })),
+}));
+
 describe('ClassicGame Power-ups with Inventory', () => {
   const mockEconomy = {
     coins: 500,
