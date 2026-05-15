@@ -5,13 +5,12 @@ import { useGameState } from './useGameState';
 import { PuzzleBoard } from './components/PuzzleBoard';
 import { HomeButton } from './components/navigation/HomeButton';
 import { SettingsButton } from './components/navigation/SettingsButton';
+import { HintRevealButtons } from './components/game/HintRevealButtons';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
 import { useEconomy } from './lib/economy';
 import { useLevelUpQueue } from './components/economy/LevelUpProvider';
 import { WalletStrip } from './components/economy/WalletStrip';
-import { FirebaseLeaderboardAdapter } from './lib/leaderboard/sync/FirebaseLeaderboardAdapter';
-import type { GameResult } from './lib/leaderboard/types';
-import { Timestamp } from 'firebase/firestore';
+import { useGameResult } from './hooks/useGameResult';
 
 const XP_REWARDS = {
   puzzleSolve: { easy: 10, medium: 15, hard: 20 },
@@ -79,6 +78,7 @@ export const ClassicGame: React.FC = () => {
   const economy = useEconomy();
   const { push: pushLevelUpRewards } = useLevelUpQueue();
   const xpAwardedRef = useRef(false);
+  const { recordResult } = useGameResult(getUserId());
 
   const [roundResult, setRoundResult] = useState<{
     type: 'won' | 'lost';
@@ -149,42 +149,28 @@ export const ClassicGame: React.FC = () => {
       }
 
       // Record result to leaderboard (fire and forget, don't block game flow)
-      const leaderboardAdapter = new FirebaseLeaderboardAdapter();
-      leaderboardAdapter.initialize().then(() => {
-        const userId = getUserId();
-        const gameDuration = Date.now() - gameStartTimeRef.current;
-        const isWon = game.state.phase === 'won';
+      const userId = getUserId();
+      const gameDuration = Date.now() - gameStartTimeRef.current;
+      const isWon = game.state.phase === 'won';
 
-        // Create result object - timestamp will be replaced by serverTimestamp() on the server
-        const result: GameResult = {
-          userId,
-          mode: 'classic' as const,
-          score: isWon ? (game.state.history.length - 1) : 0, // Use steps as score for classic mode
-          solved: isWon, // true if puzzle was solved
-          wrong: game.state.failedSubmissions || 0,
-          duration: gameDuration,
-          difficulty: puzzleDifficulty,
-          wordLength: puzzle.start.length,
-          timestamp: new Timestamp(Math.floor(Date.now() / 1000), 0), // Placeholder, will be replaced server-side
-        };
-
-        leaderboardAdapter.recordGameResult(userId, result).then(() => {
-          // Check for newly unlocked achievements
-          return leaderboardAdapter.checkAndGrantAchievements(userId);
-        }).then(newAchievements => {
-          if (newAchievements && newAchievements.length > 0) {
-            // Display achievement notifications
-            newAchievements.forEach(achievementId => {
-              console.log(`Achievement unlocked: ${achievementId}`);
-            });
-          }
-        }).catch(err => {
-          console.error('Failed to record game result or check achievements:', err);
-          // Don't show error to user - leaderboard recording is non-critical
-        });
+      recordResult(
+        'classic',
+        isWon ? (game.state.history.length - 1) : 0, // Use steps as score for classic mode
+        isWon, // true if puzzle was solved
+        game.state.failedSubmissions || 0,
+        gameDuration,
+        puzzleDifficulty,
+        puzzle.start.length
+      ).then(({ newAchievements }) => {
+        if (newAchievements && newAchievements.length > 0) {
+          // Display achievement notifications
+          newAchievements.forEach(achievementId => {
+            console.log(`Achievement unlocked: ${achievementId}`);
+          });
+        }
       }).catch(err => {
-        console.error('Failed to initialize leaderboard adapter:', err);
-        // Don't show error to user - leaderboard is non-critical
+        console.error('Failed to record game result or check achievements:', err);
+        // Don't show error to user - leaderboard recording is non-critical
       });
 
       const newPuzzle = generatePuzzleWithRetry(4, 'medium');
@@ -607,51 +593,25 @@ export const ClassicGame: React.FC = () => {
 
         {/* Power-ups */}
         <div className="flex gap-2 mb-6">
-          {/* Hint button */}
+          {/* Hint and Reveal buttons */}
           {(() => {
             const hintCount = economy.getCount('hint');
             const canUseHint = hintCount > 0 && game.state.lastHintedIndex === null;
             const canBuyHint = economy.coins >= 30 && game.state.lastHintedIndex === null;
-
-            return (
-              <button
-                onClick={handleUseHint}
-                disabled={!canUseHint && !canBuyHint}
-                className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
-                  !canUseHint && !canBuyHint
-                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
-                    : canUseHint
-                      ? 'bg-amber-400 text-amber-900 hover:bg-amber-500'
-                      : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200'
-                }`}
-              >
-                Hint {hintCount > 0 ? `(${hintCount})` : '(30◎)'}
-              </button>
-            );
-          })()}
-
-          {/* Reveal button */}
-          {(() => {
             const revealCount = economy.getCount('reveal_next_word');
             const canUseReveal = revealCount > 0 && game.state.lastRevealedWord === null;
             const canBuyReveal = economy.coins >= 60 && game.state.lastRevealedWord === null;
 
             return (
-              <button
-                onClick={handleRevealStep}
-                disabled={!canUseReveal && !canBuyReveal}
-                className={`flex-1 py-2 px-3 rounded font-semibold text-sm transition-colors ${
-                  !canUseReveal && !canBuyReveal
-                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
-                    : canUseReveal
-                      ? 'bg-cyan-400 text-cyan-900 hover:bg-cyan-500'
-                      : 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-200'
-                }`}
-              >
-                Reveal {revealCount > 0 ? `(${revealCount})` : '(60◎)'}
-              </button>
+              <HintRevealButtons
+                onHint={handleUseHint}
+                onReveal={handleRevealStep}
+                disableHint={!canUseHint && !canBuyHint}
+                disableReveal={!canUseReveal && !canBuyReveal}
+              />
             );
           })()}
+
           {/* Undo button */}
           {(() => {
             const undoCount = economy.getCount('undo_step');
