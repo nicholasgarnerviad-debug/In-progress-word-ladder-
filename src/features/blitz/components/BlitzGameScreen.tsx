@@ -71,11 +71,6 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
     await game.reportSolved({ wrongAttempts: 0, hintsUsed: 0 });
   }, [game]);
 
-  // Handle wrong guess - puzzle board handles feedback internally
-  const handleWrongGuess = useCallback(() => {
-    // Feedback is handled by PuzzleBoard component
-  }, []);
-
   // Handle skip puzzle
   const handleSkipPuzzle = useCallback(async () => {
     await game.reportFailed({ wrongAttempts: 0, hintsUsed: 0 });
@@ -160,7 +155,6 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
               <PuzzleBoard
                 puzzle={game.currentPuzzle}
                 onSolved={handlePuzzleSolved}
-                onWrongGuess={handleWrongGuess}
                 hideScore={true}
                 disabled={timer.isExpired}
               />

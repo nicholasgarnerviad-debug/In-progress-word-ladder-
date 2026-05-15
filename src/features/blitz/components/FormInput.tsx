@@ -25,7 +25,7 @@ export type FormInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
 export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
   ({ label, error, helperText, success, className, ...props }, ref) => {
     const hasError = !!error;
-    const id = props.id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const id = props.id || `input-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     const descriptionId = `${id}-description`;
 
     return (

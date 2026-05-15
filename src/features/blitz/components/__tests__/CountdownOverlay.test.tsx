@@ -17,11 +17,12 @@ describe('CountdownOverlay', () => {
       render(<CountdownOverlay startTime={Date.now()} />);
 
       await waitFor(() => {
-        const countdownElement = screen.getByRole('status');
+        const statusRegion = screen.getByRole('status');
+        const countdownElement = statusRegion.firstChild as HTMLElement;
         expect(countdownElement).toHaveClass('text-9xl');
-        expect(countdownElement.parentElement).toHaveClass('flex');
-        expect(countdownElement.parentElement).toHaveClass('items-center');
-        expect(countdownElement.parentElement).toHaveClass('justify-center');
+        expect(statusRegion).toHaveClass('flex');
+        expect(statusRegion).toHaveClass('items-center');
+        expect(statusRegion).toHaveClass('justify-center');
       });
     });
 
@@ -69,11 +70,8 @@ describe('CountdownOverlay', () => {
       render(<CountdownOverlay startTime={Date.now()} />);
 
       await waitFor(() => {
-        const overlay = screen.getByRole('status').closest('div');
-        while (overlay && overlay.parentElement && overlay.parentElement.className.includes('fixed')) {
-          expect(overlay.parentElement).toHaveClass('fixed');
-          break;
-        }
+        const overlay = screen.getByRole('status') as HTMLElement;
+        expect(overlay).toHaveClass('fixed');
       });
     });
 
@@ -90,7 +88,8 @@ describe('CountdownOverlay', () => {
       render(<CountdownOverlay startTime={Date.now()} />);
 
       await waitFor(() => {
-        const countdownElement = screen.getByRole('status');
+        const statusRegion = screen.getByRole('status');
+        const countdownElement = statusRegion.firstChild as HTMLElement;
         expect(countdownElement).toHaveClass('animate-countdownScale');
       });
     });
@@ -99,7 +98,7 @@ describe('CountdownOverlay', () => {
       render(<CountdownOverlay startTime={Date.now()} />);
 
       await waitFor(() => {
-        const overlay = screen.getByRole('status').parentElement;
+        const overlay = screen.getByRole('status') as HTMLElement;
         expect(overlay).toHaveClass('animate-fadeIn');
       });
     });
@@ -108,7 +107,8 @@ describe('CountdownOverlay', () => {
       render(<CountdownOverlay startTime={Date.now()} />);
 
       await waitFor(() => {
-        const countdownElement = screen.getByRole('status') as HTMLElement;
+        const statusRegion = screen.getByRole('status') as HTMLElement;
+        const countdownElement = statusRegion.firstChild as HTMLElement;
         expect(countdownElement.style.textShadow).toBeTruthy();
       });
     });
@@ -122,12 +122,12 @@ describe('CountdownOverlay', () => {
       expect(statusRegion).toHaveAttribute('aria-atomic', 'true');
     });
 
-    it('has presentation role on overlay container', async () => {
+    it('has status role on overlay container for announcements', async () => {
       const { container } = render(<CountdownOverlay startTime={Date.now()} />);
 
       await waitFor(() => {
         const overlay = container.firstChild as HTMLElement;
-        expect(overlay).toHaveAttribute('role', 'presentation');
+        expect(overlay).toHaveAttribute('role', 'status');
       });
     });
   });

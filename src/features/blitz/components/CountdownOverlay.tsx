@@ -72,13 +72,11 @@ export const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
   return (
     <div
       className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fadeIn"
-      role="presentation"
-      aria-hidden="false"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
     >
       <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
         className={`
           select-none font-black tracking-tighter
           animate-countdownScale

@@ -55,7 +55,7 @@ export const CreateRoomForm: React.FC<CreateRoomFormProps> = ({
       <div className="h-12 border-b border-gray-200 dark:border-gray-800 flex items-center px-4">
         <button
           onClick={onCancel}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none -ml-2"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded transition-colors focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none -ml-2"
           aria-label="Back"
         >
           <svg

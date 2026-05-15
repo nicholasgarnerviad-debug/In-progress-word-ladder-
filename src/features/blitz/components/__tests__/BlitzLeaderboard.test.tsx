@@ -325,7 +325,7 @@ describe('BlitzLeaderboard', () => {
       expect(row).toBeInTheDocument();
     });
 
-    it('has proper aria-labels for score and solved counts', () => {
+    it('displays score and solved counts with visible labels', () => {
       const players: BlitzPlayer[] = [
         createMockPlayer('p1', 'Alice', 300, 3),
       ];
@@ -333,15 +333,13 @@ describe('BlitzLeaderboard', () => {
 
       render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
 
-      // Score aria-label should be on the score section
+      // Score label and value should be visible
       expect(screen.getByText('Score')).toBeInTheDocument();
-      const scoreSection = screen.getByLabelText('Alice score: 300');
-      expect(scoreSection).toBeInTheDocument();
+      expect(screen.getByText('300')).toBeInTheDocument();
 
-      // Solved aria-label should be on the solved section
+      // Solved label and value should be visible
       expect(screen.getByText('Solved')).toBeInTheDocument();
-      const solvedSection = screen.getByLabelText('Alice solved: 3');
-      expect(solvedSection).toBeInTheDocument();
+      expect(screen.getByText('3')).toBeInTheDocument();
     });
   });
 });

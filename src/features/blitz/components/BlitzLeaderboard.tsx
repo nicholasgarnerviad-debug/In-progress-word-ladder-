@@ -79,13 +79,13 @@ export const BlitzLeaderboard: React.FC<BlitzLeaderboardProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3 ml-auto flex-shrink-0">
-                  <div className="text-right" aria-label={`${player.name} score: ${player.score}`}>
+                  <div className="text-right">
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Score</p>
                     <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
                       {player.score}
                     </p>
                   </div>
-                  <div className="text-right" aria-label={`${player.name} solved: ${player.solved}`}>
+                  <div className="text-right">
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Solved</p>
                     <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
                       {player.solved}
