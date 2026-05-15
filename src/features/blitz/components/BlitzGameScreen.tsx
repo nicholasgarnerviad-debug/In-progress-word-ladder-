@@ -183,13 +183,13 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
       </div>
 
       {/* Bottom: Action buttons */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row gap-3 justify-center shadow-md">
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row gap-4 justify-center shadow-md">
         <button
           onClick={handleSkipPuzzle}
           disabled={timer.isExpired}
           className={`
             ${BUTTON_STYLES.primary}
-            min-h-[44px] min-w-[44px]
+            min-h-[48px] min-w-[48px] px-4 py-3
             active:animate-buttonPress
           `}
           aria-label="Skip current puzzle"
@@ -200,7 +200,7 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
           onClick={handleForfeit}
           className={`
             ${BUTTON_STYLES.danger}
-            min-h-[44px] min-w-[44px]
+            min-h-[48px] min-w-[48px] px-4 py-3
             active:animate-buttonPress
           `}
           aria-label="Forfeit the game"
