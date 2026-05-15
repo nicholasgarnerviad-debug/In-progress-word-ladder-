@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export const HomeButton: React.FC = () => {
   const navigate = useNavigate();
 
+  const handleClick = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
   return (
     <button
-      onClick={() => navigate('/')}
-      className="fixed top-4 left-4 p-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors z-50"
+      onClick={handleClick}
+      className="fixed top-4 left-4 p-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors z-50 focus-visible:ring-2 focus-visible:ring-blue-500"
       aria-label="Go to home"
     >
       <svg
@@ -15,6 +19,7 @@ export const HomeButton: React.FC = () => {
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"

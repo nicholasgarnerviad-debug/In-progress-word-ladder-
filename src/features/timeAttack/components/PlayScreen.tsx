@@ -19,6 +19,7 @@ export type PlayScreenProps = {
   tier: DurationTier;
   onSolved: () => void;
   onSkip: () => void;
+  onAddTime: () => void;
   freeSkipsRemaining: number;
 };
 
@@ -32,6 +33,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
   tier,
   onSolved,
   onSkip,
+  onAddTime,
   freeSkipsRemaining,
 }) => {
   const [skipDisabled, setSkipDisabled] = useState(false);
@@ -163,6 +165,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
               disabled={skipDisabled}
               onUse={() => {
                 economy.useItem('time_extension_15s');
+                onAddTime();
               }}
               onBuy={() => {
                 economy.buyConsumable('time_extension_15s', 40, 5);

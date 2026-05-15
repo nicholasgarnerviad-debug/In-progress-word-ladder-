@@ -38,6 +38,7 @@ export type TimeAttackActions = {
   startRun: () => void;
   reportSolved: () => void;
   skipPuzzle: () => void;
+  addTime: () => void;
   endRun: () => void;
   playAgain: () => void;
   reset: () => void;
@@ -323,6 +324,13 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
     }
   }, [state.phase, state.mode, state.tier, state.freeSkipsRemaining, state.runStartedAt, state.currentPuzzleIndex, generateNextPuzzle, timer]);
 
+  const addTime = useCallback(() => {
+    if (state.phase !== 'playing') {
+      return;
+    }
+    timer.adjustTime(15000); // Add 15 seconds (15000 ms)
+  }, [state.phase, timer]);
+
   const endRun = useCallback(() => {
     if (state.phase !== 'playing') {
       return;
@@ -386,6 +394,7 @@ export function useTimeAttack(): TimeAttackState & TimeAttackActions {
     startRun,
     reportSolved,
     skipPuzzle,
+    addTime,
     endRun,
     playAgain,
     reset,

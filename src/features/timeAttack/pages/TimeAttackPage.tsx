@@ -157,6 +157,7 @@ export const TimeAttackPage: React.FC = () => {
           tier={state.tier!}
           onSolved={state.reportSolved}
           onSkip={state.skipPuzzle}
+          onAddTime={state.addTime}
           freeSkipsRemaining={state.freeSkipsRemaining}
         />
       )}
