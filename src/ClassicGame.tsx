@@ -8,10 +8,30 @@ import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
 import { useEconomy } from './lib/economy';
 import { useLevelUpQueue } from './components/economy/LevelUpProvider';
 import { WalletStrip } from './components/economy/WalletStrip';
+import { FirebaseLeaderboardAdapter } from './lib/leaderboard/sync/FirebaseLeaderboardAdapter';
+import type { GameResult } from './lib/leaderboard/types';
 
 const XP_REWARDS = {
   puzzleSolve: { easy: 10, medium: 15, hard: 20 },
 };
+
+/**
+ * Get or create a user ID for leaderboard tracking.
+ * Uses a persistent localStorage ID since no auth system is present yet.
+ */
+function getUserId(): string {
+  const STORAGE_KEY = 'wordladder-user-id';
+  let userId = localStorage.getItem(STORAGE_KEY);
+
+  if (!userId) {
+    // Generate a new user ID (UUID v4)
+    userId = 'user-' + Math.random().toString(36).substring(2, 15) +
+             Math.random().toString(36).substring(2, 15);
+    localStorage.setItem(STORAGE_KEY, userId);
+  }
+
+  return userId;
+}
 
 interface PuzzleRecord {
   puzzle: WordPuzzle;
@@ -34,6 +54,7 @@ export const ClassicGame: React.FC = () => {
   const [puzzleDifficulty, setPuzzleDifficulty] = useState<Difficulty>('medium');
   const game = useGameState(puzzle);
   const [puzzleBoardKey, setPuzzleBoardKey] = useState(0);
+  const gameStartTimeRef = useRef(Date.now());
 
   useEffect(() => {
     document.title = 'Word Ladder — Classic';
@@ -125,6 +146,35 @@ export const ClassicGame: React.FC = () => {
         saveStats(stats);
       }
 
+      // Record result to leaderboard (fire and forget, don't block game flow)
+      const leaderboardAdapter = new FirebaseLeaderboardAdapter();
+      leaderboardAdapter.initialize().then(() => {
+        const userId = getUserId();
+        const gameDuration = Date.now() - gameStartTimeRef.current;
+        const isWon = game.state.phase === 'won';
+
+        // Create result object - timestamp will be replaced by serverTimestamp() on the server
+        const result = {
+          userId,
+          mode: 'classic' as const,
+          score: isWon ? (game.state.history.length - 1) : 0, // Use steps as score for classic mode
+          solved: isWon, // true if puzzle was solved
+          wrong: game.state.failedSubmissions || 0,
+          duration: gameDuration,
+          difficulty: puzzleDifficulty,
+          wordLength: puzzle.start.length,
+          timestamp: { _seconds: Math.floor(Date.now() / 1000), _nanoseconds: 0 }, // Placeholder, will be replaced server-side
+        } as GameResult;
+
+        leaderboardAdapter.recordGameResult(userId, result).catch(err => {
+          console.error('Failed to record game result:', err);
+          // Don't show error to user - leaderboard recording is non-critical
+        });
+      }).catch(err => {
+        console.error('Failed to initialize leaderboard adapter:', err);
+        // Don't show error to user - leaderboard is non-critical
+      });
+
       const newPuzzle = generatePuzzleWithRetry(4, 'medium');
       if (newPuzzle) {
         setPuzzle(newPuzzle);
@@ -190,6 +240,7 @@ export const ClassicGame: React.FC = () => {
     setCountdown(-1);
     setResetKey(prev => prev + 1);
     setPuzzleBoardKey(prev => prev + 1);
+    gameStartTimeRef.current = Date.now();
   };
 
 
