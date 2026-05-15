@@ -16,13 +16,18 @@ export const LeaderboardScreen: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
+    let unsubscribe: (() => void) | null = null;
+
     adapter.initialize().then(() => {
-      const unsubscribe = adapter.subscribeToLeaderboard(mode, period, (lb) => {
+      unsubscribe = adapter.subscribeToLeaderboard(mode, period, (lb) => {
         setLeaderboard(lb);
         setLoading(false);
       });
-      return () => unsubscribe();
     });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [mode, period]);
 
   return (
