@@ -145,7 +145,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
       <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-4">
         <div className="max-w-md mx-auto">
           {/* Consumables row (above Skip button) */}
-          <div className="flex gap-2 flex-wrap justify-center mb-4">
+          <div className="flex gap-4 flex-wrap justify-center mb-4">
             <ConsumableButton
               type="hint"
               label="Hint"
@@ -176,7 +176,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
           <button
             onClick={handleSkip}
             disabled={skipDisabled}
-            className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none ${
+            className={`w-full py-3 px-4 min-h-[48px] rounded-lg font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none ${
               skipDisabled
                 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-700'

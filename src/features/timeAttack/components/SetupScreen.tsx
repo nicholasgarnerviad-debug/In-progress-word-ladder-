@@ -134,7 +134,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
                 <button
                   key={d}
                   onClick={() => onChooseTier(d)}
-                  className={`rounded-lg border-2 p-3 flex flex-col items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none ${
+                  className={`rounded-lg border-2 p-3 min-h-[48px] flex flex-col items-center justify-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none ${
                     tier === d
                       ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-900'
                       : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900'
@@ -158,7 +158,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
           <div className="pb-8">
             <button
               onClick={onStartRun}
-              className="w-full py-3 px-4 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition-colors hover:bg-gray-800 dark:hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+              className="w-full py-3 px-4 min-h-[48px] rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition-colors hover:bg-gray-800 dark:hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
             >
               Start Run
             </button>
