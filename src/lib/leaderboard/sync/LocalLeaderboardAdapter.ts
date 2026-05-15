@@ -26,34 +26,42 @@ export class LocalLeaderboardAdapter implements LeaderboardSyncAdapter {
   private listeners: Map<string, Set<LeaderboardListener>> = new Map();
 
   /**
+   * Clear all profiles, leaderboards, and listeners.
+   * Useful for test isolation.
+   */
+  reset(): void {
+    this.profiles.clear();
+    this.leaderboards.clear();
+    this.listeners.clear();
+  }
+
+  /**
    * Records a game result and updates player profile stats.
    * Notifies all subscribed listeners for the affected game mode.
    */
   async recordGameResult(userId: string, result: GameResult): Promise<void> {
     let profile = this.profiles.get(userId);
     if (!profile) {
-      throw new LeaderboardSyncError(
-        LeaderboardSyncErrorCode.PROFILE_NOT_FOUND,
-        `Profile not found: ${userId}`
-      );
+      this.throwProfileNotFound(userId);
     }
 
     // Update mode-specific stats
     const modeStats = profile.stats[result.mode as keyof typeof profile.stats];
     if (modeStats) {
-      (modeStats as any).gamesPlayed += 1;
-      (modeStats as any).totalScore += result.score;
-      (modeStats as any).averageScore =
-        (modeStats as any).totalScore / (modeStats as any).gamesPlayed;
-      if (result.score > (modeStats as any).bestScore) {
-        (modeStats as any).bestScore = result.score;
+      const stats = modeStats as any;  // Single cast at source
+      stats.gamesPlayed += 1;
+      stats.totalScore += result.score;
+      stats.averageScore = stats.totalScore / stats.gamesPlayed;
+      if (result.score > stats.bestScore) {
+        stats.bestScore = result.score;
       }
 
       // Update mode-specific extra fields
+      // This local adapter supports all modes without extra logic
       if (result.mode === 'blitz') {
-        ((modeStats as any) as BlitzStats).totalTime += result.duration;
+        (stats as BlitzStats).totalTime += result.duration;
       } else if (result.mode === 'timeAttack') {
-        const taStats = (modeStats as any) as TimeAttackStats;
+        const taStats = stats as TimeAttackStats;
         if (result.solved) {
           taStats.completedPuzzles += 1;
           if (result.duration < taStats.bestTime || taStats.bestTime === 0) {
@@ -109,10 +117,7 @@ export class LocalLeaderboardAdapter implements LeaderboardSyncAdapter {
   async getPlayerProfile(userId: string): Promise<PlayerProfile> {
     const profile = this.profiles.get(userId);
     if (!profile) {
-      throw new LeaderboardSyncError(
-        LeaderboardSyncErrorCode.PROFILE_NOT_FOUND,
-        `Profile not found: ${userId}`
-      );
+      this.throwProfileNotFound(userId);
     }
     return profile;
   }
@@ -241,9 +246,9 @@ export class LocalLeaderboardAdapter implements LeaderboardSyncAdapter {
         return {
           userId: profile.userId,
           name: profile.name,
-          score: (modeStats as any)?.totalScore || 0,
+          score: modeStats?.totalScore || 0,
           placement: 0, // Placeholder, will be set below
-          gamesPlayed: (modeStats as any)?.gamesPlayed || 0,
+          gamesPlayed: modeStats?.gamesPlayed || 0,
           lastGameAt: profile.lastGameAt,
         };
       })
@@ -257,5 +262,16 @@ export class LocalLeaderboardAdapter implements LeaderboardSyncAdapter {
       lastUpdated: Timestamp.now(),
       updatedCount: 0,
     };
+  }
+
+  /**
+   * Throws a standardized profile-not-found error.
+   * Extracted to reduce duplication.
+   */
+  private throwProfileNotFound(userId: string): never {
+    throw new LeaderboardSyncError(
+      LeaderboardSyncErrorCode.PROFILE_NOT_FOUND,
+      `Profile not found: ${userId}`
+    );
   }
 }
