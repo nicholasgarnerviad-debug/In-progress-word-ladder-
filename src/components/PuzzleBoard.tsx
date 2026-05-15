@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { WordPuzzle } from '../generatePuzzle';
 import { useGameState } from '../useGameState';
 import { Rung } from '../Rung';
@@ -14,18 +14,27 @@ export type PuzzleBoardProps = {
   hideScore?: boolean;
   /** Optional: disable input (used during pause / transition between puzzles). */
   disabled?: boolean;
+  /** Optional: callback to apply a hint at the given index. Used by modes that need external hint management. */
+  onUseHint?: (index: number) => void;
 };
 
-export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
+export const PuzzleBoard = forwardRef<{ applyHint: (index: number) => void }, PuzzleBoardProps>(({
   puzzle,
   onSolved,
   onWrongGuess,
   hideScore = false,
   disabled = false,
-}) => {
+  onUseHint,
+}, ref) => {
   const game = useGameState(puzzle);
   const [submissionError, setSubmissionError] = useState(false);
   const prevFailedRef = useRef(game.state.failedSubmissions);
+
+  useImperativeHandle(ref, () => ({
+    applyHint: (index: number) => {
+      game.applyHint(index);
+    }
+  }));
 
   // Show error message when a word is rejected
   useEffect(() => {
@@ -158,4 +167,4 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
       />
     </div>
   );
-};
+});

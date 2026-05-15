@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { WordPuzzle } from '../../../generatePuzzle';
 import { PuzzleBoard } from '../../../components/PuzzleBoard';
 import { HomeButton } from '../../../components/HomeButton';
@@ -7,6 +7,7 @@ import { getSkipCostSeconds } from '../difficulty';
 import { DurationTier } from '../types';
 import { useEconomy } from '../../../lib/economy';
 import { ConsumableButton } from '../../../components/ConsumableButton';
+import { shortestPath } from '../../../wordGraph';
 
 export type PlayScreenProps = {
   puzzle: WordPuzzle | null;
@@ -36,6 +37,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
   const [skipDisabled, setSkipDisabled] = useState(false);
   const [showLoadingPlaceholder, setShowLoadingPlaceholder] = useState(false);
   const economy = useEconomy();
+  const puzzleBoardRef = useRef<{ applyHint: (index: number) => void }>(null);
 
   useEffect(() => {
     if (puzzle === null) {
@@ -64,6 +66,34 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
     }
     const cost = getSkipCostSeconds(tier, 0);
     return `Skip (-${cost}s)`;
+  };
+
+  const getHintIndex = (): number | null => {
+    if (!puzzle) return null;
+    // This is a simplified hint calculation - would need access to actual game state
+    // For now, just hint the first letter difference
+    return 0;
+  };
+
+  const handleUseHint = () => {
+    const hintCount = economy.getCount('hint');
+    if (!puzzle) return;
+
+    const hintIndex = getHintIndex();
+    if (hintIndex === null) return;
+
+    if (hintCount > 0) {
+      // Use from inventory
+      economy.useItem('hint');
+    } else {
+      // Buy new hints (5-pack for 30 coins)
+      if (!economy.buyConsumable('hint', 30, 5)) {
+        return; // Not enough coins
+      }
+    }
+
+    // Apply hint through PuzzleBoard ref
+    puzzleBoardRef.current?.applyHint(hintIndex);
   };
 
   return (
@@ -99,6 +129,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
             </div>
           ) : (
             <PuzzleBoard
+              ref={puzzleBoardRef}
               key={puzzleIndex}
               puzzle={puzzle}
               onSolved={onSolved}
@@ -118,10 +149,8 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
               label="Hint"
               count={economy.getCount('hint')}
               cost={30}
-              disabled={skipDisabled}
-              onUse={() => {
-                economy.useItem('hint');
-              }}
+              disabled={false}
+              onUse={handleUseHint}
               onBuy={() => {
                 economy.buyConsumable('hint', 30, 5);
               }}
