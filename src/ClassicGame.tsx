@@ -504,7 +504,7 @@ export const ClassicGame: React.FC = () => {
               {roundResult.coinsDelta >= 0 ? '+' : ''}{roundResult.coinsDelta} ◎
             </div>
             {roundResult.type === 'won' && roundResult.xp !== undefined && (
-              <div className="text-lg font-bold mb-2 text-blue-600">
+              <div className="text-lg font-bold mb-2 text-blue-600 dark:text-blue-400">
                 +{roundResult.xp} XP
               </div>
             )}
