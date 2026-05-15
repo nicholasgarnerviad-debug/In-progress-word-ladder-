@@ -7,6 +7,9 @@ import { ComponentsPreview } from './pages/ComponentsPreview';
 import { TimeAttackPage } from './features/timeAttack/pages/TimeAttackPage';
 import { BlitzPage } from './features/blitz/BlitzPage';
 import { LevelUpProvider } from './components/economy/LevelUpProvider';
+import { PlayerProfileScreen } from './components/leaderboard/PlayerProfileScreen';
+import { LeaderboardScreen } from './components/leaderboard/LeaderboardScreen';
+import { AchievementsScreen } from './components/leaderboard/AchievementsScreen';
 
 export const App: React.FC = () => {
   return (
@@ -19,6 +22,9 @@ export const App: React.FC = () => {
           <Route path="/play/time-attack" element={<TimeAttackPage />} />
           <Route path="/blitz/*" element={<BlitzPage />} />
           <Route path="/_preview" element={<ComponentsPreview />} />
+          <Route path="/profile/:userId" element={<PlayerProfileScreen />} />
+          <Route path="/leaderboards" element={<LeaderboardScreen />} />
+          <Route path="/achievements" element={<AchievementsScreen earnedAchievements={[]} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </LevelUpProvider>
