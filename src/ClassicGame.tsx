@@ -484,7 +484,7 @@ export const ClassicGame: React.FC = () => {
           </div>
         )}
 
-        <div key={puzzleBoardKey} className="mb-4">
+        <div key={puzzleBoardKey} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 mb-6">
           <PuzzleBoard
             puzzle={puzzle}
             onSolved={() => {
@@ -540,7 +540,7 @@ export const ClassicGame: React.FC = () => {
         )}
 
         {/* Power-ups */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-6">
           {/* Hint button */}
           {(() => {
             const hintCount = economy.getCount('hint');
