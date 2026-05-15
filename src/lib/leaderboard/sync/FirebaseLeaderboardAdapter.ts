@@ -44,6 +44,8 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
   private cache: LeaderboardCache;
   private evaluator: AchievementEvaluator;
   private unsubscribers: Map<string, () => void> = new Map();
+  private connectivityListener: (() => void) | null = null;
+  private currentUserId: string | null = null;
 
   constructor() {
     this.cache = new LeaderboardCache();
@@ -51,12 +53,13 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
   }
 
   /**
-   * Initialize the adapter by setting up the local cache.
+   * Initialize the adapter by setting up the local cache and connectivity detection.
    * Should be called before using other methods.
    */
   async initialize(): Promise<void> {
     try {
       await this.cache.initialize();
+      this.setupConnectivityDetection();
     } catch (error) {
       throw new LeaderboardSyncError(
         LeaderboardSyncErrorCode.FIRESTORE_ERROR,
@@ -66,17 +69,48 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
   }
 
   /**
+   * Set up listeners for connectivity changes.
+   * When the app goes from offline to online, automatically sync queued results.
+   */
+  private setupConnectivityDetection(): void {
+    // Remove existing listener if present
+    if (this.connectivityListener) {
+      window.removeEventListener('online', this.connectivityListener);
+    }
+
+    // Create a handler that will be called when connectivity is restored
+    this.connectivityListener = () => {
+      console.log('Connectivity restored, syncing queued results...');
+      if (this.currentUserId) {
+        this.syncLocalResults(this.currentUserId).catch((error) => {
+          console.error('Error syncing results after going online:', error);
+        });
+      }
+    };
+
+    // Listen for the 'online' event
+    window.addEventListener('online', this.connectivityListener);
+  }
+
+  /**
    * Record a game result and queue it for synchronization.
    * Results are queued locally first, then synced if online.
+   * If offline, results are queued and will sync automatically when connectivity is restored.
    */
   async recordGameResult(userId: string, result: GameResult): Promise<void> {
     try {
+      // Store the current user ID for connectivity detection
+      this.currentUserId = userId;
+
       // Queue locally first
       await this.cache.queueGameResult(userId, result);
 
       // Try to sync immediately if online
       if (navigator.onLine) {
+        console.log('Online - syncing game result immediately');
         await this.syncLocalResults(userId);
+      } else {
+        console.log('Offline - game result queued for sync when online');
       }
     } catch (error) {
       throw new LeaderboardSyncError(
@@ -221,8 +255,11 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
       const pendingResults = await this.cache.getPendingGameResults(userId);
 
       if (pendingResults.length === 0) {
+        console.log(`No pending results to sync for user ${userId}`);
         return;
       }
+
+      console.log(`Syncing ${pendingResults.length} pending result(s) for user ${userId}...`);
 
       // Get the current player profile
       const profile = await this.getPlayerProfile(userId);
@@ -257,6 +294,8 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
 
       // Mark all results as synced
       await this.cache.markGameResultSynced(userId);
+
+      console.log(`Successfully synced ${pendingResults.length} result(s) for user ${userId}`);
     } catch (error) {
       if (error instanceof LeaderboardSyncError) throw error;
       throw new LeaderboardSyncError(
@@ -313,7 +352,7 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
   }
 
   /**
-   * Unsubscribe from all real-time leaderboard listeners.
+   * Unsubscribe from all real-time leaderboard listeners and connectivity detection.
    * Should be called on component unmount or when cleaning up.
    */
   unsubscribeAll(): void {
@@ -325,5 +364,11 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
       }
     });
     this.unsubscribers.clear();
+
+    // Clean up connectivity listener
+    if (this.connectivityListener) {
+      window.removeEventListener('online', this.connectivityListener);
+      this.connectivityListener = null;
+    }
   }
 }
