@@ -6,6 +6,7 @@ import { PuzzleBoard } from './components/PuzzleBoard';
 import { HomeButton } from './components/HomeButton';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
 import { useEconomy } from './lib/economy';
+import { useLevelUpQueue } from './components/economy/LevelUpProvider';
 
 const XP_REWARDS = {
   puzzleSolve: { easy: 10, medium: 15, hard: 20 },
