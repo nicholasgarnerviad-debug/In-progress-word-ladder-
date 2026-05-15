@@ -640,3 +640,5 @@ export const ClassicGame: React.FC = () => {
     </>
   );
 };
+
+export default ClassicGame;

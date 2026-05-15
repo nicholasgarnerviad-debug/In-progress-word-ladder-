@@ -181,3 +181,5 @@ export const BlitzPage: React.FC = () => {
     </Routes>
   );
 };
+
+export default BlitzPage;

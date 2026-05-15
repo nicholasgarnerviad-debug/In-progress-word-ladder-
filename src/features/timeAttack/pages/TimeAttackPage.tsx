@@ -192,3 +192,5 @@ export const TimeAttackPage: React.FC = () => {
     </>
   );
 };
+
+export default TimeAttackPage;

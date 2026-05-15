@@ -1,15 +1,28 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { SettingsPage } from './pages/SettingsPage';
-import { ClassicGame } from './ClassicGame';
 import { ComponentsPreview } from './pages/ComponentsPreview';
-import { TimeAttackPage } from './features/timeAttack/pages/TimeAttackPage';
-import { BlitzPage } from './features/blitz/BlitzPage';
 import { LevelUpProvider } from './components/economy/LevelUpProvider';
-import { PlayerProfileScreen } from './components/leaderboard/PlayerProfileScreen';
-import { LeaderboardScreen } from './components/leaderboard/LeaderboardScreen';
-import { AchievementsScreen } from './components/leaderboard/AchievementsScreen';
+
+// Lazy load game mode pages
+const ClassicGame = lazy(() => import('./ClassicGame'));
+const TimeAttackPage = lazy(() => import('./features/timeAttack/pages/TimeAttackPage'));
+const BlitzPage = lazy(() => import('./features/blitz/BlitzPage'));
+
+// Lazy load leaderboard screens
+const PlayerProfileScreen = lazy(() => import('./components/leaderboard/PlayerProfileScreen'));
+const LeaderboardScreen = lazy(() => import('./components/leaderboard/LeaderboardScreen'));
+const AchievementsScreen = lazy(() => import('./components/leaderboard/AchievementsScreen'));
+
+const GameLoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center">
+      <div className="text-lg font-semibold mb-2">Loading game...</div>
+      <div className="animate-spin inline-block">⏳</div>
+    </div>
+  </div>
+);
 
 export const App: React.FC = () => {
   return (
@@ -18,13 +31,55 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/play/classic" element={<ClassicGame />} />
-          <Route path="/play/time-attack" element={<TimeAttackPage />} />
-          <Route path="/blitz/*" element={<BlitzPage />} />
+          <Route
+            path="/play/classic"
+            element={
+              <Suspense fallback={<GameLoadingFallback />}>
+                <ClassicGame />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/play/time-attack"
+            element={
+              <Suspense fallback={<GameLoadingFallback />}>
+                <TimeAttackPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/blitz/*"
+            element={
+              <Suspense fallback={<GameLoadingFallback />}>
+                <BlitzPage />
+              </Suspense>
+            }
+          />
           <Route path="/_preview" element={<ComponentsPreview />} />
-          <Route path="/profile/:userId" element={<PlayerProfileScreen />} />
-          <Route path="/leaderboards" element={<LeaderboardScreen />} />
-          <Route path="/achievements" element={<AchievementsScreen earnedAchievements={[]} />} />
+          <Route
+            path="/profile/:userId"
+            element={
+              <Suspense fallback={<GameLoadingFallback />}>
+                <PlayerProfileScreen />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/leaderboards"
+            element={
+              <Suspense fallback={<GameLoadingFallback />}>
+                <LeaderboardScreen />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/achievements"
+            element={
+              <Suspense fallback={<GameLoadingFallback />}>
+                <AchievementsScreen earnedAchievements={[]} />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </LevelUpProvider>

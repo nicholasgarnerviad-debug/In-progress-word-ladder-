@@ -125,3 +125,5 @@ export const AchievementsScreen: React.FC<{ earnedAchievements: string[] }> = ({
     </div>
   );
 };
+
+export default AchievementsScreen;

@@ -160,3 +160,5 @@ export const LeaderboardScreen: React.FC = () => {
     </div>
   );
 };
+
+export default LeaderboardScreen;

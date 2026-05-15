@@ -166,3 +166,5 @@ export const PlayerProfileScreen: React.FC = () => {
     </div>
   );
 };
+
+export default PlayerProfileScreen;
