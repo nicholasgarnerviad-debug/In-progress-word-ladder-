@@ -37,6 +37,7 @@ export const TimeAttackPage: React.FC = () => {
   const { earnCoins, addXp } = useEconomy();
   const { push: pushLevelUpRewards } = useLevelUpQueue();
   const xpAwardedRef = useRef(false);
+  const lastSolvedCountRef = useRef(0);
   const [cumulativeXp, setCumulativeXp] = useState(0);
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export const TimeAttackPage: React.FC = () => {
 
   // Per-solve XP award
   useEffect(() => {
-    if (state.phase === 'playing' && state.solvedCount > 0) {
+    if (state.phase === 'playing' && state.solvedCount > lastSolvedCountRef.current) {
       const isSurvivalMode = state.mode === 'survival';
       const secondsRemaining = Math.max(0, state.timeRemainingMs / 1000);
       const solveXp = calculateSolveXp({
@@ -53,16 +54,10 @@ export const TimeAttackPage: React.FC = () => {
         isSurvivalMode,
       });
 
-      // Only award XP for the newly solved puzzle
-      // We detect this by checking if solveTimings length increased
-      if (state.solveTimings.length > 0) {
-        const lastXpTracked = cumulativeXp === 0 ? 0 : cumulativeXp - (state.solveTimings.length - 1) * solveXp;
-        if (state.solveTimings.length * solveXp > cumulativeXp) {
-          setCumulativeXp(prev => prev + solveXp);
-        }
-      }
+      setCumulativeXp(prev => prev + solveXp);
+      lastSolvedCountRef.current = state.solvedCount;
     }
-  }, [state.solveTimings.length, state.timeRemainingMs, state.mode, state.phase, cumulativeXp]);
+  }, [state.solvedCount, state.timeRemainingMs, state.mode, state.phase]);
 
   // Run-end XP award
   useEffect(() => {
@@ -77,11 +72,15 @@ export const TimeAttackPage: React.FC = () => {
     }
   }, [state.phase, cumulativeXp, addXp, pushLevelUpRewards]);
 
-  // Reset on new run
+  // Reset on new run or when run ends
   useEffect(() => {
-    if (state.phase === 'playing' && xpAwardedRef.current) {
-      setCumulativeXp(0);
-      xpAwardedRef.current = false;
+    if (state.phase === 'playing') {
+      // Reset when starting a new run
+      if (lastSolvedCountRef.current > 0) {
+        setCumulativeXp(0);
+        lastSolvedCountRef.current = 0;
+        xpAwardedRef.current = false;
+      }
     }
   }, [state.phase]);
 
