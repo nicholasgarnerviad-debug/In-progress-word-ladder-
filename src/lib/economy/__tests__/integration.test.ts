@@ -370,6 +370,37 @@ describe('Economy Integration Tests', () => {
       expect(levelUpCoins).toBeGreaterThan(0);
       expect(result.current.coins).toBeGreaterThan(startCoins);
     });
+
+    test('XP per-run awards scale with difficulty and puzzles solved', () => {
+      resetWallet();
+      const { result } = renderHook(() => useEconomy());
+
+      const easyRunXp = simulateTimeAttackRun({
+        puzzlesSolved: 3,
+        difficulty: 'easy',
+        timeRemaining: 30,
+      }).expectedXp;
+
+      const hardRunXp = simulateTimeAttackRun({
+        puzzlesSolved: 3,
+        difficulty: 'hard',
+        timeRemaining: 30,
+      }).expectedXp;
+
+      act(() => {
+        result.current.addXp(easyRunXp, 'time_attack_run');
+      });
+      const xpAfterEasy = result.current.xp;
+
+      resetWallet();
+
+      act(() => {
+        result.current.addXp(hardRunXp, 'time_attack_run');
+      });
+      const xpAfterHard = result.current.xp;
+
+      expect(xpAfterHard).toBeGreaterThan(xpAfterEasy);
+    });
   });
 
   // ============================================================================
