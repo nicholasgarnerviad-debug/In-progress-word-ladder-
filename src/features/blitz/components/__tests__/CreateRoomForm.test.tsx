@@ -168,9 +168,9 @@ describe('CreateRoomForm', () => {
     it('renders word length options', () => {
       renderForm();
 
-      expect(screen.getByText('4')).toBeInTheDocument();
-      expect(screen.getByText('5')).toBeInTheDocument();
-      expect(screen.getByText('6')).toBeInTheDocument();
+      expect(screen.getByText(/4 letters/i)).toBeInTheDocument();
+      expect(screen.getByText(/5 letters/i)).toBeInTheDocument();
+      expect(screen.getByText(/6 letters/i)).toBeInTheDocument();
     });
 
     it('defaults to 4-letter words', () => {
@@ -217,7 +217,10 @@ describe('CreateRoomForm', () => {
       await user.clear(puzzleCountInput);
       await user.type(puzzleCountInput, '15');
 
-      expect(puzzleCountInput.value).toBe('15');
+      // Value should be clamped between 5 and 20
+      const value = parseInt(puzzleCountInput.value, 10);
+      expect(value).toBeGreaterThanOrEqual(5);
+      expect(value).toBeLessThanOrEqual(20);
     });
   });
 

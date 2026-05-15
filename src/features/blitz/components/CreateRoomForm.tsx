@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { FormInput } from './FormInput';
+import { Card } from './Card';
+import { BUTTON_STYLES, RESPONSIVE } from '../theme';
 import type { BlitzRoomSettings, BlitzDifficulty, BlitzWordLength } from '../types';
 
 export type CreateRoomFormProps = {
@@ -74,142 +77,131 @@ export const CreateRoomForm: React.FC<CreateRoomFormProps> = ({
       </div>
 
       {/* Main content */}
-      <div className="max-w-md mx-auto px-4 pt-6 pb-8">
+      <div className={`${RESPONSIVE.mobileContainer} ${RESPONSIVE.tabletContainer} ${RESPONSIVE.desktopContainer} max-w-md mx-auto pt-6 pb-8`}>
         {/* Error display */}
         {error && (
           <div
             role="alert"
-            className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-200"
+            className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 text-red-700 dark:text-red-200 font-medium"
           >
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Display Name */}
-          <div>
-            <label
-              htmlFor="displayName"
-              className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
-            >
-              Display Name
-            </label>
-            <input
-              id="displayName"
+        <Card title="Create New Room" padding="lg">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Display Name */}
+            <FormInput
+              label="Display Name"
               type="text"
+              id="displayName"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               disabled={isLoading}
               placeholder="Enter your name"
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+              helperText="This is how other players will see you"
+              error={displayName.length === 0 && isLoading ? 'Name is required' : undefined}
             />
-          </div>
 
-          {/* Timer Slider */}
-          <div>
-            <label
-              htmlFor="timer"
-              className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
-            >
-              Timer: {timerSeconds}s
-            </label>
-            <input
-              id="timer"
-              type="range"
-              min="30"
-              max="300"
-              value={timerSeconds}
-              onChange={(e) => setTimerSeconds(parseInt(e.target.value, 10))}
-              disabled={isLoading}
-              className="w-full"
-            />
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex justify-between">
-              <span>30s</span>
-              <span>300s</span>
+            {/* Timer Slider */}
+            <div>
+              <label
+                htmlFor="timer"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3"
+              >
+                Timer Duration: <span className="font-bold text-yellow-600 dark:text-yellow-400">{timerSeconds}s</span>
+              </label>
+              <input
+                id="timer"
+                type="range"
+                min="30"
+                max="300"
+                value={timerSeconds}
+                onChange={(e) => setTimerSeconds(parseInt(e.target.value, 10))}
+                disabled={isLoading}
+                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-yellow-600 dark:accent-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex justify-between">
+                <span>30s</span>
+                <span>300s</span>
+              </div>
             </div>
-          </div>
 
-          {/* Difficulty Select */}
-          <div>
-            <label
-              htmlFor="difficulty"
-              className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
-            >
-              Difficulty
-            </label>
-            <select
-              id="difficulty"
-              value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value as BlitzDifficulty)}
-              disabled={isLoading}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
-            >
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
+            {/* Difficulty Select */}
+            <div>
+              <label
+                htmlFor="difficulty"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+              >
+                Difficulty
+              </label>
+              <select
+                id="difficulty"
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value as BlitzDifficulty)}
+                disabled={isLoading}
+                className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 dark:focus:ring-offset-gray-950"
+              >
+                <option value="easy">Easy - Easier word paths</option>
+                <option value="medium">Medium - Balanced difficulty</option>
+                <option value="hard">Hard - Challenging paths</option>
+              </select>
+            </div>
 
-          {/* Word Length Select */}
-          <div>
-            <label
-              htmlFor="wordLength"
-              className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
-            >
-              Word Length
-            </label>
-            <select
-              id="wordLength"
-              value={wordLength}
-              onChange={(e) => setWordLength(parseInt(e.target.value, 10) as BlitzWordLength)}
-              disabled={isLoading}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
-            >
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-            </select>
-          </div>
+            {/* Word Length Select */}
+            <div>
+              <label
+                htmlFor="wordLength"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+              >
+                Word Length
+              </label>
+              <select
+                id="wordLength"
+                value={wordLength}
+                onChange={(e) => setWordLength(parseInt(e.target.value, 10) as BlitzWordLength)}
+                disabled={isLoading}
+                className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 dark:focus:ring-offset-gray-950"
+              >
+                <option value="4">4 letters</option>
+                <option value="5">5 letters</option>
+                <option value="6">6 letters</option>
+              </select>
+            </div>
 
-          {/* Puzzle Count Input */}
-          <div>
-            <label
-              htmlFor="puzzleCount"
-              className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
-            >
-              Number of Puzzles
-            </label>
-            <input
-              id="puzzleCount"
+            {/* Puzzle Count Input */}
+            <FormInput
+              label="Number of Puzzles"
               type="number"
+              id="puzzleCount"
               min="5"
               max="20"
               value={puzzleCount}
-              onChange={(e) => setPuzzleCount(parseInt(e.target.value, 10))}
+              onChange={(e) => setPuzzleCount(Math.max(5, Math.min(20, parseInt(e.target.value, 10))))}
               disabled={isLoading}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+              helperText="Between 5 and 20 puzzles"
             />
-          </div>
 
-          {/* Buttons */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={isLoading}
-              className="flex-1 py-3 px-4 rounded-lg border-2 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-bold transition-colors hover:bg-gray-50 dark:hover:bg-gray-900 disabled:border-gray-300 dark:disabled:border-gray-700 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading || !isFormValid}
-              className="flex-1 py-3 px-4 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition-colors hover:bg-gray-800 dark:hover:bg-gray-100 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
-            >
-              {isLoading ? 'Creating...' : 'Create Room'}
-            </button>
-          </div>
-        </form>
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700 -mx-6 px-6 py-6">
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={isLoading}
+                className={`${BUTTON_STYLES.ghost} flex-1`}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading || !isFormValid}
+                className={`${BUTTON_STYLES.primary} flex-1 active:animate-buttonPress`}
+              >
+                {isLoading ? 'Creating...' : 'Create Room'}
+              </button>
+            </div>
+          </form>
+        </Card>
       </div>
     </div>
   );
