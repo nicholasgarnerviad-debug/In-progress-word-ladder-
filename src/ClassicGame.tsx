@@ -4,6 +4,7 @@ import { shortestPath } from './wordGraph';
 import { useGameState } from './useGameState';
 import { PuzzleBoard } from './components/PuzzleBoard';
 import { HomeButton } from './components/HomeButton';
+import { SettingsButton } from './components/navigation/SettingsButton';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
 import { useEconomy } from './lib/economy';
 import { useLevelUpQueue } from './components/economy/LevelUpProvider';
@@ -330,6 +331,7 @@ export const ClassicGame: React.FC = () => {
       <div className="fixed top-4 right-4 z-50">
         <WalletStrip compact={true} />
       </div>
+      <SettingsButton />
       <div className="w-full max-w-md px-4">
         <header className="border-b border-gray-200 dark:border-gray-800 pb-6 mb-6">
           <div className="flex justify-between items-center">
@@ -343,12 +345,6 @@ export const ClassicGame: React.FC = () => {
                 className="text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1 rounded"
               >
                 📋
-              </button>
-              <button
-                onClick={() => setShowSettings(true)}
-                className="text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1 rounded"
-              >
-                ⚙️
               </button>
             </div>
           </div>
