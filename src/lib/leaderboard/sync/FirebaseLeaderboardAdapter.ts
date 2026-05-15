@@ -1,0 +1,328 @@
+/**
+ * Firebase Leaderboard Adapter
+ *
+ * Implements LeaderboardSyncAdapter using Firestore for real-time leaderboards,
+ * player profiles, game results, and achievement tracking.
+ * Includes offline queueing and cache-first strategy for offline performance.
+ */
+
+import {
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  query,
+  where,
+  getDocs,
+  onSnapshot,
+  updateDoc,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
+import { firestore } from '../../firebase';
+import type {
+  LeaderboardSyncAdapter,
+  LeaderboardListener,
+} from './LeaderboardSyncAdapter';
+import {
+  LeaderboardSyncError,
+  LeaderboardSyncErrorCode,
+} from './LeaderboardSyncAdapter';
+import type {
+  GameResult,
+  PlayerProfile,
+  LeaderboardDoc,
+  AchievementConfig,
+  GameMode,
+  LeaderboardPeriod,
+} from '../types';
+import { LeaderboardCache } from '../cache/LeaderboardCache';
+import { AchievementEvaluator } from '../achievements/AchievementEvaluator';
+import { getAllAchievements } from '../achievements/achievements';
+
+export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
+  private cache: LeaderboardCache;
+  private evaluator: AchievementEvaluator;
+  private unsubscribers: Map<string, () => void> = new Map();
+
+  constructor() {
+    this.cache = new LeaderboardCache();
+    this.evaluator = new AchievementEvaluator();
+  }
+
+  /**
+   * Initialize the adapter by setting up the local cache.
+   * Should be called before using other methods.
+   */
+  async initialize(): Promise<void> {
+    try {
+      await this.cache.initialize();
+    } catch (error) {
+      throw new LeaderboardSyncError(
+        LeaderboardSyncErrorCode.FIRESTORE_ERROR,
+        `Failed to initialize adapter: ${error}`
+      );
+    }
+  }
+
+  /**
+   * Record a game result and queue it for synchronization.
+   * Results are queued locally first, then synced if online.
+   */
+  async recordGameResult(userId: string, result: GameResult): Promise<void> {
+    try {
+      // Queue locally first
+      await this.cache.queueGameResult(userId, result);
+
+      // Try to sync immediately if online
+      if (navigator.onLine) {
+        await this.syncLocalResults(userId);
+      }
+    } catch (error) {
+      throw new LeaderboardSyncError(
+        LeaderboardSyncErrorCode.SYNC_ERROR,
+        `Failed to record game result: ${error}`
+      );
+    }
+  }
+
+  /**
+   * Subscribe to real-time leaderboard updates for a specific game mode and period.
+   * Listener is immediately called with cached data if available, then with live updates.
+   */
+  subscribeToLeaderboard(
+    mode: GameMode,
+    period: LeaderboardPeriod,
+    listener: LeaderboardListener
+  ): () => void {
+    const docId = `${mode}-${period}`;
+
+    // Call listener with cached data immediately
+    this.cache
+      .getLeaderboardFromCache(mode, period)
+      .then((cached) => {
+        if (cached) {
+          listener(cached);
+        }
+      })
+      .catch((error) => {
+        console.error('Error retrieving cached leaderboard:', error);
+      });
+
+    try {
+      // Subscribe to real-time updates from Firestore
+      const leaderboardRef = doc(firestore, 'leaderboards', docId);
+
+      const unsubscribe = onSnapshot(leaderboardRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const leaderboardData = snapshot.data() as LeaderboardDoc;
+          // Update cache with fresh data
+          this.cache
+            .cacheLeaderboard(mode, period, leaderboardData)
+            .catch((error) => {
+              console.error('Error caching leaderboard:', error);
+            });
+          // Call listener with updated data
+          listener(leaderboardData);
+        }
+      });
+
+      this.unsubscribers.set(docId, unsubscribe);
+      return unsubscribe;
+    } catch (error) {
+      throw new LeaderboardSyncError(
+        LeaderboardSyncErrorCode.FIRESTORE_ERROR,
+        `Failed to subscribe to leaderboard: ${error}`
+      );
+    }
+  }
+
+  /**
+   * Get a player's profile by user ID.
+   * Attempts to load from cache first, then from Firestore if not cached.
+   */
+  async getPlayerProfile(userId: string): Promise<PlayerProfile> {
+    try {
+      // Try cache first
+      const cached = await this.cache.getProfileFromCache(userId);
+      if (cached) {
+        return cached;
+      }
+
+      // Fetch from Firestore
+      const profileRef = doc(firestore, 'players', userId);
+      const snapshot = await getDoc(profileRef);
+
+      if (!snapshot.exists()) {
+        throw new LeaderboardSyncError(
+          LeaderboardSyncErrorCode.PROFILE_NOT_FOUND,
+          `Profile not found for user ${userId}`
+        );
+      }
+
+      const profile = snapshot.data() as PlayerProfile;
+      await this.cache.cacheProfile(userId, profile);
+      return profile;
+    } catch (error) {
+      if (error instanceof LeaderboardSyncError) throw error;
+      throw new LeaderboardSyncError(
+        LeaderboardSyncErrorCode.FIRESTORE_ERROR,
+        `Failed to get player profile: ${error}`
+      );
+    }
+  }
+
+  /**
+   * Check for newly-unlocked achievements and grant them to the player.
+   * Evaluates all achievement criteria against the player's current stats.
+   */
+  async checkAndGrantAchievements(userId: string): Promise<string[]> {
+    try {
+      const profile = await this.getPlayerProfile(userId);
+      const newlyUnlocked = this.evaluator.evaluateAchievements(profile);
+
+      if (newlyUnlocked.length > 0) {
+        const updatedAchievements = [
+          ...profile.achievements,
+          ...newlyUnlocked,
+        ];
+        const profileRef = doc(firestore, 'players', userId);
+        await updateDoc(profileRef, { achievements: updatedAchievements });
+
+        // Update cache
+        profile.achievements = updatedAchievements;
+        await this.cache.cacheProfile(userId, profile);
+      }
+
+      return newlyUnlocked;
+    } catch (error) {
+      if (error instanceof LeaderboardSyncError) throw error;
+      throw new LeaderboardSyncError(
+        LeaderboardSyncErrorCode.FIRESTORE_ERROR,
+        `Failed to check achievements: ${error}`
+      );
+    }
+  }
+
+  /**
+   * Get all available achievement configurations.
+   */
+  async getAchievements(): Promise<AchievementConfig[]> {
+    return getAllAchievements();
+  }
+
+  /**
+   * Synchronize queued local game results to Firestore.
+   * Uploads pending results, updates player profile stats, and checks for achievements.
+   */
+  async syncLocalResults(userId: string): Promise<void> {
+    try {
+      const pendingResults = await this.cache.getPendingGameResults(userId);
+
+      if (pendingResults.length === 0) {
+        return;
+      }
+
+      // Get the current player profile
+      const profile = await this.getPlayerProfile(userId);
+
+      // Process each pending game result
+      for (const result of pendingResults) {
+        // Create a new game result document in Firestore
+        const resultRef = doc(collection(firestore, 'gameResults'));
+        await setDoc(resultRef, {
+          ...result,
+          timestamp: serverTimestamp(),
+        });
+
+        // Update player profile stats with the new game result
+        this.updateProfileStats(profile, result);
+      }
+
+      // Update the player profile in Firestore with accumulated stats
+      const profileRef = doc(firestore, 'players', userId);
+      await updateDoc(profileRef, {
+        totalGames: profile.totalGames,
+        totalScore: profile.totalScore,
+        stats: profile.stats,
+        lastGameAt: Timestamp.now(),
+      });
+
+      // Update cache with modified profile
+      await this.cache.cacheProfile(userId, profile);
+
+      // Check achievements after sync
+      await this.checkAndGrantAchievements(userId);
+
+      // Mark all results as synced
+      await this.cache.markGameResultSynced(userId);
+    } catch (error) {
+      if (error instanceof LeaderboardSyncError) throw error;
+      throw new LeaderboardSyncError(
+        LeaderboardSyncErrorCode.NETWORK_ERROR,
+        `Failed to sync local results: ${error}`
+      );
+    }
+  }
+
+  /**
+   * Update player profile statistics with a new game result.
+   * Increments totals, updates mode-specific stats, and calculates averages.
+   */
+  private updateProfileStats(
+    profile: PlayerProfile,
+    result: GameResult
+  ): void {
+    // Update overall stats
+    profile.totalGames += 1;
+    profile.totalScore += result.score;
+    profile.lastGameAt = Timestamp.now();
+
+    // Update mode-specific stats
+    const modeStats = profile.stats[result.mode as keyof typeof profile.stats];
+    if (modeStats) {
+      (modeStats as any).gamesPlayed += 1;
+      (modeStats as any).totalScore += result.score;
+      (modeStats as any).averageScore =
+        (modeStats as any).totalScore / (modeStats as any).gamesPlayed;
+
+      // Update best score if this game beat the previous best
+      if (result.score > (modeStats as any).bestScore) {
+        (modeStats as any).bestScore = result.score;
+      }
+
+      // Update mode-specific fields if applicable
+      if (result.mode === 'blitz' && result.duration !== undefined) {
+        ((modeStats as any).totalTime as number) += result.duration;
+      } else if (
+        result.mode === 'timeAttack' &&
+        result.duration !== undefined
+      ) {
+        if (
+          result.duration < ((modeStats as any).bestTime as number) ||
+          ((modeStats as any).bestTime as number) === 0
+        ) {
+          ((modeStats as any).bestTime as number) = result.duration;
+        }
+        if (result.solved) {
+          ((modeStats as any).completedPuzzles as number) += 1;
+        }
+      }
+    }
+  }
+
+  /**
+   * Unsubscribe from all real-time leaderboard listeners.
+   * Should be called on component unmount or when cleaning up.
+   */
+  unsubscribeAll(): void {
+    this.unsubscribers.forEach((unsubscribe) => {
+      try {
+        unsubscribe();
+      } catch (error) {
+        console.error('Error unsubscribing from leaderboard:', error);
+      }
+    });
+    this.unsubscribers.clear();
+  }
+}
