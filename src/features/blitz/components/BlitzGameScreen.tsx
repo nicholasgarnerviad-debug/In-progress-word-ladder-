@@ -6,6 +6,7 @@ import { useBlitzRoom } from '../useBlitzRoom';
 import { useBlitzGame } from '../useBlitzGame';
 import { formatBlitzTime } from '../utils';
 import { BLITZ_ACCENT, BUTTON_STYLES, TIMER_STYLES, RESPONSIVE } from '../theme';
+import { WalletStrip } from '../../../components/economy/WalletStrip';
 
 export type BlitzGameScreenProps = {
   /** Optional callback when game ends */
@@ -113,6 +114,9 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
 
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
+      <div className="fixed top-4 right-4 z-50">
+        <WalletStrip compact={true} />
+      </div>
       {/* Top: Timer */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 text-center shadow-sm">
         <p
