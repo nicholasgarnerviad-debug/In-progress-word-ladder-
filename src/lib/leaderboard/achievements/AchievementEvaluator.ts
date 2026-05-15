@@ -1,4 +1,4 @@
-import type { PlayerProfile } from '../types';
+import type { PlayerProfile, AchievementConfig, AchievementCriteria } from '../types';
 import { getAllAchievements } from './achievements';
 
 export class AchievementEvaluator {
@@ -7,7 +7,7 @@ export class AchievementEvaluator {
    * Returns array of newly-unlocked achievement IDs (not previously earned).
    */
   evaluateAchievements(profile: PlayerProfile): string[] {
-    const allAchievements = getAllAchievements();
+    const allAchievements: AchievementConfig[] = getAllAchievements();
     const newlyUnlocked: string[] = [];
 
     for (const achievement of allAchievements) {
@@ -28,7 +28,7 @@ export class AchievementEvaluator {
   /**
    * Check if player meets the criteria for a specific achievement.
    */
-  private meetsCriteria(profile: PlayerProfile, achievement: any): boolean {
+  private meetsCriteria(profile: PlayerProfile, achievement: AchievementConfig): boolean {
     const { criteria } = achievement;
 
     switch (criteria.type) {
@@ -51,7 +51,7 @@ export class AchievementEvaluator {
     }
   }
 
-  private checkGameCount(profile: PlayerProfile, criteria: any): boolean {
+  private checkGameCount(profile: PlayerProfile, criteria: AchievementCriteria): boolean {
     const { value, mode } = criteria;
 
     if (mode) {
@@ -64,7 +64,7 @@ export class AchievementEvaluator {
     return profile.totalGames >= value;
   }
 
-  private checkScoreThreshold(profile: PlayerProfile, criteria: any): boolean {
+  private checkScoreThreshold(profile: PlayerProfile, criteria: AchievementCriteria): boolean {
     const { value, mode } = criteria;
 
     if (mode) {
@@ -78,7 +78,7 @@ export class AchievementEvaluator {
     return modeStats.some((stats: any) => stats.bestScore >= value);
   }
 
-  private checkCustomCriteria(profile: PlayerProfile, achievement: any): boolean {
+  private checkCustomCriteria(profile: PlayerProfile, achievement: AchievementConfig): boolean {
     // Handle custom criteria as needed
     // For now, return false for custom criteria
     return false;
