@@ -18,7 +18,7 @@ export const HintRevealButtons: React.FC<HintRevealButtonsProps> = ({
       <button
         onClick={onHint}
         disabled={disableHint}
-        className="px-4 py-3 min-h-[48px] min-w-[48px] flex items-center justify-center bg-yellow-800 dark:bg-yellow-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-yellow-900 dark:hover:bg-yellow-800 transition-colors font-semibold"
+        className="px-4 py-3 min-h-[48px] min-w-[48px] flex items-center justify-center bg-yellow-800 dark:bg-yellow-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-yellow-900 dark:hover:bg-yellow-800 transition-colors font-semibold"
         aria-label="Get hint"
       >
         💡 Hint
@@ -26,7 +26,7 @@ export const HintRevealButtons: React.FC<HintRevealButtonsProps> = ({
       <button
         onClick={onReveal}
         disabled={disableReveal}
-        className="px-4 py-3 min-h-[48px] min-w-[48px] flex items-center justify-center bg-purple-700 dark:bg-purple-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-800 dark:hover:bg-purple-700 transition-colors font-semibold"
+        className="px-4 py-3 min-h-[48px] min-w-[48px] flex items-center justify-center bg-purple-700 dark:bg-purple-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-800 dark:hover:bg-purple-700 transition-colors font-semibold"
         aria-label="Reveal answer"
       >
         👀 Reveal
