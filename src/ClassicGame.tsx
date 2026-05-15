@@ -53,11 +53,13 @@ export const ClassicGame: React.FC = () => {
   });
 
   const economy = useEconomy();
+  const { push: pushLevelUpRewards } = useLevelUpQueue();
   const xpAwardedRef = useRef(false);
 
   const [roundResult, setRoundResult] = useState<{
     type: 'won' | 'lost';
     coinsDelta: number;
+    xp?: number;
   } | null>(null);
 
   useEffect(() => {
@@ -87,7 +89,11 @@ export const ClassicGame: React.FC = () => {
         const winReward = Math.max(20, efficiency - mistakePenalty);
 
         economy.earnCoins(winReward, 'classic_solve');
-        setRoundResult({ type: 'won', coinsDelta: winReward });
+
+        // Calculate XP to award
+        const xpReward = Math.floor(winReward / 2);
+
+        setRoundResult({ type: 'won', coinsDelta: winReward, xp: xpReward });
 
         const wonRecord: PuzzleRecord = {
           puzzle,
@@ -140,13 +146,19 @@ export const ClassicGame: React.FC = () => {
 
     // Guard: if already awarded, don't award again
     if (xpAwardedRef.current) return;
-    xpAwardedRef.current = true;
 
-    // Award fixed XP per difficulty: easier puzzles are still rewarding,
-    // but harder puzzles get more baseline XP (not multiplied by performance)
+    // Calculate XP to award based on difficulty
     const xpAmount = XP_REWARDS.puzzleSolve[puzzleDifficulty] || 10;
-    economy.addXp(xpAmount, `puzzle_solve_${puzzleDifficulty}`);
-  }, [game.state.phase, puzzleDifficulty, economy]);
+
+    // Award XP and handle level-ups
+    const result = economy.addXp(xpAmount, `puzzle_solve_${puzzleDifficulty}`);
+
+    if (result.leveledUp) {
+      pushLevelUpRewards(result.rewards);
+    }
+
+    xpAwardedRef.current = true;
+  }, [game.state.phase, puzzleDifficulty, economy, pushLevelUpRewards]);
 
   // Countdown effect - decrements every second
   useEffect(() => {
@@ -491,6 +503,11 @@ export const ClassicGame: React.FC = () => {
             <div className={`text-lg font-bold mb-2 ${roundResult.coinsDelta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {roundResult.coinsDelta >= 0 ? '+' : ''}{roundResult.coinsDelta} ◎
             </div>
+            {roundResult.type === 'won' && roundResult.xp !== undefined && (
+              <div className="text-lg font-bold mb-2 text-blue-600">
+                +{roundResult.xp} XP
+              </div>
+            )}
             <div className="text-5xl font-bold animate-pulse mb-3">{countdown}</div>
             <div className="text-sm mb-4 dark:text-gray-300">New puzzle loading...</div>
             <button
