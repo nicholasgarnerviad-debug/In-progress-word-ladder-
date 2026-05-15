@@ -1,0 +1,323 @@
+{
+  "audit_metadata": {
+    "date": "2026-05-14",
+    "plan_file": "docs/superpowers/plans/2026-05-14-economy-audit-execution.md",
+    "purpose": "Complete integration audit of economy system across all game modes",
+    "total_tasks": 17
+  },
+  "files_audited": {
+    "useEconomy_hook": {
+      "file_path": "src/lib/economy/useEconomy.ts",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "earnCoins_present": true,
+        "addXp_present": true,
+        "storage_listener": true,
+        "storage_recovery": true,
+        "levelupqueue_import": false,
+        "levelupqueue_usage": false,
+        "buyConsumable_present": true,
+        "useItem_present": true
+      },
+      "code_locations": {
+        "earnCoins": "src/lib/economy/useEconomy.ts:35-40",
+        "addXp": "src/lib/economy/useEconomy.ts:53-98",
+        "storage_listener": "src/lib/economy/useEconomy.ts:26-33",
+        "buyConsumable": "src/lib/economy/useEconomy.ts:100-109"
+      },
+      "gaps": [
+        "useLevelUpQueue hook is not imported or used",
+        "addXp returns EarnXpResult but does not push to LevelUpQueue for modal display"
+      ],
+      "confidence": "PARTIALLY_WIRED"
+    },
+    "wallet_library": {
+      "file_path": "src/lib/economy/wallet.ts",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "earnCoins_function": true,
+        "addXp_function": true,
+        "loadWallet_uses_getitem": true,
+        "saveWallet_present": true,
+        "level_tracking": true,
+        "lifetime_tracking": true
+      },
+      "code_locations": {
+        "earnCoins": "src/lib/economy/wallet.ts:58-66",
+        "addXp": "src/lib/economy/wallet.ts:78-99",
+        "loadWallet": "src/lib/economy/wallet.ts:37-52"
+      },
+      "gaps": [],
+      "confidence": "CONFIRMED_COMPLETE"
+    },
+    "inventory_library": {
+      "file_path": "src/lib/economy/inventory.ts",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "addConsumable_present": true,
+        "useConsumable_present": true,
+        "getConsumableCount_present": true,
+        "addUnlock_present": true,
+        "loadInventory_uses_getitem": true,
+        "migration_logic": true
+      },
+      "code_locations": {
+        "addConsumable": "src/lib/economy/inventory.ts:54-62",
+        "useConsumable": "src/lib/economy/inventory.ts:64-76",
+        "getConsumableCount": "src/lib/economy/inventory.ts:78-80",
+        "loadInventory": "src/lib/economy/inventory.ts:24-48"
+      },
+      "gaps": [],
+      "confidence": "CONFIRMED_COMPLETE"
+    },
+    "economy_types": {
+      "file_path": "src/lib/economy/types.ts",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "CoinSource_enum": true,
+        "XpSource_enum": true,
+        "LevelRewardUnlock_types": true,
+        "LevelReward_type": true
+      },
+      "code_locations": {
+        "CoinSource": "src/lib/economy/types.ts:5-16",
+        "XpSource": "src/lib/economy/types.ts:18-26",
+        "LevelRewardUnlock": "src/lib/economy/types.ts:28-32",
+        "LevelReward": "src/lib/economy/types.ts:34-39"
+      },
+      "gaps": [],
+      "confidence": "CONFIRMED_COMPLETE"
+    },
+    "levelup_provider": {
+      "file_path": "src/components/economy/LevelUpProvider.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "useLevelUpQueue_hook": true,
+        "context_provider": true,
+        "queue_management": true,
+        "modal_display": true,
+        "error_handling": true
+      },
+      "code_locations": {
+        "useLevelUpQueue": "src/components/economy/LevelUpProvider.tsx:60-66",
+        "LevelUpProvider": "src/components/economy/LevelUpProvider.tsx:30-54",
+        "push": "src/components/economy/LevelUpProvider.tsx:36-39"
+      },
+      "gaps": [],
+      "confidence": "CONFIRMED_COMPLETE"
+    },
+    "levelup_modal": {
+      "file_path": "src/components/economy/LevelUpModal.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "modal_ui": true,
+        "escape_key_handler": true,
+        "unlock_description": true,
+        "coin_display": true
+      },
+      "code_locations": {
+        "escape_handler": "src/components/economy/LevelUpModal.tsx:11-20",
+        "unlock_describe": "src/components/economy/LevelUpModal.tsx:88-101",
+        "coin_display": "src/components/economy/LevelUpModal.tsx:57-59"
+      },
+      "gaps": [],
+      "confidence": "CONFIRMED_COMPLETE"
+    },
+    "wallet_strip": {
+      "file_path": "src/components/economy/WalletStrip.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "useEconomy_import": true,
+        "coins_display": true,
+        "level_display": true,
+        "xp_progress": true,
+        "navigation_to_profile": true
+      },
+      "code_locations": {
+        "useEconomy": "src/components/economy/WalletStrip.tsx:3",
+        "coins_display": "src/components/economy/WalletStrip.tsx:49-65",
+        "level_display": "src/components/economy/WalletStrip.tsx:67-102"
+      },
+      "gaps": [],
+      "confidence": "CONFIRMED_COMPLETE"
+    },
+    "classic_game": {
+      "file_path": "src/ClassicGame.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "earnCoins_on_win": true,
+        "addXp_on_win": true,
+        "xpAwardedRef_guard": true,
+        "spend_on_lose": true,
+        "consumable_integration": true,
+        "walletstrip_missing": true,
+        "levelupqueue_missing": true,
+        "single_fire_guard": true
+      },
+      "code_locations": {
+        "earnCoins": "src/ClassicGame.tsx:88",
+        "addXp": "src/ClassicGame.tsx:147",
+        "xpAwardedRef": "src/ClassicGame.tsx:55",
+        "xp_effect": "src/ClassicGame.tsx:133-148",
+        "spend": "src/ClassicGame.tsx:104",
+        "buyConsumable": "src/ClassicGame.tsx:206,227,254",
+        "consumable_buttons": "src/ClassicGame.tsx:519-587"
+      },
+      "gaps": [
+        "WalletStrip component is NOT displayed on the ClassicGame page",
+        "useLevelUpQueue is not imported or used",
+        "addXp results are not pushed to LevelUpProvider's queue"
+      ],
+      "confidence": "PARTIALLY_WIRED"
+    },
+    "time_attack_page": {
+      "file_path": "src/features/timeAttack/pages/TimeAttackPage.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "page_orchestrator": true,
+        "endscreen_present": true,
+        "walletstrip_missing": true,
+        "levelupqueue_missing": true
+      },
+      "code_locations": {
+        "EndScreen": "src/features/timeAttack/pages/TimeAttackPage.tsx:42-59"
+      },
+      "gaps": [
+        "TimeAttackPage does not show WalletStrip",
+        "useLevelUpQueue not integrated",
+        "EndScreen is responsible for economy rewards but not visible in this orchestrator"
+      ],
+      "confidence": "PARTIALLY_WIRED"
+    },
+    "blitz_results": {
+      "file_path": "src/features/blitz/components/BlitzResultsScreen.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "earnCoins_present": true,
+        "addXp_present": true,
+        "calculations_present": true,
+        "xp_result_stored": true,
+        "leveledUp_tracked": true,
+        "earnings_display": true,
+        "walletstrip_missing": true,
+        "levelupqueue_missing": true
+      },
+      "code_locations": {
+        "earnCoins": "src/features/blitz/components/BlitzResultsScreen.tsx:77",
+        "addXp": "src/features/blitz/components/BlitzResultsScreen.tsx:78",
+        "earnings_display": "src/features/blitz/components/BlitzResultsScreen.tsx:298-314",
+        "level_displayed": "src/features/blitz/components/BlitzResultsScreen.tsx:312"
+      },
+      "gaps": [
+        "WalletStrip is NOT displayed on BlitzResultsScreen",
+        "useLevelUpQueue is not used - level-up rewards are displayed inline",
+        "No integration with LevelUpProvider's queue system"
+      ],
+      "confidence": "PARTIALLY_WIRED"
+    },
+    "home_page": {
+      "file_path": "src/pages/HomePage.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "walletstrip_present": true,
+        "walletstrip_usage": true,
+        "document_title": true
+      },
+      "code_locations": {
+        "WalletStrip_import": "src/pages/HomePage.tsx:4",
+        "WalletStrip_render": "src/pages/HomePage.tsx:49-51"
+      },
+      "gaps": [],
+      "confidence": "CONFIRMED_COMPLETE"
+    },
+    "settings_page": {
+      "file_path": "src/pages/SettingsPage.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "document_title": true,
+        "walletstrip_missing": true,
+        "economy_integration": false
+      },
+      "code_locations": {
+        "document_title": "src/pages/SettingsPage.tsx:34"
+      },
+      "gaps": [
+        "SettingsPage does not display WalletStrip",
+        "No economy integration on settings page"
+      ],
+      "confidence": "CONFIRMED_INCOMPLETE"
+    },
+    "app_tsx": {
+      "file_path": "src/App.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "levelupprovider_wrapping": true,
+        "correct_placement": true,
+        "all_routes_wrapped": true
+      },
+      "code_locations": {
+        "LevelUpProvider_import": "src/App.tsx:9",
+        "LevelUpProvider_wrap": "src/App.tsx:14-24"
+      },
+      "gaps": [],
+      "confidence": "CONFIRMED_COMPLETE"
+    },
+    "useEconomy_test": {
+      "file_path": "src/lib/economy/useEconomy.test.ts",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "earnCoins_tested": true,
+        "addXp_tested": true,
+        "spend_tested": true,
+        "buyConsumable_tested": true,
+        "useItem_tested": true,
+        "levelup_tested": true,
+        "tests_passing": "ASSUMED"
+      },
+      "code_locations": {
+        "earnCoins_test": "src/lib/economy/useEconomy.test.ts:16-22",
+        "addXp_test": "src/lib/economy/useEconomy.test.ts:44-65",
+        "spend_test": "src/lib/economy/useEconomy.test.ts:24-42"
+      },
+      "gaps": [
+        "No test for useLevelUpQueue integration",
+        "No test for LevelUpProvider integration with addXp"
+      ],
+      "confidence": "PARTIALLY_WIRED"
+    },
+    "classic_game_test": {
+      "file_path": "src/ClassicGame.test.tsx",
+      "current_state": "READ_COMPLETE",
+      "findings": {
+        "economy_mocked": true,
+        "consumable_tests": true,
+        "inventory_tests": true,
+        "earnCoins_not_tested": true,
+        "addXp_not_tested": true
+      },
+      "code_locations": {
+        "useEconomy_mock": "src/ClassicGame.test.tsx:8-10",
+        "consumable_tests": "src/ClassicGame.test.tsx:75-97"
+      },
+      "gaps": [
+        "No test for earnCoins integration",
+        "No test for addXp integration",
+        "No test for xpAwardedRef single-fire guard"
+      ],
+      "confidence": "PARTIALLY_WIRED"
+    }
+  },
+  "integration_summary": {
+    "total_files": 15,
+    "confirmed_complete": 9,
+    "partially_wired": 5,
+    "confirmed_incomplete": 1
+  },
+  "red_flags_found": [
+    "useLevelUpQueue NEVER imported in any game mode component",
+    "WalletStrip MISSING from ClassicGame, TimeAttackPage, BlitzResultsScreen",
+    "addXp rewards earned but NOT queued for LevelUpModal display",
+    "No integration between useEconomy.addXp() and LevelUpProvider.push()",
+    "xpAwardedRef guard present in ClassicGame but no queue dispatch after award"
+  ]
+}
