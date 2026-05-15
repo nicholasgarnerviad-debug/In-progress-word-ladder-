@@ -1,15 +1,89 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTimeAttack } from '../useTimeAttack';
 import { SetupScreen } from '../components/SetupScreen';
 import { PlayScreen } from '../components/PlayScreen';
 import { EndScreen } from '../components/EndScreen';
+import { useEconomy } from '../../../lib/economy/useEconomy';
+import { useLevelUpQueue } from '../../../components/economy/LevelUpProvider';
+
+const XP_BASE_PER_SOLVE = 5;
+const XP_PER_SECOND_REMAINING = 1;
+const XP_SECOND_BONUS_CAP = 30;
+const TIME_ATTACK_DURATION = 180;
+const SURVIVAL_MODE_XP_MULTIPLIER = 1.5;
+const CLASSIC_MODE_XP_MULTIPLIER = 1.0;
+
+function calculateSolveXp(params: {
+  baseXp?: number;
+  secondsRemaining: number;
+  isSurvivalMode: boolean;
+}): number {
+  const { baseXp = XP_BASE_PER_SOLVE, secondsRemaining, isSurvivalMode } = params;
+
+  const timeBonus = Math.min(
+    XP_PER_SECOND_REMAINING * secondsRemaining,
+    XP_SECOND_BONUS_CAP
+  );
+
+  let xpAmount = baseXp + timeBonus;
+  const multiplier = isSurvivalMode ? SURVIVAL_MODE_XP_MULTIPLIER : CLASSIC_MODE_XP_MULTIPLIER;
+  xpAmount = Math.floor(xpAmount * multiplier);
+
+  return xpAmount;
+}
 
 export const TimeAttackPage: React.FC = () => {
   const state = useTimeAttack();
+  const { earnCoins, addXp } = useEconomy();
+  const { push: pushLevelUpRewards } = useLevelUpQueue();
+  const xpAwardedRef = useRef(false);
+  const [cumulativeXp, setCumulativeXp] = useState(0);
 
   useEffect(() => {
     document.title = 'Time Attack — Word Ladder';
   }, []);
+
+  // Per-solve XP award
+  useEffect(() => {
+    if (state.phase === 'playing' && state.solvedCount > 0) {
+      const isSurvivalMode = state.mode === 'survival';
+      const secondsRemaining = Math.max(0, state.timeRemainingMs / 1000);
+      const solveXp = calculateSolveXp({
+        secondsRemaining,
+        isSurvivalMode,
+      });
+
+      // Only award XP for the newly solved puzzle
+      // We detect this by checking if solveTimings length increased
+      if (state.solveTimings.length > 0) {
+        const lastXpTracked = cumulativeXp === 0 ? 0 : cumulativeXp - (state.solveTimings.length - 1) * solveXp;
+        if (state.solveTimings.length * solveXp > cumulativeXp) {
+          setCumulativeXp(prev => prev + solveXp);
+        }
+      }
+    }
+  }, [state.solveTimings.length, state.timeRemainingMs, state.mode, state.phase, cumulativeXp]);
+
+  // Run-end XP award
+  useEffect(() => {
+    if (state.phase === 'ended' && !xpAwardedRef.current && cumulativeXp > 0) {
+      const result = addXp(cumulativeXp, 'time_attack_end');
+
+      if (result.leveledUp) {
+        pushLevelUpRewards(result.rewards);
+      }
+
+      xpAwardedRef.current = true;
+    }
+  }, [state.phase, cumulativeXp, addXp, pushLevelUpRewards]);
+
+  // Reset on new run
+  useEffect(() => {
+    if (state.phase === 'playing' && xpAwardedRef.current) {
+      setCumulativeXp(0);
+      xpAwardedRef.current = false;
+    }
+  }, [state.phase]);
 
   return (
     <>
@@ -53,6 +127,7 @@ export const TimeAttackPage: React.FC = () => {
           }
           bestDifficulty={state.bestDifficulty}
           previousBestAtRunEnd={state.previousBestAtRunEnd}
+          cumulativeXp={cumulativeXp}
           onPlayAgain={state.playAgain}
           onBackToHome={state.reset}
         />

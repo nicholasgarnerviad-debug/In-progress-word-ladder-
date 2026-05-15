@@ -15,6 +15,7 @@ export type EndScreenProps = {
   averageSolveMs: number | null;
   bestDifficulty: Difficulty | null;
   previousBestAtRunEnd: { solved: number; longestStreak: number; achievedAt: string } | null;
+  cumulativeXp?: number; // Per-solve XP accumulated during the run
   onPlayAgain: () => void;
   onBackToHome: () => void;
 };
@@ -60,6 +61,7 @@ export const EndScreen: React.FC<EndScreenProps> = ({
   averageSolveMs,
   bestDifficulty,
   previousBestAtRunEnd,
+  cumulativeXp = 0,
   onPlayAgain,
   onBackToHome,
 }) => {
@@ -79,12 +81,6 @@ export const EndScreen: React.FC<EndScreenProps> = ({
     const personalBestBonus = isPersonalBest && !isFirstRun ? 50 : 0;
     const totalCoins = baseCoins + personalBestBonus;
 
-    // Calculate XP with difficulty multiplier
-    // Award XP scaled by performance: solving more puzzles = more XP
-    // Difficulty multiplier rewards pushing into harder difficulties
-    const multiplier = DIFFICULTY_MULTIPLIERS[bestDifficulty ?? 'easy'];
-    const totalXp = Math.round(solvedCount * 10 * multiplier);
-
     // Award coins for solving puzzles, plus bonus for personal best
     if (solvedCount > 0) {
       economy.earnCoins(solvedCount * 20, 'time_attack_solve');
@@ -92,11 +88,11 @@ export const EndScreen: React.FC<EndScreenProps> = ({
     if (isPersonalBest && !isFirstRun) {
       economy.earnCoins(50, 'time_attack_personal_best');
     }
-    // Award XP for time attack run
-    economy.addXp(totalXp, 'time_attack_run');
-    setAwardedXp(totalXp);
+
+    // Display the XP earned (already awarded by TimeAttackPage if cumulativeXp > 0)
+    setAwardedXp(cumulativeXp);
     setRewardAwarded(true);
-  }, [solvedCount, bestDifficulty, previousBestAtRunEnd, economy, rewardAwarded]);
+  }, [solvedCount, previousBestAtRunEnd, economy, rewardAwarded, cumulativeXp]);
 
   const handleBackToHome = () => {
     onBackToHome();
