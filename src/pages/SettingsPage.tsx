@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Theme, loadTheme, saveTheme, applyTheme } from '../lib/theme';
 
@@ -53,16 +53,16 @@ export const SettingsPage: React.FC = () => {
     document.title = 'Word Ladder — Settings';
   }, []);
 
-  const handleThemeChange = (newTheme: Theme) => {
+  const handleThemeChange = useCallback((newTheme: Theme) => {
     setTheme(newTheme);
     saveTheme(newTheme);
     applyTheme(newTheme);
-  };
+  }, []);
 
-  const handleDifficultyChange = (newDifficulty: Difficulty) => {
+  const handleDifficultyChange = useCallback((newDifficulty: Difficulty) => {
     setDifficulty(newDifficulty);
     saveDifficulty(newDifficulty);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
