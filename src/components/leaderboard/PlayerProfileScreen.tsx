@@ -67,17 +67,70 @@ export const PlayerProfileScreen: React.FC = () => {
         <div className="mb-8">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Mode Stats</h2>
           <div className="space-y-4">
-            {Object.entries(profile.stats).map(([mode, stats]) => (
-              <div key={mode} className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2 capitalize">{mode}</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>Games: <span className="font-bold">{(stats as any).gamesPlayed}</span></div>
-                  <div>Best Score: <span className="font-bold">{(stats as any).bestScore}</span></div>
-                  <div>Total Score: <span className="font-bold">{(stats as any).totalScore}</span></div>
-                  <div>Average: <span className="font-bold">{(stats as any).averageScore.toFixed(1)}</span></div>
+            {Object.entries(profile.stats).map(([mode, stats]) => {
+              const modeStats = stats as any;
+              const formatTime = (ms: number) => {
+                const totalSeconds = Math.floor(ms / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                if (hours > 0) {
+                  return `${hours}h ${minutes}m ${seconds}s`;
+                } else if (minutes > 0) {
+                  return `${minutes}m ${seconds}s`;
+                } else {
+                  return `${seconds}s`;
+                }
+              };
+
+              return (
+                <div key={mode} className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3 capitalize">{mode}</h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Games:</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{modeStats.gamesPlayed}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Best Score:</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{modeStats.bestScore}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Total Score:</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{modeStats.totalScore}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Average:</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{modeStats.averageScore.toFixed(1)}</span>
+                    </div>
+                    {modeStats.wins !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Wins:</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{modeStats.wins}</span>
+                      </div>
+                    )}
+                    {modeStats.totalTime !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Total Time:</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{formatTime(modeStats.totalTime)}</span>
+                      </div>
+                    )}
+                    {modeStats.bestTime !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Best Time:</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{formatTime(modeStats.bestTime)}</span>
+                      </div>
+                    )}
+                    {modeStats.completedPuzzles !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Completed:</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{modeStats.completedPuzzles}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

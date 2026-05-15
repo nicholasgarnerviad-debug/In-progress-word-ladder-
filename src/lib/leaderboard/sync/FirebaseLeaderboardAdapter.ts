@@ -326,6 +326,11 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
       modeStats.averageScore =
         modeStats.totalScore / modeStats.gamesPlayed;
 
+      // Increment wins if the puzzle was solved
+      if (result.solved) {
+        modeStats.wins += 1;
+      }
+
       // Update best score if this game beat the previous best
       if (result.score > modeStats.bestScore) {
         modeStats.bestScore = result.score;
