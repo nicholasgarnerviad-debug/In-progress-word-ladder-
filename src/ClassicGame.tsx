@@ -593,8 +593,8 @@ export const ClassicGame: React.FC = () => {
           {/* Hint button */}
           {(() => {
             const hintCount = economy.getCount('hint');
-            const canUseHint = hintCount > 0 && game.state.phase === 'playing' && game.state.lastHintedIndex === null;
-            const canBuyHint = economy.coins >= 30 && game.state.phase === 'playing' && game.state.lastHintedIndex === null;
+            const canUseHint = hintCount > 0 && game.state.lastHintedIndex === null;
+            const canBuyHint = economy.coins >= 30 && game.state.lastHintedIndex === null;
 
             return (
               <button
@@ -616,8 +616,8 @@ export const ClassicGame: React.FC = () => {
           {/* Reveal button */}
           {(() => {
             const revealCount = economy.getCount('reveal_next_word');
-            const canUseReveal = revealCount > 0 && game.state.phase === 'playing' && game.state.lastRevealedWord === null;
-            const canBuyReveal = economy.coins >= 60 && game.state.phase === 'playing' && game.state.lastRevealedWord === null;
+            const canUseReveal = revealCount > 0 && game.state.lastRevealedWord === null;
+            const canBuyReveal = economy.coins >= 60 && game.state.lastRevealedWord === null;
 
             return (
               <button
