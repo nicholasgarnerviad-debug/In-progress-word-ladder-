@@ -224,6 +224,13 @@ export const ClassicGame: React.FC = () => {
     return () => clearTimeout(timer);
   }, [countdown]);
 
+  // Auto-load next puzzle when countdown reaches 0
+  useEffect(() => {
+    if (isGameOver && countdown === 0) {
+      loadNewPuzzle();
+    }
+  }, [countdown, isGameOver]);
+
   // Clear game over state when new game is ready (phase is playing again)
   useEffect(() => {
     if (isGameOver && game.state.phase === 'playing') {
