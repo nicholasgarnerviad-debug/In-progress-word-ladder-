@@ -3,7 +3,7 @@ import { generatePuzzle, Difficulty, generatePuzzleWithRetry, WordPuzzle } from 
 import { shortestPath } from './wordGraph';
 import { useGameState } from './useGameState';
 import { PuzzleBoard } from './components/PuzzleBoard';
-import { HomeButton } from './components/HomeButton';
+import { HomeButton } from './components/navigation/HomeButton';
 import { SettingsButton } from './components/navigation/SettingsButton';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
 import { useEconomy } from './lib/economy';
@@ -327,16 +327,17 @@ export const ClassicGame: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-start pt-8 pb-12">
-      <div className="fixed top-4 right-4 z-50">
-        <WalletStrip compact={true} />
-      </div>
+    <>
+      <HomeButton />
       <SettingsButton />
-      <div className="w-full max-w-md px-4">
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-start pt-8 pb-12">
+        <div className="fixed top-4 right-4 z-50">
+          <WalletStrip compact={true} />
+        </div>
+        <div className="w-full max-w-md px-4">
         <header className="border-b border-gray-200 dark:border-gray-800 pb-6 mb-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <HomeButton isGameInProgress={game.state.phase === 'playing'} />
               <h1 className="text-4xl font-bold text-center text-gray-900 dark:text-white">Word Ladder</h1>
             </div>
             <div className="flex gap-2">
@@ -658,6 +659,7 @@ export const ClassicGame: React.FC = () => {
           })()}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
