@@ -6,10 +6,32 @@ import { useEconomy } from '../../../lib/economy';
 import { useLevelUpQueue } from '../../../components/economy/LevelUpProvider';
 import { calculateBlitzCoins, calculateBlitzXP } from '../economy';
 import type { BlitzPlayer, PlayerId } from '../types';
+import { FirebaseLeaderboardAdapter } from '../../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
+import type { GameResult } from '../../../lib/leaderboard/types';
+import { Timestamp } from 'firebase/firestore';
 
 export type BlitzResultsScreenProps = {
   /** Optional callback when leaving room */
   onLeaveRoom?: () => void;
+};
+
+/**
+ * Get or create a user ID for leaderboard tracking
+ */
+const getUserId = (): string => {
+  const stored = localStorage.getItem('wordladder-user-id');
+  if (stored) return stored;
+  const id = `user-${Math.random().toString(36).substr(2, 9)}`;
+  localStorage.setItem('wordladder-user-id', id);
+  return id;
+};
+
+/**
+ * Get player's placement in final rankings
+ */
+const getPlayerPlacement = (players: Map<PlayerId, BlitzPlayer>, playerId: PlayerId): number => {
+  const sortedPlayers = [...players.values()].sort((a, b) => b.score - a.score);
+  return sortedPlayers.findIndex((p) => p.id === playerId) + 1;
 };
 
 /**
@@ -89,6 +111,44 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
       pushLevelUpRewards(xpResult.rewards);
     }
   }, [room.room, room.me, economy, pushLevelUpRewards]);
+
+  // Record game result to leaderboard on mount
+  useEffect(() => {
+    if (!room.room || !room.me) return;
+
+    const recordLeaderboardResult = async () => {
+      try {
+        const leaderboardAdapter = new FirebaseLeaderboardAdapter();
+        await leaderboardAdapter.initialize();
+
+        const userId = getUserId();
+        const placement = getPlayerPlacement(room.room!.players, room.me!.id);
+        const duration = room.room.meta.endedAt
+          ? room.room.meta.endedAt - (room.room.meta.startedAt || 0)
+          : 0;
+
+        const result: GameResult = {
+          userId,
+          mode: 'blitz',
+          score: room.me.score,
+          solved: room.me.solved > 0,
+          wrong: room.me.wrong,
+          duration,
+          difficulty: room.room.meta.difficulty,
+          wordLength: room.room.meta.wordLength,
+          placement,
+          totalPlayers: room.room.players.size,
+          timestamp: Timestamp.now(),
+        };
+
+        await leaderboardAdapter.recordGameResult(userId, result);
+      } catch (err) {
+        console.error('Failed to record blitz result to leaderboard:', err);
+      }
+    };
+
+    recordLeaderboardResult();
+  }, [room.room, room.me]);
 
   // Get current player's final rank
   const finalRank = useMemo(() => {
