@@ -1,4 +1,4 @@
-import type { PlayerProfile, AchievementConfig, AchievementCriteria } from '../types';
+import type { PlayerProfile, AchievementConfig, AchievementCriteria, ModeStats } from '../types';
 import { getAllAchievements } from './achievements';
 
 export class AchievementEvaluator {
@@ -56,8 +56,8 @@ export class AchievementEvaluator {
 
     if (mode) {
       // Mode-specific game count check
-      const modeStats = profile.stats[mode as keyof typeof profile.stats];
-      return (modeStats as any)?.gamesPlayed >= value;
+      const modeStats = profile.stats[mode as keyof typeof profile.stats] as ModeStats;
+      return modeStats?.gamesPlayed >= value;
     }
 
     // Any mode game count
@@ -69,13 +69,13 @@ export class AchievementEvaluator {
 
     if (mode) {
       // Mode-specific best score check
-      const modeStats = profile.stats[mode as keyof typeof profile.stats];
-      return (modeStats as any)?.bestScore >= value;
+      const modeStats = profile.stats[mode as keyof typeof profile.stats] as ModeStats;
+      return modeStats?.bestScore >= value;
     }
 
     // Check if any mode's best score exceeds threshold
     const modeStats = Object.values(profile.stats);
-    return modeStats.some((stats: any) => stats.bestScore >= value);
+    return modeStats.some((stats: ModeStats) => stats.bestScore >= value);
   }
 
   private checkCustomCriteria(profile: PlayerProfile, achievement: AchievementConfig): boolean {

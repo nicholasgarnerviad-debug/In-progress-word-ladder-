@@ -35,6 +35,9 @@ import type {
   AchievementConfig,
   GameMode,
   LeaderboardPeriod,
+  ModeStats,
+  BlitzStats,
+  TimeAttackStats,
 } from '../types';
 import { LeaderboardCache } from '../cache/LeaderboardCache';
 import { AchievementEvaluator } from '../achievements/AchievementEvaluator';
@@ -319,7 +322,7 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
     profile.lastGameAt = Timestamp.now();
 
     // Update mode-specific stats
-    const modeStats = profile.stats[result.mode as keyof typeof profile.stats] as any;
+    const modeStats = profile.stats[result.mode as keyof typeof profile.stats] as ModeStats | BlitzStats | TimeAttackStats;
     if (modeStats) {
       modeStats.gamesPlayed += 1;
       modeStats.totalScore += result.score;
@@ -338,19 +341,20 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
 
       // Update mode-specific fields if applicable
       if (result.mode === 'blitz' && result.duration !== undefined) {
-        (modeStats.totalTime as number) += result.duration;
+        (modeStats as BlitzStats).totalTime += result.duration;
       } else if (
         result.mode === 'timeAttack' &&
         result.duration !== undefined
       ) {
+        const timeAttackStats = modeStats as TimeAttackStats;
         if (
-          result.duration < (modeStats.bestTime as number) ||
-          (modeStats.bestTime as number) === 0
+          result.duration < timeAttackStats.bestTime ||
+          timeAttackStats.bestTime === 0
         ) {
-          (modeStats.bestTime as number) = result.duration;
+          timeAttackStats.bestTime = result.duration;
         }
         if (result.solved) {
-          (modeStats.completedPuzzles as number) += 1;
+          timeAttackStats.completedPuzzles += 1;
         }
       }
     }
