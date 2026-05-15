@@ -1,11 +1,63 @@
 // src/components/leaderboard/LeaderboardScreen.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { LeaderboardDoc, GameMode, LeaderboardPeriod } from '../../lib/leaderboard/types';
+import type { LeaderboardDoc, GameMode, LeaderboardPeriod, LeaderboardEntry } from '../../lib/leaderboard/types';
 import { FirebaseLeaderboardAdapter } from '../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
 
 const adapter = new FirebaseLeaderboardAdapter();
+
+// Memoized mobile ranking card component
+const MobileRankingCard = React.memo(
+  ({ entry, onRowClick }: { entry: LeaderboardEntry; onRowClick: (userId: string) => void }) => (
+    <button
+      onClick={() => onRowClick(entry.userId)}
+      className="w-full p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-750 cursor-pointer transition-colors text-left"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+            {entry.placement}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold text-gray-900 dark:text-white truncate">{entry.name}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">{entry.gamesPlayed} {entry.gamesPlayed === 1 ? 'game' : 'games'}</div>
+          </div>
+        </div>
+        <div className="flex-shrink-0 text-right">
+          <div className="text-lg font-bold text-blue-500 dark:text-blue-400">{entry.score}</div>
+        </div>
+      </div>
+    </button>
+  )
+);
+MobileRankingCard.displayName = 'MobileRankingCard';
+
+// Memoized desktop ranking table row component
+const DesktopRankingRow = React.memo(
+  ({ entry, onRowClick }: { entry: LeaderboardEntry; onRowClick: (userId: string) => void }) => (
+    <tr
+      onClick={() => onRowClick(entry.userId)}
+      className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+    >
+      <td className="px-4 py-4">
+        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 text-white font-bold text-sm">
+          {entry.placement}
+        </div>
+      </td>
+      <td className="px-4 py-4">
+        <div className="font-semibold text-gray-900 dark:text-white">{entry.name}</div>
+      </td>
+      <td className="px-4 py-4">
+        <div className="text-gray-600 dark:text-gray-400">{entry.gamesPlayed}</div>
+      </td>
+      <td className="px-4 py-4 text-right">
+        <div className="font-bold text-blue-500 dark:text-blue-400">{entry.score}</div>
+      </td>
+    </tr>
+  )
+);
+DesktopRankingRow.displayName = 'DesktopRankingRow';
 
 export const LeaderboardScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -30,9 +82,9 @@ export const LeaderboardScreen: React.FC = () => {
     };
   }, [mode, period]);
 
-  const handleRowClick = (userId: string) => {
+  const handleRowClick = useCallback((userId: string) => {
     navigate(`/profile/${userId}`);
-  };
+  }, [navigate]);
 
   return (
     <div className="min-h-screen w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
@@ -91,26 +143,11 @@ export const LeaderboardScreen: React.FC = () => {
           {/* Mobile: Card Layout */}
           <div className="md:hidden space-y-3">
             {leaderboard.rankings.map((entry) => (
-              <button
+              <MobileRankingCard
                 key={entry.userId}
-                onClick={() => handleRowClick(entry.userId)}
-                className="w-full p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-750 cursor-pointer transition-colors text-left"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                      {entry.placement}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-gray-900 dark:text-white truncate">{entry.name}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{entry.gamesPlayed} {entry.gamesPlayed === 1 ? 'game' : 'games'}</div>
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0 text-right">
-                    <div className="text-lg font-bold text-blue-500 dark:text-blue-400">{entry.score}</div>
-                  </div>
-                </div>
-              </button>
+                entry={entry}
+                onRowClick={handleRowClick}
+              />
             ))}
           </div>
 
@@ -127,26 +164,11 @@ export const LeaderboardScreen: React.FC = () => {
               </thead>
               <tbody>
                 {leaderboard.rankings.map((entry) => (
-                  <tr
+                  <DesktopRankingRow
                     key={entry.userId}
-                    onClick={() => handleRowClick(entry.userId)}
-                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                  >
-                    <td className="px-4 py-4">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 text-white font-bold text-sm">
-                        {entry.placement}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="font-semibold text-gray-900 dark:text-white">{entry.name}</div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="text-gray-600 dark:text-gray-400">{entry.gamesPlayed}</div>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <div className="font-bold text-blue-500 dark:text-blue-400">{entry.score}</div>
-                    </td>
-                  </tr>
+                    entry={entry}
+                    onRowClick={handleRowClick}
+                  />
                 ))}
               </tbody>
             </table>

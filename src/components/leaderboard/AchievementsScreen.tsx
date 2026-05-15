@@ -22,6 +22,49 @@ const rarityColors: Record<AchievementRarity, { card: string; badge: string }> =
   },
 };
 
+// Memoized achievement card component
+const AchievementCard = React.memo(
+  ({ achievement, isEarned }: { achievement: AchievementConfig; isEarned: boolean }) => {
+    const colors = rarityColors[achievement.rarity];
+
+    return (
+      <div
+        className={`p-4 sm:p-6 border rounded-lg transition-all duration-200 ${colors.card} ${
+          isEarned
+            ? 'border-opacity-100 shadow-md hover:shadow-lg'
+            : 'border-opacity-50 opacity-75 hover:opacity-90'
+        }`}
+      >
+        {/* Icon */}
+        <div className="text-4xl sm:text-5xl mb-3">{achievement.icon}</div>
+
+        {/* Title */}
+        <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-2">
+          {achievement.title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+          {achievement.description}
+        </p>
+
+        {/* Rarity Badge and Status */}
+        <div className="flex items-center justify-between gap-2">
+          <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full uppercase ${colors.badge}`}>
+            {achievement.rarity}
+          </span>
+          {isEarned && (
+            <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+              ✓ Earned
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+);
+AchievementCard.displayName = 'AchievementCard';
+
 export const AchievementsScreen: React.FC<{ earnedAchievements: string[] }> = ({ earnedAchievements }) => {
   const [achievements, setAchievements] = useState<AchievementConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,46 +123,13 @@ export const AchievementsScreen: React.FC<{ earnedAchievements: string[] }> = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filtered.map((ach) => {
-            const earned = earnedAchievements.includes(ach.id);
-            const colors = rarityColors[ach.rarity];
-
-            return (
-              <div
-                key={ach.id}
-                className={`p-4 sm:p-6 border rounded-lg transition-all duration-200 ${colors.card} ${
-                  earned
-                    ? 'border-opacity-100 shadow-md hover:shadow-lg'
-                    : 'border-opacity-50 opacity-75 hover:opacity-90'
-                }`}
-              >
-                {/* Icon */}
-                <div className="text-4xl sm:text-5xl mb-3">{ach.icon}</div>
-
-                {/* Title */}
-                <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-2">
-                  {ach.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                  {ach.description}
-                </p>
-
-                {/* Rarity Badge and Status */}
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full uppercase ${colors.badge}`}>
-                    {ach.rarity}
-                  </span>
-                  {earned && (
-                    <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                      ✓ Earned
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {filtered.map((ach) => (
+            <AchievementCard
+              key={ach.id}
+              achievement={ach}
+              isEarned={earnedAchievements.includes(ach.id)}
+            />
+          ))}
         </div>
       )}
     </div>
