@@ -62,7 +62,7 @@ export const TimeAttackPage: React.FC = () => {
   // Run-end XP award
   useEffect(() => {
     if (state.phase === 'ended' && !xpAwardedRef.current && cumulativeXp > 0) {
-      const result = addXp(cumulativeXp, 'time_attack_end');
+      const result = addXp(cumulativeXp, 'time_attack_run');
 
       if (result.leveledUp) {
         pushLevelUpRewards(result.rewards);

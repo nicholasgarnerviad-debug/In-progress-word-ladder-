@@ -2,12 +2,19 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { TimeAttackPage } from '../TimeAttackPage';
+import { LevelUpProvider } from '../../../../components/economy/LevelUpProvider';
 import * as useTimeAttackModule from '../../useTimeAttack';
 
 jest.mock('../../useTimeAttack');
 
 const renderWithRouter = (component: React.ReactElement) => {
-  return render(<BrowserRouter>{component}</BrowserRouter>);
+  return render(
+    <BrowserRouter>
+      <LevelUpProvider>
+        {component}
+      </LevelUpProvider>
+    </BrowserRouter>
+  );
 };
 
 describe('TimeAttackPage', () => {

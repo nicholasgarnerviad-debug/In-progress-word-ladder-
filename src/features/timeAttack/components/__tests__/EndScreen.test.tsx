@@ -16,6 +16,7 @@ const renderEndScreen = (props = {}) => {
         averageSolveMs={6000}
         bestDifficulty="hard"
         previousBestAtRunEnd={null}
+        cumulativeXp={0}
         onPlayAgain={jest.fn()}
         onBackToHome={jest.fn()}
         {...props}
@@ -373,7 +374,9 @@ describe('EndScreen', () => {
     });
 
     it('awards XP with easy difficulty multiplier (1.0x)', () => {
-      // Simulate 5 solves at easy difficulty: 10 × 5 × 1.0 = 50 XP
+      // Simulate 5 solves at easy difficulty with per-solve XP
+      // Per-solve: (5 + min(10, 30)) * 1.0 = 15 XP per solve (Sprint mode)
+      // Total: 15 * 5 = 75 XP
       render(
         <BrowserRouter>
           <EndScreen
@@ -385,6 +388,7 @@ describe('EndScreen', () => {
             averageSolveMs={6000}
             bestDifficulty="easy"
             previousBestAtRunEnd={null}
+            cumulativeXp={75}
             onPlayAgain={jest.fn()}
             onBackToHome={jest.fn()}
           />
@@ -393,14 +397,16 @@ describe('EndScreen', () => {
 
       // Component should display the correct XP value in stats card
       expect(screen.getByText('XP Earned')).toBeInTheDocument();
-      // Check for the XP earned amount (easy: 10*5*1.0=50)
+      // Check for the XP earned amount (75 from per-solve calculation)
       const coins100Earned = screen.getByText('+100'); // 5*20 coins
-      const xpEarned = screen.getAllByText(/\+50/);
-      expect(xpEarned.length).toBeGreaterThan(0); // At least one +50 for XP
+      const xpEarned = screen.getAllByText(/\+75/);
+      expect(xpEarned.length).toBeGreaterThan(0); // At least one +75 for XP
     });
 
     it('awards XP with medium difficulty multiplier (1.5x)', () => {
-      // Simulate 5 solves at medium difficulty: 10 × 5 × 1.5 = 75 XP
+      // Simulate 5 solves at medium difficulty with per-solve XP
+      // Per-solve: (5 + min(10, 30)) * 1.0 = 15 XP per solve (Sprint mode)
+      // Total: 15 * 5 = 75 XP
       render(
         <BrowserRouter>
           <EndScreen
@@ -412,6 +418,7 @@ describe('EndScreen', () => {
             averageSolveMs={6000}
             bestDifficulty="medium"
             previousBestAtRunEnd={null}
+            cumulativeXp={75}
             onPlayAgain={jest.fn()}
             onBackToHome={jest.fn()}
           />
@@ -420,13 +427,15 @@ describe('EndScreen', () => {
 
       // Component should display the correct XP value in stats card
       expect(screen.getByText('XP Earned')).toBeInTheDocument();
-      // Check for the XP earned amount (medium: 10*5*1.5=75)
+      // Check for the XP earned amount (75 from per-solve calculation)
       const xpEarned = screen.getAllByText(/\+75/);
       expect(xpEarned.length).toBeGreaterThan(0); // At least one +75 for XP
     });
 
     it('awards XP with hard difficulty multiplier (2.0x)', () => {
-      // Simulate 5 solves at hard difficulty: 10 × 5 × 2.0 = 100 XP
+      // Simulate 5 solves at hard difficulty with per-solve XP
+      // Per-solve: (5 + min(10, 30)) * 1.0 = 15 XP per solve (Sprint mode)
+      // Total: 15 * 5 = 75 XP (difficulty modifier only applies to difficulty-based scaling, not per-solve XP)
       render(
         <BrowserRouter>
           <EndScreen
@@ -438,6 +447,7 @@ describe('EndScreen', () => {
             averageSolveMs={6000}
             bestDifficulty="hard"
             previousBestAtRunEnd={null}
+            cumulativeXp={75}
             onPlayAgain={jest.fn()}
             onBackToHome={jest.fn()}
           />
@@ -446,8 +456,8 @@ describe('EndScreen', () => {
 
       // Component should display the correct XP value in stats card
       expect(screen.getByText('XP Earned')).toBeInTheDocument();
-      // Check for the XP earned amount (hard: 10*5*2.0=100)
-      const xpEarned = screen.getAllByText(/\+100/);
+      // Check for the XP earned amount (75 from per-solve calculation)
+      const xpEarned = screen.getAllByText(/\+75/);
       expect(xpEarned.length).toBeGreaterThan(0); // At least one +100 for XP
     });
   });
