@@ -6,6 +6,8 @@ import { EndScreen } from '../components/EndScreen';
 import { useEconomy } from '../../../lib/economy/useEconomy';
 import { useLevelUpQueue } from '../../../components/economy/LevelUpProvider';
 import { WalletStrip } from '../../../components/economy/WalletStrip';
+import { FirebaseLeaderboardAdapter } from '../../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
+import type { GameResult } from '../../../lib/leaderboard/types';
 
 const XP_BASE_PER_SOLVE = 5;
 const XP_PER_SECOND_REMAINING = 1;
@@ -13,6 +15,14 @@ const XP_SECOND_BONUS_CAP = 30;
 const TIME_ATTACK_DURATION = 180;
 const SURVIVAL_MODE_XP_MULTIPLIER = 1.5;
 const CLASSIC_MODE_XP_MULTIPLIER = 1.0;
+
+const getUserId = (): string => {
+  const stored = localStorage.getItem('wordladder-user-id');
+  if (stored) return stored;
+  const id = `user-${Math.random().toString(36).substr(2, 9)}`;
+  localStorage.setItem('wordladder-user-id', id);
+  return id;
+};
 
 function calculateSolveXp(params: {
   baseXp?: number;
@@ -40,6 +50,7 @@ export const TimeAttackPage: React.FC = () => {
   const xpAwardedRef = useRef(false);
   const lastSolvedCountRef = useRef(0);
   const [cumulativeXp, setCumulativeXp] = useState(0);
+  const leaderboardRecordedRef = useRef(false);
 
   useEffect(() => {
     document.title = 'Time Attack — Word Ladder';
@@ -73,6 +84,34 @@ export const TimeAttackPage: React.FC = () => {
     }
   }, [state.phase, cumulativeXp, addXp, pushLevelUpRewards]);
 
+  // Record to leaderboard on game end
+  useEffect(() => {
+    if (state.phase === 'ended' && !leaderboardRecordedRef.current) {
+      leaderboardRecordedRef.current = true;
+
+      const leaderboardAdapter = new FirebaseLeaderboardAdapter();
+      leaderboardAdapter
+        .initialize()
+        .then(() => {
+          const result: GameResult = {
+            userId: getUserId(),
+            mode: 'timeAttack',
+            score: cumulativeXp || 0,
+            solved: state.solvedCount || 0,
+            wrong: 0,
+            duration: TIME_ATTACK_DURATION * 1000 - (state.timeRemainingMs || 0),
+            difficulty: 'medium',
+            timestamp: new Date(),
+          };
+
+          return leaderboardAdapter.recordGameResult(result.userId, result);
+        })
+        .catch(err => {
+          console.error('Failed to record game result:', err);
+        });
+    }
+  }, [state.phase, state.solvedCount, state.timeRemainingMs, cumulativeXp]);
+
   // Reset on new run or when run ends
   useEffect(() => {
     if (state.phase === 'playing') {
@@ -81,6 +120,7 @@ export const TimeAttackPage: React.FC = () => {
         setCumulativeXp(0);
         lastSolvedCountRef.current = 0;
         xpAwardedRef.current = false;
+        leaderboardRecordedRef.current = false;
       }
     }
   }, [state.phase]);
