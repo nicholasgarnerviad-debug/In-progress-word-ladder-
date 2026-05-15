@@ -6,6 +6,8 @@ import { EndScreen } from '../components/EndScreen';
 import { useEconomy } from '../../../lib/economy/useEconomy';
 import { useLevelUpQueue } from '../../../components/economy/LevelUpProvider';
 import { WalletStrip } from '../../../components/economy/WalletStrip';
+import { HomeButton } from '../../../components/navigation/HomeButton';
+import { SettingsButton } from '../../../components/navigation/SettingsButton';
 import { FirebaseLeaderboardAdapter } from '../../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
 import type { GameResult } from '../../../lib/leaderboard/types';
 import { Timestamp } from 'firebase/firestore';
@@ -128,6 +130,8 @@ export const TimeAttackPage: React.FC = () => {
 
   return (
     <>
+      <HomeButton />
+      <SettingsButton />
       <div className="fixed top-4 right-4 z-50">
         <WalletStrip compact={true} />
       </div>
