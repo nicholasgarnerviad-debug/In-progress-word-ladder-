@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { useBlitzRoom } from '../useBlitzRoom';
 import { useEconomy } from '../../../lib/economy';
+import { useLevelUpQueue } from '../../../components/economy/LevelUpProvider';
 import { calculateBlitzCoins, calculateBlitzXP } from '../economy';
 import type { BlitzPlayer, PlayerId } from '../types';
 
@@ -30,6 +31,7 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
   const navigate = useNavigate();
   const room = useBlitzRoom();
   const economy = useEconomy();
+  const { push: pushLevelUpRewards } = useLevelUpQueue();
 
   const [showConfetti, setShowConfetti] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -81,7 +83,12 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
     setEarnedCoins(coins);
     setEarnedXP(xp);
     setLeveledUp(xpResult.leveledUp);
-  }, [room.room, room.me, economy]);
+
+    // Trigger level-up modal if leveled up
+    if (xpResult.leveledUp) {
+      pushLevelUpRewards(xpResult.rewards);
+    }
+  }, [room.room, room.me, economy, pushLevelUpRewards]);
 
   // Get current player's final rank
   const finalRank = useMemo(() => {
