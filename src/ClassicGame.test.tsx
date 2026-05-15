@@ -31,6 +31,10 @@ jest.mock('./components/economy/LevelUpProvider', () => ({
   })),
 }));
 
+jest.mock('./components/economy/WalletStrip', () => ({
+  WalletStrip: () => <div data-testid="wallet-strip">Wallet Strip</div>,
+}));
+
 describe('ClassicGame Power-ups with Inventory', () => {
   const mockEconomy = {
     coins: 500,
