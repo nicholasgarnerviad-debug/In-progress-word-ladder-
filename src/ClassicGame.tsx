@@ -572,8 +572,8 @@ export const ClassicGame: React.FC = () => {
               onClick={loadNewPuzzle}
               className={`w-full py-3 px-4 min-h-[48px] rounded font-bold text-white transition-colors ${
                 roundResult.type === 'won'
-                  ? 'bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700'
-                  : 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
+                  ? 'bg-green-700 hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-700'
+                  : 'bg-red-700 hover:bg-red-800 dark:bg-red-600 dark:hover:bg-red-700'
               }`}
             >
               New Puzzle Now
@@ -624,9 +624,9 @@ export const ClassicGame: React.FC = () => {
                 disabled={!canUseUndo && !canBuyUndo}
                 className={`w-full py-3 px-4 min-h-[48px] rounded font-semibold transition-colors ${
                   !canUseUndo && !canBuyUndo
-                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
+                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed'
                     : canUseUndo
-                      ? 'bg-purple-400 dark:bg-purple-600 text-white dark:text-white hover:bg-purple-500 dark:hover:bg-purple-700'
+                      ? 'bg-purple-700 dark:bg-purple-600 text-white dark:text-white hover:bg-purple-800 dark:hover:bg-purple-700'
                       : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50'
                 }`}
               >

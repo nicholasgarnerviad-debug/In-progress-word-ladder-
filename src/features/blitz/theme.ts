@@ -31,19 +31,19 @@ export const BLITZ_ACCENT = {
 /** Status colors for game states and feedback */
 export const STATUS_COLORS = {
   /** Success state (solve, correct, win) */
-  success: 'text-green-600 dark:text-green-400',
+  success: 'text-green-700 dark:text-green-300',
   successBg: 'bg-green-50 dark:bg-green-900/20',
 
   /** Error/failure state (wrong, failed, lose) */
-  error: 'text-red-600 dark:text-red-400',
+  error: 'text-red-700 dark:text-red-300',
   errorBg: 'bg-red-50 dark:bg-red-900/20',
 
   /** Warning state (countdown, low time, skipped) */
-  warning: 'text-red-600 dark:text-red-400',
+  warning: 'text-red-700 dark:text-red-300',
   warningBg: 'bg-red-50 dark:bg-red-900/20',
 
   /** Neutral/disabled state */
-  neutral: 'text-gray-500 dark:text-gray-400',
+  neutral: 'text-gray-600 dark:text-gray-300',
   neutralBg: 'bg-gray-100 dark:bg-gray-800',
 } as const;
 
