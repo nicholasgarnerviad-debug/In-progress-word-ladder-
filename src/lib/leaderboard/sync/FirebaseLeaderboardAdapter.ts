@@ -176,9 +176,9 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
    * Check for newly-unlocked achievements and grant them to the player.
    * Evaluates all achievement criteria against the player's current stats.
    */
-  async checkAndGrantAchievements(userId: string): Promise<string[]> {
+  async checkAndGrantAchievements(userId: string, existingProfile?: PlayerProfile): Promise<string[]> {
     try {
-      const profile = await this.getPlayerProfile(userId);
+      const profile = existingProfile || await this.getPlayerProfile(userId);
       const newlyUnlocked = this.evaluator.evaluateAchievements(profile);
 
       if (newlyUnlocked.length > 0) {
@@ -252,7 +252,7 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
       await this.cache.cacheProfile(userId, profile);
 
       // Check achievements after sync
-      await this.checkAndGrantAchievements(userId);
+      await this.checkAndGrantAchievements(userId, profile);
 
       // Mark all results as synced
       await this.cache.markGameResultSynced(userId);
@@ -279,33 +279,33 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
     profile.lastGameAt = Timestamp.now();
 
     // Update mode-specific stats
-    const modeStats = profile.stats[result.mode as keyof typeof profile.stats];
+    const modeStats = profile.stats[result.mode as keyof typeof profile.stats] as any;
     if (modeStats) {
-      (modeStats as any).gamesPlayed += 1;
-      (modeStats as any).totalScore += result.score;
-      (modeStats as any).averageScore =
-        (modeStats as any).totalScore / (modeStats as any).gamesPlayed;
+      modeStats.gamesPlayed += 1;
+      modeStats.totalScore += result.score;
+      modeStats.averageScore =
+        modeStats.totalScore / modeStats.gamesPlayed;
 
       // Update best score if this game beat the previous best
-      if (result.score > (modeStats as any).bestScore) {
-        (modeStats as any).bestScore = result.score;
+      if (result.score > modeStats.bestScore) {
+        modeStats.bestScore = result.score;
       }
 
       // Update mode-specific fields if applicable
       if (result.mode === 'blitz' && result.duration !== undefined) {
-        ((modeStats as any).totalTime as number) += result.duration;
+        (modeStats.totalTime as number) += result.duration;
       } else if (
         result.mode === 'timeAttack' &&
         result.duration !== undefined
       ) {
         if (
-          result.duration < ((modeStats as any).bestTime as number) ||
-          ((modeStats as any).bestTime as number) === 0
+          result.duration < (modeStats.bestTime as number) ||
+          (modeStats.bestTime as number) === 0
         ) {
-          ((modeStats as any).bestTime as number) = result.duration;
+          (modeStats.bestTime as number) = result.duration;
         }
         if (result.solved) {
-          ((modeStats as any).completedPuzzles as number) += 1;
+          (modeStats.completedPuzzles as number) += 1;
         }
       }
     }
