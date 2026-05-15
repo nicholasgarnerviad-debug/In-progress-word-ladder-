@@ -42,10 +42,10 @@ The system is integrated: achievements feed into profiles, profiles display on l
 - Automatic triggers for achievement evaluation and leaderboard recalculation
 
 **Sync Adapter Layer**
-- `FirebaseLeaderboardAdapter` implements consistent async interface
-- Mirrors existing `BlitzSyncAdapter` pattern
-- Handles online/offline transitions, retry logic, error recovery
-- Can be swapped for mock adapter in tests
+- `FirebaseLeaderboardAdapter` — new adapter (separate from `BlitzSyncAdapter`) implementing async interface
+- Follows same design pattern as `BlitzSyncAdapter` (consistent error handling, subscription model, async methods)
+- Handles online/offline transitions, retry logic, error recovery, local-to-cloud sync
+- Can be swapped for mock adapter (`LocalLeaderboardAdapter`) in tests
 
 ### Data Persistence Strategy
 
@@ -142,7 +142,11 @@ interface GameResult {
 
 Document ID: `{mode}-{period}` (e.g., `blitz-allTime`, `blitz-weekly`, `classic-allTime`)
 
-Pre-computed for performance. Updated via Firestore function when `gameResults` added.
+Pre-computed for performance. Updated via Firestore Cloud Function trigger:
+- **Trigger:** When new document added to `gameResults` collection
+- **Function:** Queries top 100 players for that mode, recalculates rankings, updates corresponding leaderboard doc
+- **Timing:** Completes within 2-3 seconds (async, doesn't block game end flow)
+- **Weekly leaderboard:** Reset every Monday at 00:00 UTC (new leaderboard doc created)
 
 ```typescript
 interface LeaderboardDoc {
@@ -288,16 +292,22 @@ interface FirebaseLeaderboardAdapter {
 
 ### Offline Sync Strategy
 
-After each game:
+**During gameplay (offline OK):**
 1. Save `GameResult` to IndexedDB locally
-2. Update local `PlayerProfile` cache
-3. Evaluate achievements locally (criteria met?)
-4. If achievement unlocked, queue for sync
-5. On connectivity change:
-   - Call `FirebaseLeaderboardAdapter.syncLocalResults(userId)`
-   - Batch upload all pending results to `gameResults` collection
-   - Firestore Cloud Function recalculates leaderboards
-   - Real-time listener notifies UI of updates
+2. Update local `PlayerProfile` cache with new stats
+3. Evaluate achievements locally (does player meet unlock criteria?)
+4. If achievement unlocked, store in local cache and show notification immediately
+5. Queue achievement grant for upload (`achievements: [newId1, newId2]` in profile doc)
+
+**On connectivity return:**
+1. App detects online via `navigator.onLine` or fetch success
+2. Calls `FirebaseLeaderboardAdapter.syncLocalResults(userId)`
+3. Adapter:
+   - Uploads all pending `GameResult` documents to `gameResults` collection
+   - Updates `players/{userId}` profile with queued achievements
+   - Waits for Cloud Function to complete leaderboard recalculation (~2-3s)
+4. Real-time listeners on active leaderboard subscriptions receive updates
+5. UI refreshes with live rankings, profile updates
 
 ---
 
@@ -412,11 +422,17 @@ function evaluateAchievements(userId: string, newResult: GameResult): string[] {
 - Streaming integration
 - Mobile app (web version first, PWA for now)
 
+**Mode-Specific Behavior:**
+- **Blitz:** Multiplayer mode — leaderboards are global (all players ranked together), real-time updates
+- **Classic:** Single-player mode — no global leaderboard, only personal best/stats
+- **TimeAttack:** Single-player mode — no global leaderboard, only personal best/stats
+- All three modes: Achievements are global (earned separately per mode, displayed on unified profile)
+
 **Constraints:**
 - Firestore read quota: Pre-compute leaderboards to minimize reads
 - IndexedDB size: Keep local cache to last 100 games per user
 - Real-time listeners: Limit to 1 active leaderboard subscription at a time
-- Achievement evaluation: Run locally first, confirm on Firestore sync
+- Achievement evaluation: Run locally first, sync to Firestore via profile doc update
 
 ---
 
