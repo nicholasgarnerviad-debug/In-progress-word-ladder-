@@ -8,6 +8,13 @@ const PROFILES_STORE = 'profiles';
 const LEADERBOARDS_STORE = 'leaderboards';
 const GAME_RESULTS_STORE = 'game_results';
 
+// Cache size limits to prevent IndexedDB quota exhaustion
+const CACHE_LIMITS = {
+  GAME_RESULTS_PER_USER: 100,  // Keep last 100 game results per user
+  MAX_PROFILES: 30,             // Keep last 30 cached profiles
+  MAX_LEADERBOARDS: 50,         // Keep last 50 cached leaderboards
+} as const;
+
 /**
  * Wrapper object structure for cached player profiles.
  * Contains the profile data along with cache metadata.
@@ -56,14 +63,25 @@ export class LeaderboardCache {
         const db = (event.target as IDBOpenDBRequest).result;
 
         if (!db.objectStoreNames.contains(PROFILES_STORE)) {
-          db.createObjectStore(PROFILES_STORE, { keyPath: 'userId' });
+          const profileStore = db.createObjectStore(PROFILES_STORE, { keyPath: 'userId' });
+          // Index for efficient queries by userId (improves cache lookup performance)
+          profileStore.createIndex('userIdIndex', 'userId', { unique: true });
+          // Index for cache eviction based on access time
+          profileStore.createIndex('cachedAtIndex', 'cachedAt', { unique: false });
         }
         if (!db.objectStoreNames.contains(LEADERBOARDS_STORE)) {
-          db.createObjectStore(LEADERBOARDS_STORE, { keyPath: 'id' });
+          const leaderboardStore = db.createObjectStore(LEADERBOARDS_STORE, { keyPath: 'id' });
+          // Index for querying by mode for fast leaderboard lookups
+          leaderboardStore.createIndex('modeIndex', 'leaderboard.mode', { unique: false });
+          // Index for cache eviction based on access time
+          leaderboardStore.createIndex('cachedAtIndex', 'cachedAt', { unique: false });
         }
         if (!db.objectStoreNames.contains(GAME_RESULTS_STORE)) {
-          const store = db.createObjectStore(GAME_RESULTS_STORE, { keyPath: 'id', autoIncrement: true });
-          store.createIndex('userId', 'userId', { unique: false });
+          const gameStore = db.createObjectStore(GAME_RESULTS_STORE, { keyPath: 'id', autoIncrement: true });
+          // Index for efficient filtering of results by userId (required for offline queueing)
+          gameStore.createIndex('userId', 'userId', { unique: false });
+          // Index for cache eviction based on queueing time
+          gameStore.createIndex('queuedAtIndex', 'queuedAt', { unique: false });
         }
       };
     });
@@ -84,7 +102,44 @@ export class LeaderboardCache {
       const request = store.put(cached);
 
       request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve();
+      request.onsuccess = () => {
+        // Enforce cache size limit after successful insert
+        this.enforceProfilesCacheLimit(tx, store).catch((error) => {
+          console.error('Error enforcing profiles cache limit:', error);
+        });
+        resolve();
+      };
+    });
+  }
+
+  /**
+   * Enforces the maximum number of cached profiles by removing oldest entries.
+   * Keeps only the CACHE_LIMITS.MAX_PROFILES most recently accessed profiles.
+   */
+  private async enforceProfilesCacheLimit(
+    tx: IDBTransaction,
+    store: IDBObjectStore
+  ): Promise<void> {
+    return new Promise((resolve) => {
+      const index = store.index('cachedAtIndex');
+      const getAllRequest = index.getAll();
+
+      getAllRequest.onsuccess = () => {
+        const profiles = getAllRequest.result as CachedProfile[];
+        if (profiles.length > CACHE_LIMITS.MAX_PROFILES) {
+          // Remove oldest profiles to maintain size limit
+          const toDelete = profiles
+            .sort((a, b) => a.cachedAt - b.cachedAt)
+            .slice(0, profiles.length - CACHE_LIMITS.MAX_PROFILES);
+
+          toDelete.forEach((profile) => {
+            store.delete(profile.userId);
+          });
+        }
+        resolve();
+      };
+
+      getAllRequest.onerror = () => resolve();
     });
   }
 
@@ -120,7 +175,44 @@ export class LeaderboardCache {
       const request = store.put(cached);
 
       request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve();
+      request.onsuccess = () => {
+        // Enforce cache size limit after successful insert
+        this.enforceLeaderboardsCacheLimit(tx, store).catch((error) => {
+          console.error('Error enforcing leaderboards cache limit:', error);
+        });
+        resolve();
+      };
+    });
+  }
+
+  /**
+   * Enforces the maximum number of cached leaderboards by removing oldest entries.
+   * Keeps only the CACHE_LIMITS.MAX_LEADERBOARDS most recently accessed leaderboards.
+   */
+  private async enforceLeaderboardsCacheLimit(
+    tx: IDBTransaction,
+    store: IDBObjectStore
+  ): Promise<void> {
+    return new Promise((resolve) => {
+      const index = store.index('cachedAtIndex');
+      const getAllRequest = index.getAll();
+
+      getAllRequest.onsuccess = () => {
+        const leaderboards = getAllRequest.result as CachedLeaderboard[];
+        if (leaderboards.length > CACHE_LIMITS.MAX_LEADERBOARDS) {
+          // Remove oldest leaderboards to maintain size limit
+          const toDelete = leaderboards
+            .sort((a, b) => a.cachedAt - b.cachedAt)
+            .slice(0, leaderboards.length - CACHE_LIMITS.MAX_LEADERBOARDS);
+
+          toDelete.forEach((leaderboard) => {
+            store.delete(leaderboard.id);
+          });
+        }
+        resolve();
+      };
+
+      getAllRequest.onerror = () => resolve();
     });
   }
 
@@ -203,8 +295,60 @@ export class LeaderboardCache {
       };
 
       // Wait for transaction to complete before resolving
-      tx.oncomplete = () => resolve();
+      tx.oncomplete = () => {
+        // Enforce cache size limit after marking results as synced
+        this.enforceGameResultsCacheLimit(userId).catch((error) => {
+          console.error('Error enforcing game results cache limit:', error);
+        });
+        resolve();
+      };
       tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  /**
+   * Enforces the maximum number of cached game results per user.
+   * Keeps only the CACHE_LIMITS.GAME_RESULTS_PER_USER most recent results per user,
+   * removing oldest synced results first, then oldest unsynced results.
+   */
+  private async enforceGameResultsCacheLimit(userId: string): Promise<void> {
+    if (!this.db) return;
+
+    return new Promise((resolve) => {
+      const tx = this.db!.transaction([GAME_RESULTS_STORE], 'readwrite');
+      const store = tx.objectStore(GAME_RESULTS_STORE);
+      const index = store.index('userId');
+      const userResultsRequest = index.getAll(userId);
+
+      userResultsRequest.onsuccess = () => {
+        const userResults = userResultsRequest.result as QueuedGameResult[];
+
+        if (userResults.length > CACHE_LIMITS.GAME_RESULTS_PER_USER) {
+          // Sort by synced status (synced first) then by queue time (oldest first)
+          const toDelete = userResults
+            .sort((a, b) => {
+              // Remove synced results first, then oldest results
+              if (a.synced === b.synced) {
+                return a.queuedAt - b.queuedAt;
+              }
+              return a.synced ? -1 : 1;
+            })
+            .slice(0, userResults.length - CACHE_LIMITS.GAME_RESULTS_PER_USER);
+
+          toDelete.forEach((result) => {
+            // Find the id from the original request to delete by key
+            const idToDelete = userResults.find(
+              (r) => r.userId === result.userId && r.queuedAt === result.queuedAt && r.synced === result.synced
+            );
+            if (idToDelete) {
+              store.delete((idToDelete as any).id);
+            }
+          });
+        }
+        resolve();
+      };
+
+      userResultsRequest.onerror = () => resolve();
     });
   }
 
