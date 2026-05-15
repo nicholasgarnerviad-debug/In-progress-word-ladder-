@@ -8,6 +8,37 @@ const PROFILES_STORE = 'profiles';
 const LEADERBOARDS_STORE = 'leaderboards';
 const GAME_RESULTS_STORE = 'game_results';
 
+/**
+ * Wrapper object structure for cached player profiles.
+ * Contains the profile data along with cache metadata.
+ */
+interface CachedProfile {
+  userId: string;
+  profile: PlayerProfile;
+  cachedAt: number;
+}
+
+/**
+ * Wrapper object structure for cached leaderboards.
+ * Contains the leaderboard data along with cache metadata.
+ */
+interface CachedLeaderboard {
+  id: string;
+  leaderboard: LeaderboardDoc;
+  cachedAt: number;
+}
+
+/**
+ * Wrapper object structure for queued game results.
+ * Stores game results pending sync with synced status flag.
+ */
+interface QueuedGameResult {
+  userId: string;
+  result: GameResult;
+  queuedAt: number;
+  synced: boolean;
+}
+
 export class LeaderboardCache {
   private db: IDBDatabase | null = null;
 
@@ -31,7 +62,8 @@ export class LeaderboardCache {
           db.createObjectStore(LEADERBOARDS_STORE, { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains(GAME_RESULTS_STORE)) {
-          db.createObjectStore(GAME_RESULTS_STORE, { keyPath: 'id', autoIncrement: true });
+          const store = db.createObjectStore(GAME_RESULTS_STORE, { keyPath: 'id', autoIncrement: true });
+          store.createIndex('userId', 'userId', { unique: false });
         }
       };
     });
@@ -40,7 +72,7 @@ export class LeaderboardCache {
   async cacheProfile(userId: string, profile: PlayerProfile): Promise<void> {
     if (!this.db) throw new Error('Cache not initialized');
 
-    const cached = {
+    const cached: CachedProfile = {
       userId,
       profile,
       cachedAt: Date.now(),
@@ -66,7 +98,7 @@ export class LeaderboardCache {
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
-        const cached = request.result;
+        const cached = request.result as CachedProfile | undefined;
         resolve(cached ? cached.profile : null);
       };
     });
@@ -76,7 +108,7 @@ export class LeaderboardCache {
     if (!this.db) throw new Error('Cache not initialized');
 
     const id = `${mode}-${period}`;
-    const cached = {
+    const cached: CachedLeaderboard = {
       id,
       leaderboard,
       cachedAt: Date.now(),
@@ -103,16 +135,21 @@ export class LeaderboardCache {
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
-        const cached = request.result;
+        const cached = request.result as CachedLeaderboard | undefined;
         resolve(cached ? cached.leaderboard : null);
       };
     });
   }
 
+  /**
+   * Queue a game result for syncing to the backend.
+   * Stores a wrapper object: { userId, result, queuedAt, synced: false }
+   * Results are fetched by userId and filtered by synced status.
+   */
   async queueGameResult(userId: string, result: GameResult): Promise<void> {
     if (!this.db) throw new Error('Cache not initialized');
 
-    const queuedResult = {
+    const queuedResult: QueuedGameResult = {
       userId,
       result,
       queuedAt: Date.now(),
@@ -139,9 +176,9 @@ export class LeaderboardCache {
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
-        const queued = request.result
-          .filter((item: any) => item.userId === userId && !item.synced)
-          .map((item: any) => item.result);
+        const queued = (request.result as QueuedGameResult[])
+          .filter((item) => item.userId === userId && !item.synced)
+          .map((item) => item.result);
         resolve(queued);
       };
     });
@@ -157,13 +194,17 @@ export class LeaderboardCache {
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
-        const items = request.result.filter((item: any) => item.userId === userId && !item.synced);
-        items.forEach((item: any) => {
+        const items = (request.result as QueuedGameResult[])
+          .filter((item) => item.userId === userId && !item.synced);
+        items.forEach((item) => {
           item.synced = true;
-          store.put(item);
+          store.put(item);  // Queue the put
         });
-        resolve();
       };
+
+      // Wait for transaction to complete before resolving
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
     });
   }
 
