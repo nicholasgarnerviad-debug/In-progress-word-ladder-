@@ -82,7 +82,52 @@ describe('CountdownOverlay', () => {
 
       await waitFor(() => {
         const container = screen.getByRole('status').closest('.fixed');
-        expect(container).toHaveClass('bg-black/50');
+        expect(container).toHaveClass('bg-black/60');
+      });
+    });
+
+    it('applies countdown scale animation', async () => {
+      render(<CountdownOverlay startTime={Date.now()} />);
+
+      await waitFor(() => {
+        const countdownElement = screen.getByRole('status');
+        expect(countdownElement).toHaveClass('animate-countdownScale');
+      });
+    });
+
+    it('applies fade-in animation to overlay', async () => {
+      render(<CountdownOverlay startTime={Date.now()} />);
+
+      await waitFor(() => {
+        const overlay = screen.getByRole('status').parentElement;
+        expect(overlay).toHaveClass('animate-fadeIn');
+      });
+    });
+
+    it('has text shadow for visibility', async () => {
+      render(<CountdownOverlay startTime={Date.now()} />);
+
+      await waitFor(() => {
+        const countdownElement = screen.getByRole('status') as HTMLElement;
+        expect(countdownElement.style.textShadow).toBeTruthy();
+      });
+    });
+  });
+
+  describe('accessibility enhancements', () => {
+    it('has aria-atomic for complete announcement', () => {
+      render(<CountdownOverlay startTime={Date.now()} />);
+
+      const statusRegion = screen.getByRole('status');
+      expect(statusRegion).toHaveAttribute('aria-atomic', 'true');
+    });
+
+    it('has presentation role on overlay container', async () => {
+      const { container } = render(<CountdownOverlay startTime={Date.now()} />);
+
+      await waitFor(() => {
+        const overlay = container.firstChild as HTMLElement;
+        expect(overlay).toHaveAttribute('role', 'presentation');
       });
     });
   });

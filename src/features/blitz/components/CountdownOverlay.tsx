@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { BLITZ_ACCENT } from '../theme';
 
 export type CountdownOverlayProps = {
   /** Timestamp when countdown started (used to derive current count) */
@@ -60,12 +61,34 @@ export const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
     return null;
   }
 
+  // Color transitions: 3 (normal) → 2 (accent) → 1 (accent)
+  const getColorClass = () => {
+    if (currentCount === 3) {
+      return 'text-white';
+    }
+    return BLITZ_ACCENT.text;
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fadeIn"
+      role="presentation"
+      aria-hidden="false"
+    >
       <div
         role="status"
         aria-live="polite"
-        className="text-9xl font-bold text-white select-none"
+        aria-atomic="true"
+        className={`
+          select-none font-black tracking-tighter
+          animate-countdownScale
+          ${getColorClass()}
+          text-9xl
+        `}
+        style={{
+          textShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+          letterSpacing: '-0.02em',
+        }}
       >
         {currentCount}
       </div>

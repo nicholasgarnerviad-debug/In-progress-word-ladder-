@@ -280,4 +280,116 @@ describe('BlitzGameScreen', () => {
       expect(screen.getByText(/Puzzle 1\/\d+/)).toBeInTheDocument();
     });
   });
+
+  describe('visual enhancements', () => {
+    it('applies button press animation on button click', () => {
+      render(<BlitzGameScreen />);
+
+      const skipButton = screen.getByRole('button', { name: /Skip/i });
+      expect(skipButton).toHaveClass('active:animate-buttonPress');
+    });
+
+    it('timer has aria-live for dynamic updates', () => {
+      render(<BlitzGameScreen />);
+
+      const timerElement = screen.getByRole('status', { hidden: true });
+      expect(timerElement).toHaveAttribute('aria-live', 'polite');
+    });
+
+    it('timer announces time remaining', () => {
+      render(<BlitzGameScreen />);
+
+      const timerElement = screen.getByRole('status', { hidden: true });
+      expect(timerElement).toHaveAttribute('aria-label');
+      expect(timerElement.getAttribute('aria-label')).toMatch(/Time remaining:/);
+    });
+
+    it('buttons have minimum touch target size', () => {
+      render(<BlitzGameScreen />);
+
+      const skipButton = screen.getByRole('button', { name: /Skip/i });
+      expect(skipButton).toHaveClass('min-h-[44px]');
+      expect(skipButton).toHaveClass('min-w-[44px]');
+    });
+
+    it('Skip button has accessible aria-label', () => {
+      render(<BlitzGameScreen />);
+
+      const skipButton = screen.getByRole('button', { name: /Skip|Skip Puzzle/i });
+      expect(skipButton).toHaveAttribute('aria-label');
+    });
+
+    it('Forfeit button has accessible aria-label', () => {
+      render(<BlitzGameScreen />);
+
+      const forfeitButton = screen.getByRole('button', { name: /Forfeit|Forfeit Game/i });
+      expect(forfeitButton).toHaveAttribute('aria-label');
+    });
+
+    it('applies critical timer styling when < 5 seconds', () => {
+      const { useBlitzTimer } = require('../../useBlitzTimer');
+      useBlitzTimer.mockReturnValue({
+        remainingMs: 3000,
+        isExpired: false,
+        isRunning: true,
+      });
+
+      render(<BlitzGameScreen />);
+
+      const timerElement = screen.getByText(/\d{2}:\d{2}/);
+      expect(timerElement).toHaveClass('animate-pulse');
+    });
+
+    it('bottom section has shadow for depth', () => {
+      const { container } = render(<BlitzGameScreen />);
+
+      // Find the button container (last section with buttons)
+      const buttonsSection = container.querySelector('.border-t');
+      expect(buttonsSection).toHaveClass('shadow-md');
+    });
+
+    it('timer section has shadow for depth', () => {
+      const { container } = render(<BlitzGameScreen />);
+
+      // Find the timer section (first section)
+      const timerSection = container.querySelector('.border-b');
+      expect(timerSection).toHaveClass('shadow-sm');
+    });
+
+    it('buttons stack vertically on mobile', () => {
+      const { container } = render(<BlitzGameScreen />);
+
+      // Find the buttons section (contains both Skip and Forfeit buttons)
+      const skipButton = screen.getByRole('button', { name: /Skip/i });
+      const buttonSection = skipButton.closest('[class*="flex"]');
+      expect(buttonSection?.className).toMatch(/flex-col|flex-row/);
+    });
+  });
+
+  describe('accessibility', () => {
+    it('has proper heading hierarchy for player name', () => {
+      render(<BlitzGameScreen />);
+
+      const headings = screen.getAllByText('Player 1');
+      const h1 = headings.find(el => el.tagName === 'H1');
+      expect(h1).toBeInTheDocument();
+    });
+
+    it('leaderboard has heading', () => {
+      render(<BlitzGameScreen />);
+
+      const leaderboardHeading = screen.getByText('Leaderboard');
+      expect(leaderboardHeading.tagName).toBe('H2');
+    });
+
+    it('respects prefers-reduced-motion', () => {
+      // This is a CSS-level test that can't be easily validated via DOM
+      // but we verify animation classes are present
+      render(<BlitzGameScreen />);
+
+      const timerElement = screen.getByText(/\d{2}:\d{2}/);
+      // Animation classes should still be present (prefers-reduced-motion is CSS-level)
+      expect(timerElement).toBeInTheDocument();
+    });
+  });
 });

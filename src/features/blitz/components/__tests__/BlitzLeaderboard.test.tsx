@@ -23,7 +23,7 @@ describe('BlitzLeaderboard', () => {
   });
 
   describe('rendering', () => {
-    it('renders player list with rank numbers', () => {
+    it('renders player list with rank indicators', () => {
       const players: BlitzPlayer[] = [
         createMockPlayer('p1', 'Alice', 300, 3),
         createMockPlayer('p2', 'Bob', 200, 2),
@@ -33,9 +33,9 @@ describe('BlitzLeaderboard', () => {
 
       render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
 
-      expect(screen.getByText('1.')).toBeInTheDocument();
-      expect(screen.getByText('2.')).toBeInTheDocument();
-      expect(screen.getByText('3.')).toBeInTheDocument();
+      // Medals for top 3 or rank numbers for others
+      const container = screen.getByText('Alice').closest('[data-testid^="leaderboard-row"]');
+      expect(container?.textContent).toMatch(/🥇|1\./);
     });
 
     it('displays player names and scores', () => {
@@ -116,8 +116,9 @@ describe('BlitzLeaderboard', () => {
       );
 
       const currentRow = container.querySelector('[data-testid="leaderboard-row-p2"]');
-      expect(currentRow).toHaveClass('bg-blue-100');
-      expect(currentRow).toHaveClass('dark:bg-blue-900/40');
+      expect(currentRow).toHaveClass('bg-yellow-50');
+      expect(currentRow).toHaveClass('dark:bg-yellow-900/30');
+      expect(currentRow).toHaveClass('border-yellow-400');
     });
 
     it('does not highlight other players', () => {
@@ -150,6 +151,197 @@ describe('BlitzLeaderboard', () => {
       const leaderboard = container.firstChild as HTMLElement;
       expect(leaderboard).toHaveClass('w-80');
       expect(leaderboard).toHaveClass('max-w-sm');
+    });
+  });
+
+  describe('visual enhancements', () => {
+    it('displays trophy emoji in heading', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
+
+      // Look for trophy emoji in heading
+      const heading = screen.getByText('Leaderboard');
+      expect(heading.parentElement?.textContent).toContain('🏆');
+    });
+
+    it('displays gold medal for rank 1', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+        createMockPlayer('p2', 'Bob', 200, 2),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
+
+      const firstRow = screen.getByTestId('leaderboard-row-p1');
+      expect(firstRow.textContent).toContain('🥇');
+    });
+
+    it('displays silver medal for rank 2', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+        createMockPlayer('p2', 'Bob', 200, 2),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
+
+      const secondRow = screen.getByTestId('leaderboard-row-p2');
+      expect(secondRow.textContent).toContain('🥈');
+    });
+
+    it('displays bronze medal for rank 3', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+        createMockPlayer('p2', 'Bob', 200, 2),
+        createMockPlayer('p3', 'Charlie', 100, 1),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
+
+      const thirdRow = screen.getByTestId('leaderboard-row-p3');
+      expect(thirdRow.textContent).toContain('🥉');
+    });
+
+    it('displays rank number for rank 4+', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+        createMockPlayer('p2', 'Bob', 200, 2),
+        createMockPlayer('p3', 'Charlie', 100, 1),
+        createMockPlayer('p4', 'Dave', 50, 0),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
+
+      const fourthRow = screen.getByTestId('leaderboard-row-p4');
+      expect(fourthRow.textContent).toContain('4.');
+    });
+
+    it('applies yellow highlight to current player row', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+        createMockPlayer('p2', 'Bob', 200, 2),
+      ];
+      const currentPlayerId = createPlayerId('p2');
+
+      const { container } = render(
+        <BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />
+      );
+
+      const currentRow = container.querySelector('[data-testid="leaderboard-row-p2"]');
+      expect(currentRow).toHaveClass('bg-yellow-50');
+      expect(currentRow).toHaveClass('dark:bg-yellow-900/30');
+      expect(currentRow).toHaveClass('border-yellow-400');
+    });
+
+    it('shows (You) indicator for current player', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+        createMockPlayer('p2', 'Bob', 200, 2),
+      ];
+      const currentPlayerId = createPlayerId('p2');
+
+      render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
+
+      const currentRow = screen.getByTestId('leaderboard-row-p2');
+      expect(currentRow.textContent).toContain('(You)');
+    });
+
+    it('does not show (You) indicator for other players', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+        createMockPlayer('p2', 'Bob', 200, 2),
+      ];
+      const currentPlayerId = createPlayerId('p2');
+
+      render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
+
+      const firstRow = screen.getByTestId('leaderboard-row-p1');
+      expect(firstRow.textContent).not.toContain('(You)');
+    });
+
+    it('applies slide-in animation to rows', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      const { container } = render(
+        <BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />
+      );
+
+      const row = container.querySelector('[data-testid="leaderboard-row-p1"]');
+      expect(row).toHaveClass('animate-slideInRight');
+    });
+
+    it('has transition animation on row changes', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      const { container } = render(
+        <BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />
+      );
+
+      const row = container.querySelector('[data-testid="leaderboard-row-p1"]');
+      expect(row).toHaveClass('transition-all');
+      expect(row).toHaveClass('duration-200');
+    });
+
+    it('applies shadow to leaderboard container', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      const { container } = render(
+        <BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />
+      );
+
+      const leaderboard = container.firstChild as HTMLElement;
+      expect(leaderboard).toHaveClass('shadow-lg');
+    });
+  });
+
+  describe('accessibility', () => {
+    it('renders as list container', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      const { container } = render(
+        <BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />
+      );
+
+      const row = container.querySelector('[role="listitem"]');
+      expect(row).toBeInTheDocument();
+    });
+
+    it('has proper aria-labels for score and solved counts', () => {
+      const players: BlitzPlayer[] = [
+        createMockPlayer('p1', 'Alice', 300, 3),
+      ];
+      const currentPlayerId = createPlayerId('p1');
+
+      render(<BlitzLeaderboard players={players} currentPlayerId={currentPlayerId} />);
+
+      // Score aria-label should be on the score section
+      expect(screen.getByText('Score')).toBeInTheDocument();
+      const scoreSection = screen.getByLabelText('Alice score: 300');
+      expect(scoreSection).toBeInTheDocument();
+
+      // Solved aria-label should be on the solved section
+      expect(screen.getByText('Solved')).toBeInTheDocument();
+      const solvedSection = screen.getByLabelText('Alice solved: 3');
+      expect(solvedSection).toBeInTheDocument();
     });
   });
 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { BLITZ_ACCENT } from '../theme';
 
 export type BlitzEntryProps = {
   isLoading: boolean;
@@ -15,9 +16,12 @@ export const BlitzEntry: React.FC<BlitzEntryProps> = ({
 }) => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      {/* Header strip */}
-      <div className="h-12 border-b border-gray-200 dark:border-gray-800 flex items-center px-4">
-        <h1 className="flex-1 text-center text-xl font-bold">Blitz</h1>
+      {/* Header strip with Blitz branding */}
+      <div className="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center px-4 bg-gradient-to-r from-white to-yellow-50 dark:from-gray-950 dark:to-gray-900">
+        <h1 className={`flex-1 text-center text-2xl font-bold tracking-wider flex items-center justify-center gap-2`}>
+          <span>⚡</span>
+          <span>WORD BLITZ</span>
+        </h1>
       </div>
 
       {/* Main content */}
@@ -43,11 +47,12 @@ export const BlitzEntry: React.FC<BlitzEntryProps> = ({
         )}
 
         {/* Buttons */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <button
             onClick={onCreateRoom}
             disabled={isLoading}
-            className="w-full py-4 px-4 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition-colors hover:bg-gray-800 dark:hover:bg-gray-100 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+            className="w-full py-4 px-4 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition-all hover:bg-gray-800 dark:hover:bg-gray-100 hover:shadow-lg hover:scale-105 active:scale-95 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+            aria-busy={isLoading}
           >
             Create Room
           </button>
@@ -55,7 +60,8 @@ export const BlitzEntry: React.FC<BlitzEntryProps> = ({
           <button
             onClick={onJoinRoom}
             disabled={isLoading}
-            className="w-full py-4 px-4 rounded-lg border-2 border-black dark:border-white text-black dark:text-white font-bold transition-colors hover:bg-gray-50 dark:hover:bg-gray-900 disabled:border-gray-400 dark:disabled:border-gray-600 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+            className="w-full py-4 px-4 rounded-lg border-2 border-black dark:border-white text-black dark:text-white font-bold transition-all hover:bg-gray-50 dark:hover:bg-gray-900 hover:shadow-lg hover:scale-105 active:scale-95 disabled:border-gray-400 dark:disabled:border-gray-600 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+            aria-busy={isLoading}
           >
             Join Room
           </button>

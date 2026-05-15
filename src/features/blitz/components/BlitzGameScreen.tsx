@@ -5,6 +5,7 @@ import { useBlitzTimer } from '../useBlitzTimer';
 import { useBlitzRoom } from '../useBlitzRoom';
 import { useBlitzGame } from '../useBlitzGame';
 import { formatBlitzTime } from '../utils';
+import { BLITZ_ACCENT, BUTTON_STYLES, TIMER_STYLES, RESPONSIVE } from '../theme';
 
 export type BlitzGameScreenProps = {
   /** Optional callback when game ends */
@@ -113,21 +114,27 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
 
   const formattedTime = formatBlitzTime(timer.remainingMs);
   const timerIsWarning = timer.remainingMs < 10000;
+  const timerIsCritical = timer.remainingMs < 5000;
 
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       {/* Top: Timer */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 text-center">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 text-center shadow-sm">
         <p
           className={`
             text-5xl font-bold font-mono tracking-wider
-            transition-colors duration-200
+            transition-all duration-150
             ${
-              timerIsWarning
-                ? 'text-red-600 dark:text-red-500'
-                : 'text-gray-800 dark:text-gray-100'
+              timerIsCritical
+                ? `${TIMER_STYLES.critical}`
+                : timerIsWarning
+                  ? `${TIMER_STYLES.warning}`
+                  : `${TIMER_STYLES.normal}`
             }
           `}
+          role="status"
+          aria-live="polite"
+          aria-label={`Time remaining: ${formattedTime}`}
         >
           {formattedTime}
         </p>
@@ -173,28 +180,27 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
       </div>
 
       {/* Bottom: Action buttons */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 flex gap-3 justify-center">
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row gap-3 justify-center shadow-md">
         <button
           onClick={handleSkipPuzzle}
           disabled={timer.isExpired}
-          className="
-            px-6 py-2 rounded-lg font-semibold
-            bg-yellow-500 hover:bg-yellow-600 text-white
-            dark:bg-yellow-600 dark:hover:bg-yellow-700
-            disabled:opacity-50 disabled:cursor-not-allowed
-            transition-colors
-          "
+          className={`
+            ${BUTTON_STYLES.primary}
+            min-h-[44px] min-w-[44px]
+            active:animate-buttonPress
+          `}
+          aria-label="Skip current puzzle"
         >
           Skip Puzzle
         </button>
         <button
           onClick={handleForfeit}
-          className="
-            px-6 py-2 rounded-lg font-semibold
-            bg-red-500 hover:bg-red-600 text-white
-            dark:bg-red-600 dark:hover:bg-red-700
-            transition-colors
-          "
+          className={`
+            ${BUTTON_STYLES.danger}
+            min-h-[44px] min-w-[44px]
+            active:animate-buttonPress
+          `}
+          aria-label="Forfeit the game"
         >
           Forfeit Game
         </button>
