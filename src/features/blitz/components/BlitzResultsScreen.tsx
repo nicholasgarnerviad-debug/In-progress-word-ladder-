@@ -147,8 +147,17 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
         };
 
         await leaderboardAdapter.recordGameResult(userId, result);
+
+        // Check for newly unlocked achievements
+        const newAchievements = await leaderboardAdapter.checkAndGrantAchievements(userId);
+        if (newAchievements && newAchievements.length > 0) {
+          // Display achievement notifications
+          newAchievements.forEach(achievementId => {
+            console.log(`Achievement unlocked: ${achievementId}`);
+          });
+        }
       } catch (err) {
-        console.error('Failed to record blitz result to leaderboard:', err);
+        console.error('Failed to record blitz result or check achievements:', err);
       }
     };
 

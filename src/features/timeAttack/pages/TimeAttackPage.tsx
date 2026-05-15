@@ -109,8 +109,20 @@ export const TimeAttackPage: React.FC = () => {
 
           return leaderboardAdapter.recordGameResult(result.userId, result);
         })
+        .then(() => {
+          // Check for newly unlocked achievements
+          return leaderboardAdapter.checkAndGrantAchievements(getUserId());
+        })
+        .then(newAchievements => {
+          if (newAchievements && newAchievements.length > 0) {
+            // Display achievement notifications
+            newAchievements.forEach(achievementId => {
+              console.log(`Achievement unlocked: ${achievementId}`);
+            });
+          }
+        })
         .catch(err => {
-          console.error('Failed to record game result:', err);
+          console.error('Failed to record game result or check achievements:', err);
         });
     }
   }, [state.phase, state.solvedCount, state.timeRemainingMs, cumulativeXp]);

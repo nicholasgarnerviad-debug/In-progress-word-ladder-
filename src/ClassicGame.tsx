@@ -168,8 +168,18 @@ export const ClassicGame: React.FC = () => {
           timestamp: new Timestamp(Math.floor(Date.now() / 1000), 0), // Placeholder, will be replaced server-side
         };
 
-        leaderboardAdapter.recordGameResult(userId, result).catch(err => {
-          console.error('Failed to record game result:', err);
+        leaderboardAdapter.recordGameResult(userId, result).then(() => {
+          // Check for newly unlocked achievements
+          return leaderboardAdapter.checkAndGrantAchievements(userId);
+        }).then(newAchievements => {
+          if (newAchievements && newAchievements.length > 0) {
+            // Display achievement notifications
+            newAchievements.forEach(achievementId => {
+              console.log(`Achievement unlocked: ${achievementId}`);
+            });
+          }
+        }).catch(err => {
+          console.error('Failed to record game result or check achievements:', err);
           // Don't show error to user - leaderboard recording is non-critical
         });
       }).catch(err => {
