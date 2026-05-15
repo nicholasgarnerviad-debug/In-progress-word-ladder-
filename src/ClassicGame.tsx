@@ -279,26 +279,28 @@ export const ClassicGame: React.FC = () => {
         <WalletStrip compact={true} />
       </div>
       <div className="w-full max-w-md px-4">
-        <div className="flex justify-between items-center mb-2">
-          <div className="flex items-center gap-2">
-            <HomeButton isGameInProgress={game.state.phase === 'playing'} />
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Word Ladder</h1>
+        <header className="border-b border-gray-200 dark:border-gray-800 pb-6 mb-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <HomeButton isGameInProgress={game.state.phase === 'playing'} />
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Word Ladder</h1>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowPuzzleList(!showPuzzleList)}
+                className="text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1 rounded"
+              >
+                📋
+              </button>
+              <button
+                onClick={() => setShowSettings(true)}
+                className="text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1 rounded"
+              >
+                ⚙️
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowPuzzleList(!showPuzzleList)}
-              className="text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1 rounded"
-            >
-              📋
-            </button>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1 rounded"
-            >
-              ⚙️
-            </button>
-          </div>
-        </div>
+        </header>
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-1">
             <span className="text-2xl">◎</span>
