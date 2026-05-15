@@ -175,6 +175,7 @@ export class FirebaseLeaderboardAdapter implements LeaderboardSyncAdapter {
   /**
    * Check for newly-unlocked achievements and grant them to the player.
    * Evaluates all achievement criteria against the player's current stats.
+   * Note: Coin rewards from achievements should be awarded separately via the economy system.
    */
   async checkAndGrantAchievements(userId: string, existingProfile?: PlayerProfile): Promise<string[]> {
     try {

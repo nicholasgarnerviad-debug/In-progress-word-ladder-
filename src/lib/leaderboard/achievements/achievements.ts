@@ -23,6 +23,7 @@ const commonAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 10,
+      coins: 25,
     },
   },
   {
@@ -38,6 +39,7 @@ const commonAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 10,
+      coins: 50,
     },
   },
   {
@@ -53,6 +55,7 @@ const commonAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 10,
+      coins: 50,
     },
   },
   {
@@ -68,6 +71,7 @@ const commonAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 10,
+      coins: 50,
     },
   },
   {
@@ -82,6 +86,7 @@ const commonAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 10,
+      coins: 50,
     },
   },
 ];
@@ -102,6 +107,7 @@ const rareAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 25,
+      coins: 150,
     },
   },
   {
@@ -116,6 +122,7 @@ const rareAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 25,
+      coins: 150,
     },
   },
   {
@@ -130,6 +137,7 @@ const rareAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 25,
+      coins: 150,
     },
   },
   {
@@ -144,6 +152,7 @@ const rareAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 25,
+      coins: 150,
     },
   },
 ];
@@ -164,6 +173,7 @@ const legendaryAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 50,
+      coins: 500,
     },
   },
   {
@@ -178,6 +188,7 @@ const legendaryAchievements: AchievementConfig[] = [
     },
     reward: {
       xp: 50,
+      coins: 500,
     },
   },
 ];

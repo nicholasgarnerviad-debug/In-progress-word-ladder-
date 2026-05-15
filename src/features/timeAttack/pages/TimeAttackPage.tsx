@@ -74,18 +74,25 @@ export const TimeAttackPage: React.FC = () => {
     }
   }, [state.solvedCount, state.timeRemainingMs, state.mode, state.phase]);
 
-  // Run-end XP award
+  // Run-end XP award and coin earning
   useEffect(() => {
     if (state.phase === 'ended' && !xpAwardedRef.current && cumulativeXp > 0) {
+      // Award XP
       const result = addXp(cumulativeXp, 'time_attack_run');
 
       if (result.leveledUp) {
         pushLevelUpRewards(result.rewards);
       }
 
+      // Award coins based on completed puzzles
+      const coinsEarned = Math.floor((state.solvedCount || 0) * 50);
+      if (coinsEarned > 0) {
+        earnCoins(coinsEarned, 'time_attack_solve');
+      }
+
       xpAwardedRef.current = true;
     }
-  }, [state.phase, cumulativeXp, addXp, pushLevelUpRewards]);
+  }, [state.phase, cumulativeXp, state.solvedCount, addXp, pushLevelUpRewards, earnCoins]);
 
   // Record to leaderboard on game end
   useEffect(() => {
@@ -113,19 +120,32 @@ export const TimeAttackPage: React.FC = () => {
           // Check for newly unlocked achievements
           return leaderboardAdapter.checkAndGrantAchievements(getUserId());
         })
-        .then(newAchievements => {
+        .then(async newAchievements => {
           if (newAchievements && newAchievements.length > 0) {
             // Display achievement notifications
             newAchievements.forEach(achievementId => {
               console.log(`Achievement unlocked: ${achievementId}`);
             });
+
+            // Award coins from achievement rewards
+            const achievements = await leaderboardAdapter.getAchievements();
+            let totalCoinsEarned = 0;
+            for (const achievementId of newAchievements) {
+              const config = achievements.find(a => a.id === achievementId);
+              if (config?.reward?.coins) {
+                totalCoinsEarned += config.reward.coins;
+              }
+            }
+            if (totalCoinsEarned > 0) {
+              earnCoins(totalCoinsEarned, 'achievement');
+            }
           }
         })
         .catch(err => {
           console.error('Failed to record game result or check achievements:', err);
         });
     }
-  }, [state.phase, state.solvedCount, state.timeRemainingMs, cumulativeXp]);
+  }, [state.phase, state.solvedCount, state.timeRemainingMs, cumulativeXp, earnCoins]);
 
   // Reset on new run or when run ends
   useEffect(() => {

@@ -155,6 +155,19 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
           newAchievements.forEach(achievementId => {
             console.log(`Achievement unlocked: ${achievementId}`);
           });
+
+          // Award coins from achievement rewards
+          const achievements = await leaderboardAdapter.getAchievements();
+          let totalCoinsEarned = 0;
+          for (const achievementId of newAchievements) {
+            const config = achievements.find(a => a.id === achievementId);
+            if (config?.reward?.coins) {
+              totalCoinsEarned += config.reward.coins;
+            }
+          }
+          if (totalCoinsEarned > 0) {
+            economy.earnCoins(totalCoinsEarned, 'achievement');
+          }
         }
       } catch (err) {
         console.error('Failed to record blitz result or check achievements:', err);
@@ -162,7 +175,7 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
     };
 
     recordLeaderboardResult();
-  }, [room.room, room.me]);
+  }, [room.room, room.me, economy]);
 
   // Get current player's final rank
   const finalRank = useMemo(() => {
