@@ -89,6 +89,22 @@ const commonAchievements: AchievementConfig[] = [
       coins: 50,
     },
   },
+  {
+    id: 'blitzScore150',
+    title: 'Blitz Scorer',
+    description: 'Achieve a score of 150 in Blitz mode',
+    icon: '⚡',
+    rarity: 'common',
+    criteria: {
+      type: 'scoreThreshold',
+      value: 150,
+      mode: 'blitz',
+    },
+    reward: {
+      xp: 10,
+      coins: 50,
+    },
+  },
 ];
 
 /**

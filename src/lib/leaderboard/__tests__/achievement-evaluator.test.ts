@@ -117,6 +117,46 @@ describe('AchievementEvaluator', () => {
       });
     });
 
+    describe('blitzScore150', () => {
+      it('should unlock Blitz Scorer achievement with mode-specific score threshold', () => {
+        const profileWithBlitzScore = {
+          ...baseProfile,
+          stats: {
+            ...baseProfile.stats,
+            blitz: { ...baseProfile.stats.blitz, bestScore: 150 },
+            classic: { ...baseProfile.stats.classic, bestScore: 0 },
+          },
+        };
+        const result = evaluator.evaluateAchievements(profileWithBlitzScore);
+        expect(result).toContain('blitzScore150');
+      });
+
+      it('should not unlock blitzScore150 if only other modes have high scores', () => {
+        const profileWithClassicScore = {
+          ...baseProfile,
+          stats: {
+            ...baseProfile.stats,
+            blitz: { ...baseProfile.stats.blitz, bestScore: 100 },
+            classic: { ...baseProfile.stats.classic, bestScore: 500 },
+          },
+        };
+        const result = evaluator.evaluateAchievements(profileWithClassicScore);
+        expect(result).not.toContain('blitzScore150');
+      });
+
+      it('should not unlock blitzScore150 with exactly 149 score (boundary test)', () => {
+        const profileWithScore = {
+          ...baseProfile,
+          stats: {
+            ...baseProfile.stats,
+            blitz: { ...baseProfile.stats.blitz, bestScore: 149 },
+          },
+        };
+        const result = evaluator.evaluateAchievements(profileWithScore);
+        expect(result).not.toContain('blitzScore150');
+      });
+    });
+
     describe('tenGamesBlitz', () => {
       it('should unlock Blitz Master achievement when 10 blitz games played', () => {
         const profileWith10Games = {
@@ -531,6 +571,40 @@ describe('AchievementEvaluator', () => {
       const result = evaluator.evaluateAchievements(profileWithHighScore);
       expect(result).toContain('scoreOver200');
       expect(result).toContain('scoreOver500');
+      expect(result).toContain('scoreOver1000');
+    });
+
+    it('should check mode-specific score thresholds correctly', () => {
+      // Test with a specific mode having high score while other modes have low scores
+      // This exercises the mode-specific bestScore check path (lines 72-73)
+      const profileWithModeSpecificScore = {
+        ...baseProfile,
+        stats: {
+          ...baseProfile.stats,
+          blitz: { ...baseProfile.stats.blitz, bestScore: 0 },
+          classic: { ...baseProfile.stats.classic, bestScore: 0 },
+          timeAttack: { ...baseProfile.stats.timeAttack, bestScore: 600 },
+        },
+      };
+      const result = evaluator.evaluateAchievements(profileWithModeSpecificScore);
+      // Should still unlock scoreOver500 because timeAttack has 600
+      expect(result).toContain('scoreOver500');
+    });
+
+    it('should reach >85% coverage with edge case scenarios', () => {
+      // Test achieving multiple legendary achievements simultaneously
+      const profileWithMultipleLegendary = {
+        ...baseProfile,
+        totalGames: 500,
+        stats: {
+          ...baseProfile.stats,
+          blitz: { ...baseProfile.stats.blitz, gamesPlayed: 250, bestScore: 1200 },
+          classic: { ...baseProfile.stats.classic, gamesPlayed: 250, bestScore: 1200 },
+          timeAttack: { ...baseProfile.stats.timeAttack, gamesPlayed: 0, bestScore: 0 },
+        },
+      };
+      const result = evaluator.evaluateAchievements(profileWithMultipleLegendary);
+      expect(result).toContain('fiveHundredGames');
       expect(result).toContain('scoreOver1000');
     });
   });
