@@ -5,6 +5,7 @@ import { PlayScreen } from '../components/PlayScreen';
 import { EndScreen } from '../components/EndScreen';
 import { useEconomy } from '../../../lib/economy/useEconomy';
 import { useLevelUpQueue } from '../../../components/economy/LevelUpProvider';
+import { WalletStrip } from '../../../components/economy/WalletStrip';
 
 const XP_BASE_PER_SOLVE = 5;
 const XP_PER_SECOND_REMAINING = 1;
@@ -86,6 +87,9 @@ export const TimeAttackPage: React.FC = () => {
 
   return (
     <>
+      <div className="fixed top-4 right-4 z-50">
+        <WalletStrip compact={true} />
+      </div>
       {(state.phase === 'idle' || state.phase === 'setup') && (
         <SetupScreen
           mode={state.mode}
