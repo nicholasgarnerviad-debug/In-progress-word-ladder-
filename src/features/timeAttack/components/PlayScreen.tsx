@@ -2,12 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { WordPuzzle } from '../../../generatePuzzle';
 import { PuzzleBoard } from '../../../components/PuzzleBoard';
 import { HomeButton } from '../../../components/HomeButton';
-import { Clock } from './Clock';
 import { getSkipCostSeconds } from '../difficulty';
 import { DurationTier } from '../types';
 import { useEconomy } from '../../../lib/economy';
 import { ConsumableButton } from '../../../components/ConsumableButton';
 import { shortestPath } from '../../../wordGraph';
+
+// Memoized timer display component that only updates on timer ticks
+const TimerDisplay = React.memo(({ remainingMs }: { remainingMs: number }) => {
+  const seconds = Math.ceil(remainingMs / 1000);
+  return <div className="text-4xl font-bold">{seconds}s</div>;
+});
 
 export type PlayScreenProps = {
   puzzle: WordPuzzle | null;
@@ -112,7 +117,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
           </div>
 
           <div className="flex-1 flex justify-center">
-            <Clock remainingMs={remainingMs} isFlashing={isTimeRewardFlashing} />
+            <TimerDisplay remainingMs={remainingMs} />
           </div>
 
           <div className="text-sm text-right">
