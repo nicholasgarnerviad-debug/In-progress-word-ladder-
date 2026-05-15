@@ -334,7 +334,7 @@ export const ClassicGame: React.FC = () => {
 
               <div className="space-y-4">
                 {/* IN PROGRESS CARD */}
-                <div className="p-3 rounded-lg border-2 border-blue-400 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-500">
+                <div className="p-3 rounded-lg border-2 border-gray-200 bg-blue-50 dark:bg-blue-900/30 dark:border-gray-800">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-blue-700 dark:text-blue-300 text-sm">▶ In Progress</span>
                     <span className="text-xs bg-blue-200 dark:bg-blue-700 dark:text-blue-200 px-2 py-1 rounded">
@@ -348,16 +348,16 @@ export const ClassicGame: React.FC = () => {
                   </div>
                   <div className="flex flex-wrap gap-1 text-xs">
                     {game.state.history.map((word, i) => (
-                      <span key={i} className="font-mono bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-2 py-0.5 rounded">
+                      <span key={i} className="font-mono bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-800 px-2 py-0.5 rounded">
                         {word.join('').toUpperCase()}
                       </span>
                     ))}
                     {Array.from({ length: Math.max(0, puzzle.optimal - 1 - game.state.history.length) }).map((_, i) => (
-                      <span key={`lock-${i}`} className="font-mono bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-500 border border-dashed border-gray-300 dark:border-gray-500 px-2 py-0.5 rounded">
+                      <span key={`lock-${i}`} className="font-mono bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-500 border border-dashed border-gray-200 dark:border-gray-800 px-2 py-0.5 rounded">
                         ???
                       </span>
                     ))}
-                    <span className="font-mono bg-green-100 dark:bg-green-900/50 dark:text-green-400 border border-green-300 dark:border-green-600 px-2 py-0.5 rounded">
+                    <span className="font-mono bg-green-100 dark:bg-green-900/50 dark:text-green-400 border border-gray-200 dark:border-gray-800 px-2 py-0.5 rounded">
                       {puzzle.end.toUpperCase()}
                     </span>
                   </div>
@@ -369,8 +369,8 @@ export const ClassicGame: React.FC = () => {
                     key={idx}
                     className={`p-3 rounded-lg border-2 ${
                       record.result === 'won'
-                        ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700'
-                        : 'border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700'
+                        ? 'border-gray-200 bg-green-50 dark:bg-green-900/20 dark:border-gray-800'
+                        : 'border-gray-200 bg-red-50 dark:bg-red-900/20 dark:border-gray-800'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -401,7 +401,7 @@ export const ClassicGame: React.FC = () => {
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your path ({record.playerPath.length - 1} steps)</p>
                       <div className="flex flex-wrap gap-1">
                         {record.playerPath.map((word, i) => (
-                          <span key={i} className="font-mono text-xs bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-2 py-0.5 rounded">
+                          <span key={i} className="font-mono text-xs bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-800 px-2 py-0.5 rounded">
                             {word.toUpperCase()}
                           </span>
                         ))}
@@ -412,7 +412,7 @@ export const ClassicGame: React.FC = () => {
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Optimal ({record.puzzle.optimal} steps)</p>
                       <div className="flex flex-wrap gap-1">
                         {record.puzzle.chain.map((word, i) => (
-                          <span key={i} className="font-mono text-xs bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-700 px-2 py-0.5 rounded">
+                          <span key={i} className="font-mono text-xs bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 border border-gray-200 dark:border-gray-800 px-2 py-0.5 rounded">
                             {word.toUpperCase()}
                           </span>
                         ))}
@@ -465,7 +465,7 @@ export const ClassicGame: React.FC = () => {
                   </button>
                 </div>
 
-                <hr className="border-gray-200 dark:border-gray-600" />
+                <hr className="border-gray-200 dark:border-gray-800" />
 
                 <div className="flex items-center justify-between">
                   <div>
