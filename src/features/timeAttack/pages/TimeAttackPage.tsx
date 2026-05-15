@@ -8,9 +8,7 @@ import { useLevelUpQueue } from '../../../components/economy/LevelUpProvider';
 import { WalletStrip } from '../../../components/economy/WalletStrip';
 import { HomeButton } from '../../../components/navigation/HomeButton';
 import { SettingsButton } from '../../../components/navigation/SettingsButton';
-import { FirebaseLeaderboardAdapter } from '../../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
-import type { GameResult } from '../../../lib/leaderboard/types';
-import { Timestamp } from 'firebase/firestore';
+import { useGameResult } from '../../../hooks/useGameResult';
 
 const XP_BASE_PER_SOLVE = 5;
 const XP_PER_SECOND_REMAINING = 1;
@@ -18,14 +16,6 @@ const XP_SECOND_BONUS_CAP = 30;
 const TIME_ATTACK_DURATION = 180;
 const SURVIVAL_MODE_XP_MULTIPLIER = 1.5;
 const CLASSIC_MODE_XP_MULTIPLIER = 1.0;
-
-const getUserId = (): string => {
-  const stored = localStorage.getItem('wordladder-user-id');
-  if (stored) return stored;
-  const id = `user-${Math.random().toString(36).substr(2, 9)}`;
-  localStorage.setItem('wordladder-user-id', id);
-  return id;
-};
 
 function calculateSolveXp(params: {
   baseXp?: number;
@@ -46,10 +36,19 @@ function calculateSolveXp(params: {
   return xpAmount;
 }
 
+const getUserId = (): string => {
+  const stored = localStorage.getItem('wordladder-user-id');
+  if (stored) return stored;
+  const id = `user-${Math.random().toString(36).substr(2, 9)}`;
+  localStorage.setItem('wordladder-user-id', id);
+  return id;
+};
+
 export const TimeAttackPage: React.FC = () => {
   const state = useTimeAttack();
   const { earnCoins, addXp } = useEconomy();
   const { push: pushLevelUpRewards } = useLevelUpQueue();
+  const { recordResult } = useGameResult(getUserId());
   const xpAwardedRef = useRef(false);
   const lastSolvedCountRef = useRef(0);
   const [cumulativeXp, setCumulativeXp] = useState(0);
@@ -99,53 +98,30 @@ export const TimeAttackPage: React.FC = () => {
     if (state.phase === 'ended' && !leaderboardRecordedRef.current) {
       leaderboardRecordedRef.current = true;
 
-      const leaderboardAdapter = new FirebaseLeaderboardAdapter();
-      leaderboardAdapter
-        .initialize()
-        .then(() => {
-          const result: GameResult = {
-            userId: getUserId(),
-            mode: 'timeAttack',
-            score: cumulativeXp || 0,
-            solved: (state.solvedCount || 0) > 0,
-            wrong: 0,
-            duration: TIME_ATTACK_DURATION * 1000 - (state.timeRemainingMs || 0),
-            difficulty: 'medium',
-            timestamp: Timestamp.now(),
-          };
-
-          return leaderboardAdapter.recordGameResult(result.userId, result);
-        })
-        .then(() => {
-          // Check for newly unlocked achievements
-          return leaderboardAdapter.checkAndGrantAchievements(getUserId());
-        })
-        .then(async newAchievements => {
+      recordResult(
+        'timeAttack',
+        cumulativeXp || 0,
+        (state.solvedCount || 0) > 0,
+        0, // wrong
+        TIME_ATTACK_DURATION * 1000 - (state.timeRemainingMs || 0),
+        'medium' // difficulty
+      )
+        .then(({ newAchievements }) => {
           if (newAchievements && newAchievements.length > 0) {
             // Display achievement notifications
             newAchievements.forEach(achievementId => {
               console.log(`Achievement unlocked: ${achievementId}`);
             });
 
-            // Award coins from achievement rewards
-            const achievements = await leaderboardAdapter.getAchievements();
-            let totalCoinsEarned = 0;
-            for (const achievementId of newAchievements) {
-              const config = achievements.find(a => a.id === achievementId);
-              if (config?.reward?.coins) {
-                totalCoinsEarned += config.reward.coins;
-              }
-            }
-            if (totalCoinsEarned > 0) {
-              earnCoins(totalCoinsEarned, 'achievement');
-            }
+            // Note: Achievement coin rewards are handled by the leaderboard adapter
+            // Additional handling can be added here if needed
           }
         })
         .catch(err => {
           console.error('Failed to record game result or check achievements:', err);
         });
     }
-  }, [state.phase, state.solvedCount, state.timeRemainingMs, cumulativeXp, earnCoins]);
+  }, [state.phase, state.solvedCount, state.timeRemainingMs, cumulativeXp, recordResult]);
 
   // Reset on new run or when run ends
   useEffect(() => {
