@@ -7,6 +7,7 @@ import { HomeButton } from './components/HomeButton';
 import { loadStats, saveStats, recordWin, recordLoss } from './lib/stats';
 import { useEconomy } from './lib/economy';
 import { useLevelUpQueue } from './components/economy/LevelUpProvider';
+import { WalletStrip } from './components/economy/WalletStrip';
 
 const XP_REWARDS = {
   puzzleSolve: { easy: 10, medium: 15, hard: 20 },
@@ -274,6 +275,9 @@ export const ClassicGame: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="fixed top-4 right-4 z-50">
+        <WalletStrip compact={true} />
+      </div>
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
