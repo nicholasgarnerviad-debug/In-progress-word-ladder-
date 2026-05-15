@@ -29,22 +29,22 @@ export const PlayerProfileScreen: React.FC = () => {
     });
   }, [userId]);
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
-  if (error) return <div className="p-8 text-red-500">{error}</div>;
-  if (!profile) return <div className="p-8">Profile not found</div>;
+  if (loading) return <div className="p-8 text-center text-gray-900 dark:text-white">Loading...</div>;
+  if (error) return <div className="p-8 text-red-500 dark:text-red-400">{error}</div>;
+  if (!profile) return <div className="p-8 text-gray-900 dark:text-white">Profile not found</div>;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-4">
+    <div className="min-h-screen w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-4 py-6 md:py-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="mb-8 border-b border-gray-200 dark:border-gray-800 pb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white text-2xl">
+        <div className="mb-6 md:mb-8 border-b border-gray-200 dark:border-gray-700 pb-4 md:pb-6">
+          <div className="flex items-center gap-3 md:gap-4 mb-4">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white text-xl md:text-2xl flex-shrink-0">
               {profile.avatar || profile.name.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{profile.name}</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">{profile.name}</h1>
+              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Joined {new Date(profile.joinedAt.toDate()).toLocaleDateString()}
               </p>
             </div>
@@ -52,21 +52,21 @@ export const PlayerProfileScreen: React.FC = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Total Games</div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">{profile.totalGames}</div>
+        <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
+          <div className="p-3 md:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Total Games</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">{profile.totalGames}</div>
           </div>
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Total Score</div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">{profile.totalScore}</div>
+          <div className="p-3 md:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Total Score</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">{profile.totalScore}</div>
           </div>
         </div>
 
         {/* Mode Stats */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Mode Stats</h2>
-          <div className="space-y-4">
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4">Mode Stats</h2>
+          <div className="space-y-3 md:space-y-4">
             {Object.entries(profile.stats).map(([mode, stats]) => {
               const modeStats = stats as any;
               const formatTime = (ms: number) => {
@@ -84,45 +84,45 @@ export const PlayerProfileScreen: React.FC = () => {
               };
 
               return (
-                <div key={mode} className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3 capitalize">{mode}</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex justify-between">
+                <div key={mode} className="p-3 md:p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 md:mb-3 capitalize text-sm md:text-base">{mode}</h3>
+                  <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm">
+                    <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                       <span className="text-gray-600 dark:text-gray-400">Games:</span>
                       <span className="font-bold text-gray-900 dark:text-white">{modeStats.gamesPlayed}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                       <span className="text-gray-600 dark:text-gray-400">Best Score:</span>
                       <span className="font-bold text-gray-900 dark:text-white">{modeStats.bestScore}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                       <span className="text-gray-600 dark:text-gray-400">Total Score:</span>
                       <span className="font-bold text-gray-900 dark:text-white">{modeStats.totalScore}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                       <span className="text-gray-600 dark:text-gray-400">Average:</span>
                       <span className="font-bold text-gray-900 dark:text-white">{modeStats.averageScore.toFixed(1)}</span>
                     </div>
                     {modeStats.wins !== undefined && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                         <span className="text-gray-600 dark:text-gray-400">Wins:</span>
                         <span className="font-bold text-gray-900 dark:text-white">{modeStats.wins}</span>
                       </div>
                     )}
                     {modeStats.totalTime !== undefined && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                         <span className="text-gray-600 dark:text-gray-400">Total Time:</span>
                         <span className="font-bold text-gray-900 dark:text-white">{formatTime(modeStats.totalTime)}</span>
                       </div>
                     )}
                     {modeStats.bestTime !== undefined && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                         <span className="text-gray-600 dark:text-gray-400">Best Time:</span>
                         <span className="font-bold text-gray-900 dark:text-white">{formatTime(modeStats.bestTime)}</span>
                       </div>
                     )}
                     {modeStats.completedPuzzles !== undefined && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                         <span className="text-gray-600 dark:text-gray-400">Completed:</span>
                         <span className="font-bold text-gray-900 dark:text-white">{modeStats.completedPuzzles}</span>
                       </div>
@@ -135,29 +135,29 @@ export const PlayerProfileScreen: React.FC = () => {
         </div>
 
         {/* Achievements */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Achievements ({profile.achievements.length})</h2>
-          <div className="grid grid-cols-4 gap-2">
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4">Achievements ({profile.achievements.length})</h2>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
             {profile.achievements.map((achievementId) => (
-              <div key={achievementId} className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-center">
-                <div className="text-3xl mb-1">🏆</div>
-                <div className="text-xs text-gray-600 dark:text-gray-300">{achievementId}</div>
+              <div key={achievementId} className="p-2 md:p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-center min-h-[80px] md:min-h-[100px] flex flex-col items-center justify-center">
+                <div className="text-2xl md:text-3xl mb-1">🏆</div>
+                <div className="text-xs text-gray-600 dark:text-gray-300 break-words line-clamp-2">{achievementId}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <button
             onClick={() => navigate('/leaderboards')}
-            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="flex-1 px-4 py-2.5 md:py-3 min-h-[44px] md:min-h-[48px] bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
           >
             View Leaderboards
           </button>
           <button
             onClick={() => navigate('/achievements')}
-            className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+            className="flex-1 px-4 py-2.5 md:py-3 min-h-[44px] md:min-h-[48px] bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
           >
             View All Achievements
           </button>
