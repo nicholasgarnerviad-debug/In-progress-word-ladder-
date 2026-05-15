@@ -8,6 +8,7 @@ import { useLevelUpQueue } from '../../../components/economy/LevelUpProvider';
 import { WalletStrip } from '../../../components/economy/WalletStrip';
 import { FirebaseLeaderboardAdapter } from '../../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
 import type { GameResult } from '../../../lib/leaderboard/types';
+import { Timestamp } from 'firebase/firestore';
 
 const XP_BASE_PER_SOLVE = 5;
 const XP_PER_SECOND_REMAINING = 1;
@@ -97,11 +98,11 @@ export const TimeAttackPage: React.FC = () => {
             userId: getUserId(),
             mode: 'timeAttack',
             score: cumulativeXp || 0,
-            solved: state.solvedCount || 0,
+            solved: (state.solvedCount || 0) > 0,
             wrong: 0,
             duration: TIME_ATTACK_DURATION * 1000 - (state.timeRemainingMs || 0),
             difficulty: 'medium',
-            timestamp: new Date(),
+            timestamp: Timestamp.now(),
           };
 
           return leaderboardAdapter.recordGameResult(result.userId, result);

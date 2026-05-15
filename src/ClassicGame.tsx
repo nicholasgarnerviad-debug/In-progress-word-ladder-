@@ -10,6 +10,7 @@ import { useLevelUpQueue } from './components/economy/LevelUpProvider';
 import { WalletStrip } from './components/economy/WalletStrip';
 import { FirebaseLeaderboardAdapter } from './lib/leaderboard/sync/FirebaseLeaderboardAdapter';
 import type { GameResult } from './lib/leaderboard/types';
+import { Timestamp } from 'firebase/firestore';
 
 const XP_REWARDS = {
   puzzleSolve: { easy: 10, medium: 15, hard: 20 },
@@ -154,7 +155,7 @@ export const ClassicGame: React.FC = () => {
         const isWon = game.state.phase === 'won';
 
         // Create result object - timestamp will be replaced by serverTimestamp() on the server
-        const result = {
+        const result: GameResult = {
           userId,
           mode: 'classic' as const,
           score: isWon ? (game.state.history.length - 1) : 0, // Use steps as score for classic mode
@@ -163,8 +164,8 @@ export const ClassicGame: React.FC = () => {
           duration: gameDuration,
           difficulty: puzzleDifficulty,
           wordLength: puzzle.start.length,
-          timestamp: { _seconds: Math.floor(Date.now() / 1000), _nanoseconds: 0 }, // Placeholder, will be replaced server-side
-        } as GameResult;
+          timestamp: new Timestamp(Math.floor(Date.now() / 1000), 0), // Placeholder, will be replaced server-side
+        };
 
         leaderboardAdapter.recordGameResult(userId, result).catch(err => {
           console.error('Failed to record game result:', err);

@@ -121,8 +121,13 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
         const leaderboardAdapter = new FirebaseLeaderboardAdapter();
         await leaderboardAdapter.initialize();
 
+        if (!room.room || !room.me) {
+          console.error('Cannot record blitz result: room or player not available');
+          return;
+        }
+
         const userId = getUserId();
-        const placement = getPlayerPlacement(room.room!.players, room.me!.id);
+        const placement = getPlayerPlacement(room.room.players, room.me.id);
         const duration = room.room.meta.endedAt
           ? room.room.meta.endedAt - (room.room.meta.startedAt || 0)
           : 0;
