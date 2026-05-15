@@ -34,7 +34,7 @@ export const ConsumableButton: React.FC<ConsumableButtonProps> = ({
       onClick={handleClick}
       disabled={disabled}
       aria-label={hasItem ? `Use ${label}` : `Buy ${label} for ${cost} coins`}
-      className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none ${
+      className={`px-4 py-3 min-h-[48px] min-w-[48px] rounded-lg text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none flex items-center justify-center ${
         disabled
           ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
           : hasItem
