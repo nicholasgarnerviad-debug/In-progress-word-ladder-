@@ -26,9 +26,28 @@ function saveDifficulty(difficulty: Difficulty): void {
   }
 }
 
+/**
+ * Get or create a user ID for profile/leaderboard links.
+ * Uses a persistent localStorage ID since no auth system is present yet.
+ */
+function getUserId(): string {
+  const STORAGE_KEY = 'wordladder-user-id';
+  let userId = localStorage.getItem(STORAGE_KEY);
+
+  if (!userId) {
+    // Generate a new user ID (UUID v4)
+    userId = 'user-' + Math.random().toString(36).substring(2, 15) +
+             Math.random().toString(36).substring(2, 15);
+    localStorage.setItem(STORAGE_KEY, userId);
+  }
+
+  return userId;
+}
+
 export const SettingsPage: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(loadTheme());
   const [difficulty, setDifficulty] = useState<Difficulty>(loadDifficulty());
+  const currentUserId = getUserId();
 
   React.useEffect(() => {
     document.title = 'Word Ladder — Settings';
@@ -47,29 +66,62 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      {/* Header strip */}
-      <div className="h-12 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4">
-        <Link
-          to="/"
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
-          aria-label="Back to home"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-gray-600 dark:text-gray-400"
-          >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </Link>
+      {/* Navigation strip with links to Shop, Profile, and Leaderboards */}
+      <div className="border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between gap-2">
+          {/* Left nav: Profile & Leaderboards */}
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/profile/${currentUserId}`}
+              className="px-3 py-1.5 text-sm font-medium rounded hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+              title="View your profile"
+            >
+              Profile
+            </Link>
+            <Link
+              to="/leaderboards"
+              className="px-3 py-1.5 text-sm font-medium rounded hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+              title="View leaderboards"
+            >
+              Leaderboards
+            </Link>
+          </div>
+
+          {/* Right nav: Shop & Back */}
+          <div className="flex items-center gap-2">
+            <Link
+              to="/settings"
+              className="px-3 py-1.5 text-sm font-medium rounded hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+              title="Shop and settings"
+            >
+              Shop
+            </Link>
+            <Link
+              to="/"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+              aria-label="Back to home"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-600 dark:text-gray-400"
+              >
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Header section with title */}
+      <div className="h-12 border-b border-gray-200 dark:border-gray-800 flex items-center justify-center">
         <h1 className="text-lg font-semibold">Settings</h1>
-        <div className="w-10" />
       </div>
 
       {/* Main content */}
