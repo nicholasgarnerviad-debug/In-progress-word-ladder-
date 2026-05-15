@@ -274,7 +274,7 @@ export const ClassicGame: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-start pt-8 pb-12">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-start pt-8 pb-12">
       <div className="fixed top-4 right-4 z-50">
         <WalletStrip compact={true} />
       </div>
