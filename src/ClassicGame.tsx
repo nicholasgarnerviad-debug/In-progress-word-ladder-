@@ -274,11 +274,11 @@ export const ClassicGame: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-start pt-8 pb-12">
       <div className="fixed top-4 right-4 z-50">
         <WalletStrip compact={true} />
       </div>
-      <div className="max-w-md mx-auto">
+      <div className="w-full max-w-md px-4">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
             <HomeButton isGameInProgress={game.state.phase === 'playing'} />
