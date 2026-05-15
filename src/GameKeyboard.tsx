@@ -37,8 +37,8 @@ const KeyButton: React.FC<{
       disabled:opacity-50 disabled:cursor-not-allowed
     `,
     submit: `
-      flex-1 min-w-0 bg-green-700 text-white font-bold
-      hover:bg-green-800 active:bg-green-900
+      flex-1 min-w-0 bg-green-800 text-white font-bold
+      hover:bg-green-900 active:bg-green-950
       disabled:opacity-50 disabled:cursor-not-allowed
     `
   };

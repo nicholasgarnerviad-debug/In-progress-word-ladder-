@@ -31,7 +31,7 @@ export const BLITZ_ACCENT = {
 /** Status colors for game states and feedback */
 export const STATUS_COLORS = {
   /** Success state (solve, correct, win) */
-  success: 'text-green-700 dark:text-green-300',
+  success: 'text-green-800 dark:text-green-300',
   successBg: 'bg-green-50 dark:bg-green-900/20',
 
   /** Error/failure state (wrong, failed, lose) */

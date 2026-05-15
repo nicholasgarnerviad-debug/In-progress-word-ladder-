@@ -572,7 +572,7 @@ export const ClassicGame: React.FC = () => {
               onClick={loadNewPuzzle}
               className={`w-full py-3 px-4 min-h-[48px] rounded font-bold text-white transition-colors ${
                 roundResult.type === 'won'
-                  ? 'bg-green-700 hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-700'
+                  ? 'bg-green-800 hover:bg-green-900 dark:bg-green-700 dark:hover:bg-green-800'
                   : 'bg-red-700 hover:bg-red-800 dark:bg-red-600 dark:hover:bg-red-700'
               }`}
             >
