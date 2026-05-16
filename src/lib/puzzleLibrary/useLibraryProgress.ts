@@ -16,13 +16,21 @@ export function useLibraryProgress() {
         const prog = await queries.getProgress();
         if (prog) setProgress(prog);
 
-        // Load all categories
+        // Load all categories and their puzzles
         const cats = new Map();
+        const allPuzzles = new Map();
         for (let len = 3; len <= 7; len++) {
           const cat = await queries.getCategory(len);
           if (cat) cats.set(len, cat);
+
+          // Load all puzzles for this category
+          const categoryPuzzles = await queries.getPuzzlesInCategory(len);
+          categoryPuzzles.forEach(puzzle => {
+            allPuzzles.set(puzzle.id, puzzle);
+          });
         }
         setCategories(cats);
+        setPuzzles(allPuzzles);
 
         setLoading(false);
       } catch (err) {
