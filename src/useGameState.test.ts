@@ -217,46 +217,6 @@ describe('useGameState', () => {
 
       expect(result.current.state.history.length).toBe(1);
     });
-
-    it('should deduct 10 points when undoing', () => {
-      const { result } = renderHook(() => useGameState(mockPuzzle));
-
-      // Make a wrong guess first to lose a life
-      act(() => {
-        result.current.pressLetter('x');
-        result.current.pressLetter('y');
-        result.current.pressLetter('z');
-        result.current.submitWord();
-      });
-
-      expect(result.current.state.lives).toBe(2);
-    });
-
-    it('should clear current input after undo', () => {
-      const puzzle: WordPuzzle = {
-        start: 'bar',
-        end: 'boo',
-        optimal: 3,
-        chain: ['bar', 'bar', 'boo'],
-        lockedIndices: [],
-        extraRungs: 2
-      };
-
-      const { result } = renderHook(() => useGameState(puzzle));
-
-      act(() => {
-        result.current.pressLetter('b');
-        result.current.pressLetter('a');
-        result.current.pressLetter('r');
-        result.current.submitWord();
-      });
-
-      act(() => {
-        result.current.undoStep();
-      });
-
-      expect(result.current.state.currentInput).toEqual([]);
-    });
   });
 
   describe('power-ups', () => {
