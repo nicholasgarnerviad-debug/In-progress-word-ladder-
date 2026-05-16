@@ -86,6 +86,39 @@ A production-grade word ladder game featuring multiplayer Blitz mode, persistent
 - **Default Difficulty**: Easy, Medium, Hard (used in new games)
 - **Links**: Profile, Leaderboard, Achievements, Deployment guide
 
+## Economy System
+
+### Coin Earning
+
+Players earn coins through three game modes:
+
+**Classic Mode** — Earn on first completion of each puzzle:
+- Easy puzzle: 5 coins
+- Medium puzzle: 10 coins
+- Hard puzzle: 15 coins
+- Repeat puzzles: 0 coins (prevents grinding)
+
+**Time Attack Mode** — Earn 8 coins per unique puzzle solved in a session:
+- Example: Solve 5 new puzzles in one session = 40 coins
+
+**Blitz Mode** — Earn every game based on placement:
+- 1st place: 50 coins (base 10 + 40 bonus)
+- 2nd place: 40 coins (base 10 + 30 bonus)
+- 3rd place: 25 coins (base 10 + 15 bonus)
+- 4th place: 10 coins (base only)
+
+### Daily & Weekly Limits
+
+- **Daily Cap**: 100 coins per day for established accounts (resets 00:00 UTC)
+- **Catch-Up Period**: New accounts (first 7 days) earn unlimited coins to help progression
+- **Weekly Streak Bonus**: Earn coins 5+ days in a week = +50 bonus coins
+
+### Offline Support
+
+All coin earnings are tracked locally and persist offline. When online, earnings sync automatically to the leaderboard (coming in v1.1).
+
+For complete specification details, see `docs/superpowers/specs/coin-economy-redesign.md` and `docs/superpowers/implementation-summary.md`.
+
 ## Architecture
 
 ### Frontend Structure
