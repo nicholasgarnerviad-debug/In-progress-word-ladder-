@@ -357,7 +357,7 @@ export const ClassicGame: React.FC = () => {
       <HomeButton />
       <SettingsButton />
       <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-start pt-8 pb-12">
-        <div className="fixed top-4 left-4 z-50">
+        <div className="fixed top-4 left-4 z-50 pr-4 max-w-xs">
           <WalletStrip compact={true} />
         </div>
         <div className="w-full max-w-md px-4">
