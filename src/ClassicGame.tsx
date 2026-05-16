@@ -376,18 +376,12 @@ export const ClassicGame: React.FC = () => {
             </div>
           </div>
         </header>
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-1">
-            <span className="text-2xl">◎</span>
-            <span className="text-lg font-bold text-gray-800 dark:text-gray-100">{economy.coins}</span>
-          </div>
-          <div className="flex gap-1">
-            {[0, 1, 2].map(i => (
-              <span key={i} className={game.state.lives > i ? 'text-red-500 text-lg' : 'text-gray-300 text-lg'}>
-                ❤
-              </span>
-            ))}
-          </div>
+        <div className="flex justify-center gap-1 mb-6">
+          {[0, 1, 2].map(i => (
+            <span key={i} className={game.state.lives > i ? 'text-red-500 text-lg' : 'text-gray-300 text-lg'}>
+              ❤
+            </span>
+          ))}
         </div>
         <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-6">Change one letter at a time</p>
 
