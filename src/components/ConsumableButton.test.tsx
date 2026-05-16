@@ -30,7 +30,7 @@ describe('ConsumableButton', () => {
         onBuy={jest.fn()}
       />
     );
-    expect(screen.getByText(/Hint \(30◎\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Hint \(30🪙\)/)).toBeInTheDocument();
   });
 
   it('calls onUse when clicked with available items', () => {
@@ -66,7 +66,7 @@ describe('ConsumableButton', () => {
         onBuy={onBuy}
       />
     );
-    fireEvent.click(screen.getByText(/Hint \(30◎\)/));
+    fireEvent.click(screen.getByText(/Hint \(30🪙\)/));
     expect(onBuy).toHaveBeenCalled();
     expect(onUse).not.toHaveBeenCalled();
   });

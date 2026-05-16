@@ -43,7 +43,7 @@ export const ConsumableButton: React.FC<ConsumableButtonProps> = ({
       }`}
       title={hasItem ? `Use ${label}` : `Buy ${label} for ${cost} coins`}
     >
-      {label} {hasItem ? `(${count})` : `(${cost}◎)`}
+      {label} {hasItem ? `(${count})` : `(${cost}🪙)`}
     </button>
   );
 };
