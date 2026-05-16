@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { PlayerProfile } from '../../lib/leaderboard/types';
 import { FirebaseLeaderboardAdapter } from '../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
+import { AchievementModal } from './AchievementModal';
+import { getAllAchievements } from '../../lib/leaderboard/achievements/achievements';
 
 const adapter = new FirebaseLeaderboardAdapter();
 
@@ -13,6 +15,10 @@ export const PlayerProfileScreen: React.FC = () => {
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAchievementId, setSelectedAchievementId] = useState<string | null>(null);
+  const [achievementMap, setAchievementMap] = useState<{
+    [key: string]: any;
+  }>({});
 
   useEffect(() => {
     if (!userId) return;
@@ -28,6 +34,15 @@ export const PlayerProfileScreen: React.FC = () => {
       }
     });
   }, [userId]);
+
+  useEffect(() => {
+    const achievements = getAllAchievements();
+    const map: { [key: string]: any } = {};
+    achievements.forEach((achievement) => {
+      map[achievement.id] = achievement;
+    });
+    setAchievementMap(map);
+  }, []);
 
   if (loading) return <div className="p-8 text-center text-gray-900 dark:text-white">Loading...</div>;
   if (error) return <div className="p-8 text-red-500 dark:text-red-400">{error}</div>;
@@ -48,6 +63,33 @@ export const PlayerProfileScreen: React.FC = () => {
                 Joined {new Date(profile.joinedAt.toDate()).toLocaleDateString()}
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Level Display */}
+        <div className="mb-6 md:mb-8 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
+          <div className="text-center mb-4">
+            <div className="text-5xl font-bold text-blue-600 dark:text-blue-400">
+              {profile.level}
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Current Level</p>
+          </div>
+
+          {/* XP Bar */}
+          <div className="mb-4">
+            <div className="relative w-full bg-gray-300 dark:bg-gray-600 rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-blue-500 dark:bg-blue-400 h-full transition-all duration-300"
+                style={{ width: `${Math.min(100, (profile.xp % 300) / 3)}%` }}
+                role="progressbar"
+                aria-valuenow={Math.min(100, (profile.xp % 300) / 3)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              />
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 text-center">
+              {profile.xp} XP
+            </p>
           </div>
         </div>
 
@@ -136,16 +178,34 @@ export const PlayerProfileScreen: React.FC = () => {
 
         {/* Achievements */}
         <div className="mb-6 md:mb-8">
-          <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4">Achievements ({profile.achievements.length})</h2>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 md:gap-3">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4">
+            Achievements ({profile.achievements.length})
+          </h2>
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 md:gap-3">
             {profile.achievements.map((achievementId) => (
-              <div key={achievementId} className="p-2 md:p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-center min-h-[80px] md:min-h-[100px] flex flex-col items-center justify-center">
+              <button
+                key={achievementId}
+                onClick={() => setSelectedAchievementId(achievementId)}
+                className="p-2 md:p-3 bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 rounded-lg text-center min-h-[70px] md:min-h-[90px] flex flex-col items-center justify-center transition-colors cursor-pointer"
+                title={achievementId}
+              >
                 <div className="text-2xl md:text-3xl mb-1">🏆</div>
-                <div className="text-xs text-gray-600 dark:text-gray-300 break-words line-clamp-2">{achievementId}</div>
-              </div>
+                <div className="text-xs text-gray-600 dark:text-gray-300 break-words line-clamp-1 hover:line-clamp-2">
+                  {achievementId}
+                </div>
+              </button>
             ))}
           </div>
         </div>
+
+        {/* Achievement Modal */}
+        {selectedAchievementId && achievementMap[selectedAchievementId] && (
+          <AchievementModal
+            achievement={achievementMap[selectedAchievementId]}
+            isEarned={true}
+            onClose={() => setSelectedAchievementId(null)}
+          />
+        )}
 
         {/* Navigation */}
         <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
