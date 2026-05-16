@@ -16,6 +16,9 @@ const PlayerProfileScreen = lazy(() => import('./components/leaderboard/PlayerPr
 const LeaderboardScreen = lazy(() => import('./components/leaderboard/LeaderboardScreen'));
 const AchievementsScreen = lazy(() => import('./components/leaderboard/AchievementsScreen'));
 
+// Lazy load shop
+const ShopPage = lazy(() => import('./pages/ShopPage'));
+
 const GameLoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="text-center">
@@ -79,6 +82,14 @@ export const App: React.FC = () => {
             element={
               <Suspense fallback={<GameLoadingFallback />}>
                 <AchievementsScreen earnedAchievements={[]} />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/shop"
+            element={
+              <Suspense fallback={<GameLoadingFallback />}>
+                <ShopPage />
               </Suspense>
             }
           />
