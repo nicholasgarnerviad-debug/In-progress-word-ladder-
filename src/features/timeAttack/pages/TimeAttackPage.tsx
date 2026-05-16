@@ -160,7 +160,7 @@ export const TimeAttackPage: React.FC = () => {
     <>
       <HomeButton />
       <SettingsButton />
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 left-4 z-50">
         <WalletStrip compact={true} />
       </div>
       {(state.phase === 'idle' || state.phase === 'setup') && (
