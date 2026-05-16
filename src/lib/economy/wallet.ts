@@ -33,7 +33,7 @@ export type AddXpResult = {
 
 const WALLET_KEY = 'wordLadder.wallet';
 
-export function migrateWallet(wallet: any): Wallet {
+export function migrateWallet(wallet: Partial<Wallet>): Wallet {
   const now = Date.now();
   return {
     coins: wallet.coins ?? 150,
