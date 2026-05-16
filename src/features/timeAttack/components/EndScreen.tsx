@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimeAttackMode, DurationTier, Difficulty } from '../types';
-import { useEconomy } from '../../../lib/economy';
-
-// XP multiplier for each difficulty in Time Attack mode
-const DIFFICULTY_MULTIPLIERS: Record<Difficulty, number> = { easy: 1.0, medium: 1.5, hard: 2.0 };
 
 export type EndScreenProps = {
   mode: TimeAttackMode;

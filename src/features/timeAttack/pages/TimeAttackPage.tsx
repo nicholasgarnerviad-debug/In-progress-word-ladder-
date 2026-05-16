@@ -105,6 +105,7 @@ export const TimeAttackPage: React.FC = () => {
   // Award coins once at game end based on new puzzles solved (not per-puzzle)
   useEffect(() => {
     if (state.phase === 'ended' && !coinsAwardedRef.current && newPuzzlesSolvedThisRun > 0) {
+      // Each new puzzle solved in Time Attack earns 8 coins (multiplied by count in calculateTimeAttackCoins)
       const coinsToEarn = calculateTimeAttackCoins(newPuzzlesSolvedThisRun);
       earnCoins(coinsToEarn, 'time_attack_solve');
       setCoinsEarned(coinsToEarn);
@@ -140,7 +141,7 @@ export const TimeAttackPage: React.FC = () => {
           console.error('Failed to record game result or check achievements:', err);
         });
     }
-  }, [state.phase, state.solvedCount, state.timeRemainingMs, cumulativeXp, recordResult]);
+  }, [state.phase, state.solvedCount, state.timeRemainingMs, cumulativeXp]);
 
   // Reset on new run or when run ends
   useEffect(() => {

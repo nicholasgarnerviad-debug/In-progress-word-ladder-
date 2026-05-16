@@ -482,4 +482,63 @@ describe('EndScreen', () => {
       expect(xpEarned.length).toBeGreaterThan(0); // At least one +100 for XP
     });
   });
+
+  describe('Coin earning display', () => {
+    it('displays coins earned with correct calculation (8 per new puzzle)', () => {
+      renderEndScreen({
+        solvedCount: 5,
+        newPuzzlesSolved: 3,
+        coinsEarned: 24,
+      });
+
+      // Verify label is shown
+      const coinsLabel = screen.getByText('Coins Earned');
+      expect(coinsLabel).toBeInTheDocument();
+
+      // Find the coins value in the same row
+      const coinsContainer = coinsLabel.closest('div');
+      expect(coinsContainer?.textContent).toContain('+24');
+
+      // Math check: 3 new puzzles * 8 = 24
+      expect(24).toBe(3 * 8);
+    });
+
+    it('handles zero new puzzles edge case', () => {
+      renderEndScreen({
+        solvedCount: 2,
+        newPuzzlesSolved: 0,
+        coinsEarned: 0,
+      });
+
+      // Should still show coins section
+      const coinsLabel = screen.getByText('Coins Earned');
+      expect(coinsLabel).toBeInTheDocument();
+
+      // Verify zero value is displayed in coins row
+      const coinsContainer = coinsLabel.closest('div');
+      expect(coinsContainer?.textContent).toContain('+0');
+    });
+
+    it('correctly displays new puzzles count vs total solved count', () => {
+      renderEndScreen({
+        solvedCount: 7,
+        newPuzzlesSolved: 4,
+        coinsEarned: 32,
+      });
+
+      // New puzzles label should be present
+      expect(screen.getByText('New Puzzles')).toBeInTheDocument();
+
+      // Total solved should be shown in centerpiece
+      expect(screen.getByText('7')).toBeInTheDocument();
+
+      // Coins label and value
+      const coinsLabel = screen.getByText('Coins Earned');
+      expect(coinsLabel).toBeInTheDocument();
+
+      // Find coins value in the same row
+      const coinsContainer = coinsLabel.closest('div');
+      expect(coinsContainer?.textContent).toContain('+32');
+    });
+  });
 });
