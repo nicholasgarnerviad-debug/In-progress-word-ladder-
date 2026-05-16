@@ -254,6 +254,7 @@ describe('useBlitzRoom', () => {
           difficulty: 'medium',
           durationMs: 60000,
           timerTier: 'tier1',
+          puzzleCount: 10,
         });
       });
 
@@ -306,6 +307,7 @@ describe('useBlitzRoom', () => {
           difficulty: 'medium',
           durationMs: 60000,
           timerTier: 'tier1',
+          puzzleCount: 10,
         });
       });
 
@@ -339,6 +341,7 @@ describe('useBlitzRoom', () => {
           difficulty: 'medium',
           durationMs: 60000,
           timerTier: 'tier1',
+          puzzleCount: 10,
         });
       });
 
@@ -361,6 +364,7 @@ describe('useBlitzRoom', () => {
           difficulty: 'medium',
           durationMs: 60000,
           timerTier: 'tier1',
+          puzzleCount: 10,
         });
       });
 
@@ -388,6 +392,7 @@ describe('useBlitzRoom', () => {
           difficulty: 'medium',
           durationMs: 60000,
           timerTier: 'tier1',
+          puzzleCount: 10,
         });
       });
 
@@ -429,6 +434,7 @@ describe('useBlitzRoom', () => {
           difficulty: 'medium',
           durationMs: 60000,
           timerTier: 'tier1',
+          puzzleCount: 10,
         });
       });
 
@@ -454,6 +460,7 @@ describe('useBlitzRoom', () => {
           difficulty: 'medium',
           durationMs: 60000,
           timerTier: 'tier1',
+          puzzleCount: 10,
         });
       });
 
@@ -482,6 +489,7 @@ describe('useBlitzRoom', () => {
           difficulty: 'medium',
           durationMs: 60000,
           timerTier: 'tier1',
+          puzzleCount: 10,
         });
       });
 
@@ -505,6 +513,7 @@ describe('useBlitzRoom', () => {
           difficulty: 'medium',
           durationMs: 60000,
           timerTier: 'tier1',
+          puzzleCount: 10,
         });
       });
 

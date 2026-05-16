@@ -104,7 +104,9 @@ describe('Rung', () => {
   });
 
   describe('shake animation', () => {
-    jest.useFakeTimers();
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
 
     afterEach(() => {
       jest.runOnlyPendingTimers();

@@ -375,7 +375,7 @@ describe('GameKeyboard', () => {
       );
 
       const goButton = screen.getByLabelText('Submit word');
-      expect(goButton).toHaveClass('bg-green-500');
+      expect(goButton).toHaveClass('bg-green-800');
       expect(goButton).toHaveClass('text-white');
     });
 

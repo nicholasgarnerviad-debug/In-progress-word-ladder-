@@ -37,9 +37,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">3.57% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/28</span>
+                <span class='fraction'>28/28</span>
             </div>
         
             
@@ -90,49 +90,49 @@
 <a name='L25'></a><a href='#L25'>25</a>
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L28'></a><a href='#L28'>28</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">67x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">73x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">export { <span class="fstat-no" title="function not covered" >loadWallet,</span> <span class="fstat-no" title="function not covered" >saveWallet,</span> <span class="fstat-no" title="function not covered" >earnCoins,</span> <span class="fstat-no" title="function not covered" >spendCoins,</span> <span class="fstat-no" title="function not covered" >addXp,</span> <span class="fstat-no" title="function not covered" >getDefaultWallet </span>} from './wallet';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">export { loadWallet, saveWallet, earnCoins, spendCoins, addXp, getDefaultWallet } from './wallet';
 export type { Wallet, AddXpResult } from './wallet';
 &nbsp;
-export { <span class="fstat-no" title="function not covered" >SHOP_ITEMS,</span> <span class="fstat-no" title="function not covered" >getShopItem,</span> <span class="fstat-no" title="function not covered" >getItemsByCategory </span>} from './shop';
+export { SHOP_ITEMS, getShopItem, getItemsByCategory } from './shop';
 export type { ConsumableType, ShopItem } from './shop';
 &nbsp;
 export {
-<span class="fstat-no" title="function not covered" >  loadInventory,</span>
-<span class="fstat-no" title="function not covered" >  saveInventory,</span>
-<span class="fstat-no" title="function not covered" >  addConsumable,</span>
-<span class="fstat-no" title="function not covered" >  useConsumable,</span>
-<span class="fstat-no" title="function not covered" >  getConsumableCount,</span>
-<span class="fstat-no" title="function not covered" >  addUnlock,</span>
-<span class="fstat-no" title="function not covered" >  hasUnlock,</span>
-<span class="fstat-no" title="function not covered" >  addDictionaryVouchers,</span>
-<span class="fstat-no" title="function not covered" >  getDefaultInventory,</span>
+  loadInventory,
+  saveInventory,
+  addConsumable,
+  useConsumable,
+  getConsumableCount,
+  addUnlock,
+  hasUnlock,
+  addDictionaryVouchers,
+  getDefaultInventory,
 } from './inventory';
 export type { Inventory } from './inventory';
 &nbsp;
@@ -141,9 +141,9 @@ export type { EconomyState } from './useEconomy';
 &nbsp;
 export type { CoinSource, XpSource, LevelReward, LevelRewardUnlock } from './types';
 &nbsp;
-export { <span class="fstat-no" title="function not covered" >computeLevel,</span> <span class="fstat-no" title="function not covered" >xpRequiredForLevel,</span> <span class="fstat-no" title="function not covered" >xpToNextLevel,</span> <span class="fstat-no" title="function not covered" >xpProgressInLevel,</span> <span class="fstat-no" title="function not covered" >xpDeltaToLevelProgress </span>} from './levels';
+export { computeLevel, xpRequiredForLevel, xpToNextLevel, xpProgressInLevel, xpDeltaToLevelProgress } from './levels';
 &nbsp;
-export { <span class="fstat-no" title="function not covered" >getLevelReward,</span> <span class="fstat-no" title="function not covered" >getRewardsBetween,</span> <span class="fstat-no" title="function not covered" >getNextRewardLevel,</span> <span class="fstat-no" title="function not covered" >LEVEL_REWARDS </span>} from './levelRewards';
+export { getLevelReward, getRewardsBetween, getNextRewardLevel, LEVEL_REWARDS } from './levelRewards';
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -151,7 +151,7 @@ export { <span class="fstat-no" title="function not covered" >getLevelReward,</s
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-15T12:51:26.288Z
+                at 2026-05-16T02:25:34.199Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

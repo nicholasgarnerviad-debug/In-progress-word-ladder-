@@ -19,6 +19,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId } = await adapter.createRoom('Alice', settings);
@@ -34,6 +35,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code: code1 } = await adapter.createRoom('Alice', settings);
@@ -99,6 +101,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -119,6 +122,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Player1', settings);
@@ -139,6 +143,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: hostId } = await adapter.createRoom('Alice', settings);
@@ -156,6 +161,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -174,6 +180,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -198,6 +205,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -218,6 +226,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: aliceId } = await adapter.createRoom('Alice', settings);
@@ -247,6 +256,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: hostId } = await adapter.createRoom('Alice', settings);
@@ -278,6 +288,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -300,6 +311,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: hostId } = await adapter.createRoom('Alice', settings);
@@ -324,6 +336,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: hostId } = await adapter.createRoom('Alice', settings);
@@ -347,6 +360,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -362,6 +376,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: hostId } = await adapter.createRoom('Alice', settings);
@@ -383,6 +398,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: aliceId } = await adapter.createRoom('Alice', settings);
@@ -414,6 +430,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -431,6 +448,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: aliceId } = await adapter.createRoom('Alice', settings);
@@ -464,6 +482,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -481,6 +500,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: aliceId } = await adapter.createRoom('Alice', settings);
@@ -504,6 +524,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: aliceId } = await adapter.createRoom('Alice', settings);
@@ -526,6 +547,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: aliceId } = await adapter.createRoom('Alice', settings);
@@ -556,6 +578,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -573,6 +596,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: hostId } = await adapter.createRoom('Alice', settings);
@@ -597,6 +621,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: hostId } = await adapter.createRoom('Alice', settings);
@@ -630,6 +655,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: hostId } = await adapter.createRoom('Alice', settings);
@@ -669,6 +695,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code } = await adapter.createRoom('Alice', settings);
@@ -684,6 +711,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: hostId } = await adapter.createRoom('Alice', settings);
@@ -703,6 +731,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       // Create room
@@ -747,6 +776,7 @@ describe('LocalSyncAdapter', () => {
         difficulty: 'medium',
         durationMs: 60000,
         timerTier: 'tier1',
+        puzzleCount: 10,
       };
 
       const { code, playerId: aliceId } = await adapter.createRoom('Alice', settings);

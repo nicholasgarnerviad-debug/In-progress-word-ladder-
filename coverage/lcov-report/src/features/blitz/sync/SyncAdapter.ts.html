@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -213,26 +213,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">29x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">29x</span>
+<span class="cline-any cline-yes">29x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -358,26 +358,26 @@
 /**
  * Sync adapter error codes
  */
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >export enum B</span>litzSyncErrorCode {</span>
-<span class="cstat-no" title="statement not covered" >  ROOM_NOT_FOUND = 'ROOM_NOT_FOUND',</span>
-<span class="cstat-no" title="statement not covered" >  ROOM_FULL = 'ROOM_FULL',</span>
-<span class="cstat-no" title="statement not covered" >  GAME_ALREADY_STARTED = 'GAME_ALREADY_STARTED',</span>
-<span class="cstat-no" title="statement not covered" >  NOT_HOST = 'NOT_HOST',</span>
-<span class="cstat-no" title="statement not covered" >  NOT_IN_ROOM = 'NOT_IN_ROOM',</span>
-<span class="cstat-no" title="statement not covered" >  INVALID_SETTINGS = 'INVALID_SETTINGS',</span>
-<span class="cstat-no" title="statement not covered" >  NETWORK_ERROR = 'NETWORK_ERROR',</span>
+export enum BlitzSyncErrorCode {
+  ROOM_NOT_FOUND = 'ROOM_NOT_FOUND',
+  ROOM_FULL = 'ROOM_FULL',
+  GAME_ALREADY_STARTED = 'GAME_ALREADY_STARTED',
+  NOT_HOST = 'NOT_HOST',
+  NOT_IN_ROOM = 'NOT_IN_ROOM',
+  INVALID_SETTINGS = 'INVALID_SETTINGS',
+  NETWORK_ERROR = 'NETWORK_ERROR',
 }
 &nbsp;
 /**
  * Sync adapter error with code for structured error handling
  */
-<span class="cstat-no" title="statement not covered" >export class B</span>litzSyncError extends Error {
-<span class="fstat-no" title="function not covered" >  constructor(</span>
-    public <span class="cstat-no" title="statement not covered" >code: BlitzSyncErrorCode,</span>
+export class BlitzSyncError extends Error {
+  constructor(
+    public code: BlitzSyncErrorCode,
     message: string
   ) {
-<span class="cstat-no" title="statement not covered" >    super(message);</span>
-<span class="cstat-no" title="statement not covered" >    this.name = 'BlitzSyncError';</span>
+    super(message);
+    this.name = 'BlitzSyncError';
   }
 }
 &nbsp;
@@ -505,7 +505,7 @@ export interface BlitzSyncAdapter {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-15T12:51:26.288Z
+                at 2026-05-16T02:25:34.199Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

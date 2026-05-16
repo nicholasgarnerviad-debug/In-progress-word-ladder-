@@ -18,6 +18,7 @@ describe('WaitingRoom', () => {
       endedAt: null,
       sessionSeed: 'seed123',
     },
+    puzzles: ['cat', 'car', 'bat'],
     players: new Map([
       [
         createPlayerId('player1'),
