@@ -13,7 +13,8 @@ export type CoinSource =
   | 'daily_bonus'
   | 'achievement'
   | 'level_reward'
-  | 'admin_grant';
+  | 'admin_grant'
+  | 'shop_purchase';
 
 export type XpSource =
   | 'puzzle_solve_easy'
