@@ -225,6 +225,22 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
                 economy.buyConsumable('time_extension_15s', 40, 5);
               }}
             />
+            <ConsumableButton
+              type="reveal_next_word"
+              label="Reveal"
+              count={economy.getCount('reveal_next_word')}
+              cost={60}
+              disabled={false}
+              onUse={() => {
+                if (!puzzle) return;
+                const nextWord = puzzle.chain[1];
+                economy.useItem('reveal_next_word');
+                puzzleBoardRef.current?.applyReveal(nextWord.split(''));
+              }}
+              onBuy={() => {
+                economy.buyConsumable('reveal_next_word', 60, 3);
+              }}
+            />
           </div>
 
           <button
