@@ -118,13 +118,15 @@ describe('ClassicGame Power-ups with Inventory', () => {
     it('should show hint count when items available', () => {
       mockEconomy.getCount.mockReturnValue(5);
       render(<ClassicGame />);
-      expect(screen.getByRole('button', { name: /Hint.*5/ })).toBeInTheDocument();
+      const hintButton = screen.getByRole('button', { name: /Get hint/ });
+      expect(hintButton.textContent).toMatch(/5/);
     });
 
     it('should show cost when no inventory items', () => {
       mockEconomy.getCount.mockReturnValue(0);
       render(<ClassicGame />);
-      expect(screen.getByRole('button', { name: /Hint.*30/ })).toBeInTheDocument();
+      const hintButton = screen.getByRole('button', { name: /Get hint/ });
+      expect(hintButton.textContent).toMatch(/30/);
     });
   });
 
@@ -142,7 +144,8 @@ describe('ClassicGame Power-ups with Inventory', () => {
     it('should show undo count when items available', () => {
       mockEconomy.getCount.mockImplementation((type) => type === 'undo_step' ? 3 : 0);
       render(<ClassicGame />);
-      expect(screen.getByRole('button', { name: /Undo.*3/ })).toBeInTheDocument();
+      const undoButton = screen.getByRole('button', { name: /Undo/i });
+      expect(undoButton.textContent).toMatch(/3/);
     });
   });
 
@@ -150,7 +153,7 @@ describe('ClassicGame Power-ups with Inventory', () => {
     it('should use reveal from inventory if available', async () => {
       mockEconomy.getCount.mockImplementation((type) => type === 'reveal_next_word' ? 2 : 0);
       render(<ClassicGame />);
-      const revealButton = screen.getByRole('button', { name: /Reveal/i });
+      const revealButton = screen.getByRole('button', { name: /Reveal answer/ });
       fireEvent.click(revealButton);
       await waitFor(() => {
         expect(mockEconomy.useItem).toHaveBeenCalledWith('reveal_next_word');
@@ -160,7 +163,8 @@ describe('ClassicGame Power-ups with Inventory', () => {
     it('should show reveal count when items available', () => {
       mockEconomy.getCount.mockImplementation((type) => type === 'reveal_next_word' ? 1 : 0);
       render(<ClassicGame />);
-      expect(screen.getByRole('button', { name: /Reveal.*1/ })).toBeInTheDocument();
+      const revealButton = screen.getByRole('button', { name: /Reveal answer/ });
+      expect(revealButton.textContent).toMatch(/1/);
     });
   });
 

@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">56.81% </span>
+                <span class="strong">57.77% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>25/44</span>
+                <span class='fraction'>26/45</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">46.15% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>12/26</span>
+                <span class='fraction'>15/30</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">63.15% </span>
+                <span class="strong">64.1% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>24/38</span>
+                <span class='fraction'>25/39</span>
             </div>
         
             
@@ -233,7 +233,26 @@
 <a name='L168'></a><a href='#L168'>168</a>
 <a name='L169'></a><a href='#L169'>169</a>
 <a name='L170'></a><a href='#L170'>170</a>
-<a name='L171'></a><a href='#L171'>171</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -253,6 +272,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -261,6 +284,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -353,7 +379,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -405,9 +443,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { WordPuzzle } from '../generatePuzzle';
-import { useGameState } from '../useGameState';
+import { useGameState, type GameState } from '../useGameState';
 import { Rung } from '../Rung';
 import { GameKeyboard } from '../GameKeyboard';
+&nbsp;
+export type GameInstance = ReturnType&lt;typeof useGameState&gt;;
 &nbsp;
 export type PuzzleBoardProps = {
   puzzle: WordPuzzle;
@@ -421,6 +461,8 @@ export type PuzzleBoardProps = {
   disabled?: boolean;
   /** Optional: callback to apply a hint at the given index. Used by modes that need external hint management. */
   onUseHint?: (index: number) =&gt; void;
+  /** Optional: pass the game instance from parent to keep state in sync. */
+  gameInstance?: GameInstance;
 };
 &nbsp;
 export const PuzzleBoard = forwardRef&lt;{ applyHint: (index: number) =&gt; void }, PuzzleBoardProps&gt;(({
@@ -430,8 +472,11 @@ export const PuzzleBoard = forwardRef&lt;{ applyHint: (index: number) =&gt; void
   hideScore = <span class="branch-0 cbranch-no" title="branch not covered" >false,</span>
   disabled = false,
   onUseHint,
+  gameInstance,
 }, ref) =&gt; {
-  const game = useGameState(puzzle);
+  // Use provided game instance or create new one
+  const localGame = useGameState(puzzle);
+  const game = gameInstance || localGame;
   const [submissionError, setSubmissionError] = useState(false);
   const prevFailedRef = useRef(game.state.failedSubmissions);
 &nbsp;
@@ -519,13 +564,25 @@ export const PuzzleBoard = forwardRef&lt;{ applyHint: (index: number) =&gt; void
         )}
       &lt;/div&gt;
 &nbsp;
+      {/* Hint feedback */}
+      {game.state.lastHintedIndex !== null &amp;&amp; (
+<span class="branch-1 cbranch-no" title="branch not covered" >        &lt;div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded text-center"&gt;</span>
+          &lt;p className="text-sm font-semibold text-blue-900 dark:text-blue-200"&gt;
+            💡 Hint: Change the letter at position {game.state.lastHintedIndex + 1}
+          &lt;/p&gt;
+        &lt;/div&gt;
+      )}
+&nbsp;
       {/* Revealed word ghost row */}
       {game.state.lastRevealedWord &amp;&amp; (
-<span class="branch-1 cbranch-no" title="branch not covered" >        &lt;Rung</span>
-          word={game.state.lastRevealedWord}
-          tileStates={game.state.lastRevealedWord.map(<span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" >'locked')</span>}
-          status="neutral"
-        /&gt;
+<span class="branch-1 cbranch-no" title="branch not covered" >        &lt;div className="mt-4"&gt;</span>
+          &lt;p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 font-semibold"&gt;Next step&lt;/p&gt;
+          &lt;Rung
+            word={game.state.lastRevealedWord}
+            tileStates={game.state.lastRevealedWord.map(<span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" >'locked')</span>}
+            status="neutral"
+          /&gt;
+        &lt;/div&gt;
       )}
 &nbsp;
       {/* Current input */}
@@ -580,7 +637,7 @@ export const PuzzleBoard = forwardRef&lt;{ applyHint: (index: number) =&gt; void
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-16T02:25:34.199Z
+                at 2026-05-16T12:58:42.015Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

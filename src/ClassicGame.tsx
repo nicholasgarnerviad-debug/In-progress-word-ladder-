@@ -650,6 +650,10 @@ export const ClassicGame: React.FC = () => {
                 onReveal={handleRevealStep}
                 disableHint={!canUseHint && !canBuyHint}
                 disableReveal={!canUseReveal && !canBuyReveal}
+                hintCount={hintCount}
+                revealCount={revealCount}
+                hintCost={30}
+                revealCost={60}
               />
             );
           })()}

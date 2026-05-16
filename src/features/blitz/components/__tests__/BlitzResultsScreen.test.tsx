@@ -38,6 +38,15 @@ jest.mock('../../../../lib/economy/coinEarning', () => ({
   }),
 }));
 
+jest.mock('../../../../lib/leaderboard/sync/FirebaseLeaderboardAdapter', () => ({
+  FirebaseLeaderboardAdapter: jest.fn().mockImplementation(() => ({
+    initialize: jest.fn().mockResolvedValue(undefined),
+    recordGameResult: jest.fn().mockResolvedValue(undefined),
+    checkAndGrantAchievements: jest.fn().mockResolvedValue([]),
+    getAchievements: jest.fn().mockResolvedValue([]),
+  })),
+}));
+
 // Now we can import
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';

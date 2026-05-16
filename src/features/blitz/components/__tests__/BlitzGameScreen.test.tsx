@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import { BlitzGameScreen } from '../BlitzGameScreen';
 import type { BlitzPlayer, PlayerId } from '../../types';
 import { createPlayerId } from '../../types';
@@ -82,6 +83,14 @@ jest.mock('../../../../components/PuzzleBoard', () => ({
   )),
 }));
 
+const renderWithRouter = (component: React.ReactElement) => {
+  return render(
+    <BrowserRouter>
+      {component}
+    </BrowserRouter>
+  );
+};
+
 describe('BlitzGameScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -137,7 +146,7 @@ describe('BlitzGameScreen', () => {
 
   describe('timer display', () => {
     it('renders timer in MM:SS format', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const timerText = screen.getByText(/\d{2}:\d{2}/);
       expect(timerText).toBeInTheDocument();
@@ -151,7 +160,7 @@ describe('BlitzGameScreen', () => {
         isRunning: true,
       });
 
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const timerElement = screen.getByText(/\d{2}:\d{2}/);
       expect(timerElement).toHaveClass('text-red-600');
@@ -165,7 +174,7 @@ describe('BlitzGameScreen', () => {
         isRunning: true,
       });
 
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const timerElement = screen.getByText(/\d{2}:\d{2}/);
       expect(timerElement).not.toHaveClass('text-red-600');
@@ -174,13 +183,13 @@ describe('BlitzGameScreen', () => {
 
   describe('puzzle board', () => {
     it('renders PuzzleBoard component', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       expect(screen.getByTestId('puzzle-board')).toBeInTheDocument();
     });
 
     it('displays puzzle progress', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       expect(screen.getByText(/Puzzle 1\/\d+/)).toBeInTheDocument();
     });
@@ -188,7 +197,7 @@ describe('BlitzGameScreen', () => {
 
   describe('leaderboard', () => {
     it('renders BlitzLeaderboard on right side', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       // Should have leaderboard with heading
       expect(screen.getByText('Leaderboard')).toBeInTheDocument();
@@ -197,7 +206,7 @@ describe('BlitzGameScreen', () => {
 
   describe('action buttons', () => {
     it('renders Skip Puzzle button', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       expect(
         screen.getByRole('button', { name: /Skip|Skip Puzzle/i })
@@ -205,7 +214,7 @@ describe('BlitzGameScreen', () => {
     });
 
     it('renders Forfeit Game button', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       expect(
         screen.getByRole('button', { name: /Forfeit|Forfeit Game/i })
@@ -256,7 +265,7 @@ describe('BlitzGameScreen', () => {
         endGame: mockEndGame,
       });
 
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const forfeitBtn = screen.getByRole('button', { name: /Forfeit/i });
       fireEvent.click(forfeitBtn);
@@ -267,14 +276,14 @@ describe('BlitzGameScreen', () => {
 
   describe('layout', () => {
     it('arranges components in responsive grid', () => {
-      const { container } = render(<BlitzGameScreen />);
+      const { container } = renderWithRouter(<BlitzGameScreen />);
 
       const mainContainer = container.querySelector('[class*="grid"]');
       expect(mainContainer).toBeInTheDocument();
     });
 
     it('displays player name and puzzle progress', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       expect(screen.getAllByText('Player 1')[0]).toBeInTheDocument();
       expect(screen.getByText(/Puzzle 1\/\d+/)).toBeInTheDocument();
@@ -283,21 +292,21 @@ describe('BlitzGameScreen', () => {
 
   describe('visual enhancements', () => {
     it('applies button press animation on button click', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const skipButton = screen.getByRole('button', { name: /Skip/i });
       expect(skipButton).toHaveClass('active:animate-buttonPress');
     });
 
     it('timer has aria-live for dynamic updates', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const timerElement = screen.getByRole('status', { hidden: true });
       expect(timerElement).toHaveAttribute('aria-live', 'polite');
     });
 
     it('timer announces time remaining', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const timerElement = screen.getByRole('status', { hidden: true });
       expect(timerElement).toHaveAttribute('aria-label');
@@ -305,22 +314,22 @@ describe('BlitzGameScreen', () => {
     });
 
     it('buttons have minimum touch target size', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const skipButton = screen.getByRole('button', { name: /Skip/i });
-      expect(skipButton).toHaveClass('min-h-[44px]');
-      expect(skipButton).toHaveClass('min-w-[44px]');
+      expect(skipButton).toHaveClass('min-h-[48px]');
+      expect(skipButton).toHaveClass('min-w-[48px]');
     });
 
     it('Skip button has accessible aria-label', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const skipButton = screen.getByRole('button', { name: /Skip|Skip Puzzle/i });
       expect(skipButton).toHaveAttribute('aria-label');
     });
 
     it('Forfeit button has accessible aria-label', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const forfeitButton = screen.getByRole('button', { name: /Forfeit|Forfeit Game/i });
       expect(forfeitButton).toHaveAttribute('aria-label');
@@ -334,14 +343,14 @@ describe('BlitzGameScreen', () => {
         isRunning: true,
       });
 
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const timerElement = screen.getByText(/\d{2}:\d{2}/);
       expect(timerElement).toHaveClass('animate-pulse');
     });
 
     it('bottom section has shadow for depth', () => {
-      const { container } = render(<BlitzGameScreen />);
+      const { container } = renderWithRouter(<BlitzGameScreen />);
 
       // Find the button container (last section with buttons)
       const buttonsSection = container.querySelector('.border-t');
@@ -349,7 +358,7 @@ describe('BlitzGameScreen', () => {
     });
 
     it('timer section has shadow for depth', () => {
-      const { container } = render(<BlitzGameScreen />);
+      const { container } = renderWithRouter(<BlitzGameScreen />);
 
       // Find the timer section (first section)
       const timerSection = container.querySelector('.border-b');
@@ -357,7 +366,7 @@ describe('BlitzGameScreen', () => {
     });
 
     it('buttons stack vertically on mobile', () => {
-      const { container } = render(<BlitzGameScreen />);
+      const { container } = renderWithRouter(<BlitzGameScreen />);
 
       // Find the buttons section (contains both Skip and Forfeit buttons)
       const skipButton = screen.getByRole('button', { name: /Skip/i });
@@ -368,7 +377,7 @@ describe('BlitzGameScreen', () => {
 
   describe('accessibility', () => {
     it('has proper heading hierarchy for player name', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const headings = screen.getAllByText('Player 1');
       const h1 = headings.find(el => el.tagName === 'H1');
@@ -376,7 +385,7 @@ describe('BlitzGameScreen', () => {
     });
 
     it('leaderboard has heading', () => {
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const leaderboardHeading = screen.getByText('Leaderboard');
       expect(leaderboardHeading.tagName).toBe('H2');
@@ -385,7 +394,7 @@ describe('BlitzGameScreen', () => {
     it('respects prefers-reduced-motion', () => {
       // This is a CSS-level test that can't be easily validated via DOM
       // but we verify animation classes are present
-      render(<BlitzGameScreen />);
+      renderWithRouter(<BlitzGameScreen />);
 
       const timerElement = screen.getByText(/\d{2}:\d{2}/);
       // Animation classes should still be present (prefers-reduced-motion is CSS-level)
