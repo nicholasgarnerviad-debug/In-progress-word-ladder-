@@ -6,8 +6,27 @@ import type { PlayerProfile, AchievementConfig } from '../../lib/leaderboard/typ
 import { FirebaseLeaderboardAdapter } from '../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
 import { AchievementModal } from './AchievementModal';
 import { getAllAchievements } from '../../lib/leaderboard/achievements/achievements';
+import { Timestamp } from 'firebase/firestore';
 
 const adapter = new FirebaseLeaderboardAdapter();
+
+function createDefaultProfile(userId: string): PlayerProfile {
+  return {
+    userId,
+    name: userId.replace(/^user-/, '').substring(0, 12),
+    joinedAt: Timestamp.now(),
+    level: 1,
+    xp: 0,
+    totalGames: 0,
+    totalScore: 0,
+    stats: {
+      classic: { gamesPlayed: 0, bestScore: 0, totalScore: 0, averageScore: 0, wins: 0 },
+      timeAttack: { gamesPlayed: 0, bestScore: 0, totalScore: 0, averageScore: 0, bestTime: 0, completedPuzzles: 0 },
+      blitz: { gamesPlayed: 0, bestScore: 0, totalScore: 0, averageScore: 0, wins: 0, totalTime: 0 },
+    },
+    achievements: [],
+  };
+}
 
 export const PlayerProfileScreen: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -26,7 +45,13 @@ export const PlayerProfileScreen: React.FC = () => {
         const p = await adapter.getPlayerProfile(userId);
         setProfile(p);
       } catch (err) {
-        setError(`Failed to load profile: ${err}`);
+        // If profile doesn't exist, create a default one
+        if (err instanceof Error && err.message.includes('PROFILE_NOT_FOUND')) {
+          const defaultProfile = createDefaultProfile(userId);
+          setProfile(defaultProfile);
+        } else {
+          setError(`Failed to load profile: ${err}`);
+        }
       } finally {
         setLoading(false);
       }
