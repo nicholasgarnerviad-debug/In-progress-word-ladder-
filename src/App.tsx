@@ -7,7 +7,7 @@ import { ProgressionPage } from './pages/ProgressionPage';
 import { LevelUpProvider } from './components/economy/LevelUpProvider';
 
 // Lazy load game mode pages
-const ClassicGame = lazy(() => import('./ClassicGame'));
+const PuzzleLibraryMode = lazy(() => import('./features/classic/PuzzleLibraryMode').then(m => ({ default: m.PuzzleLibraryMode })));
 const TimeAttackPage = lazy(() => import('./features/timeAttack/pages/TimeAttackPage'));
 const BlitzPage = lazy(() => import('./features/blitz/BlitzPage'));
 
@@ -37,10 +37,10 @@ export const App: React.FC = () => {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/progression" element={<ProgressionPage />} />
           <Route
-            path="/play/classic"
+            path="/puzzle-library"
             element={
               <Suspense fallback={<GameLoadingFallback />}>
-                <ClassicGame />
+                <PuzzleLibraryMode />
               </Suspense>
             }
           />

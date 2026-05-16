@@ -35,7 +35,7 @@ export const ComponentsPreview: React.FC = () => {
                 <ModeTile
                   name="Classic"
                   description="The original word ladder experience"
-                  to="/play/classic"
+                  to="/puzzle-library"
                 />
                 <ModeTile
                   name="Timed Mode"

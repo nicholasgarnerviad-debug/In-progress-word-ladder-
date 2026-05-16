@@ -12,7 +12,7 @@ export const ModeTile: React.FC<ModeTileProps> = ({
   name,
   description,
   comingSoon = false,
-  to = '/play/classic',
+  to = '/puzzle-library',
 }) => {
   const baseClasses = 'w-full h-20 rounded-lg border border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between transition-colors';
   const contentClasses = 'flex-1';
