@@ -41,6 +41,14 @@ export const PlayerProfileScreen: React.FC = () => {
   const [selectedAchievementId, setSelectedAchievementId] = useState<string | null>(null);
   const [achievementMap, setAchievementMap] = useState<Record<string, AchievementConfig>>({});
 
+  if (!userId) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="p-8 text-center text-gray-900 dark:text-white">No user ID provided</div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     if (!userId) return;
 
@@ -75,9 +83,29 @@ export const PlayerProfileScreen: React.FC = () => {
     setAchievementMap(map);
   }, []);
 
-  if (loading) return <div className="p-8 text-center text-gray-900 dark:text-white">Loading...</div>;
-  if (error) return <div className="p-8 text-red-500 dark:text-red-400">{error}</div>;
-  if (!profile) return <div className="p-8 text-gray-900 dark:text-white">Profile not found</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="p-8 text-center text-gray-900 dark:text-white">Loading profile...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="p-8 text-red-600 dark:text-red-400 max-w-md">{error}</div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="p-8 text-gray-900 dark:text-white">Profile not found</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-4 py-6 md:py-8">
