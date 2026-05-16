@@ -1,4 +1,4 @@
-import { loadWallet, saveWallet, earnCoins, spendCoins, addXp, getDefaultWallet, migrateWallet } from './wallet';
+import { loadWallet, saveWallet, earnCoins, spendCoins, addXp, getDefaultWallet, migrateWallet, canClaimDailyBonus, claimDailyBonus } from './wallet';
 
 describe('Wallet', () => {
   beforeEach(() => {
@@ -77,5 +77,31 @@ describe('Wallet', () => {
     const migrated = migrateWallet(old);
     expect(migrated).toHaveProperty('dailyBonusClaimedAt');
     expect(typeof migrated.dailyBonusClaimedAt).toBe('number');
+  });
+
+  test('canClaimDailyBonus returns true when never claimed', () => {
+    const wallet = getDefaultWallet();
+    expect(canClaimDailyBonus(wallet)).toBe(true);
+  });
+
+  test('canClaimDailyBonus returns false when claimed today', () => {
+    const wallet = getDefaultWallet();
+    const claimedWallet = claimDailyBonus(wallet);
+    expect(claimedWallet).not.toBeNull();
+    expect(canClaimDailyBonus(claimedWallet!)).toBe(false);
+  });
+
+  test('claimDailyBonus updates timestamp', () => {
+    const wallet = getDefaultWallet();
+    const claimedWallet = claimDailyBonus(wallet);
+    expect(claimedWallet).not.toBeNull();
+    expect(claimedWallet!.dailyBonusClaimedAt).toBeGreaterThan(0);
+  });
+
+  test('claimDailyBonus returns null when already claimed', () => {
+    const wallet = getDefaultWallet();
+    const claimedWallet = claimDailyBonus(wallet);
+    const doubleClaimWallet = claimDailyBonus(claimedWallet!);
+    expect(doubleClaimWallet).toBeNull();
   });
 });
