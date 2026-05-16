@@ -449,21 +449,21 @@ describe('Economy Integration Tests', () => {
         result.current.buyConsumable('undo_step', 40, 2);
       });
 
-      expect(result.current.getCount('hint')).toBe(3);
-      expect(result.current.getCount('undo_step')).toBe(2);
+      expect(result.current.getCount('hint')).toBe(8); // 5 (default) + 3 (purchased)
+      expect(result.current.getCount('undo_step')).toBe(5); // 3 (default) + 2 (purchased)
     });
 
     test('Cannot use consumable if inventory is empty', () => {
       resetWallet();
       const { result } = renderHook(() => useEconomy());
 
-      const countBefore = result.current.getCount('hint');
+      const countBefore = result.current.getCount('reveal_next_word');
 
       act(() => {
-        result.current.useItem('hint');
+        result.current.useItem('reveal_next_word');
       });
 
-      const countAfter = result.current.getCount('hint');
+      const countAfter = result.current.getCount('reveal_next_word');
       expect(countBefore).toBe(0);
       expect(countAfter).toBe(0);
     });
@@ -699,25 +699,25 @@ describe('Economy Integration Tests', () => {
         result.current.earnCoins(500, 'admin_grant');
       });
 
-      const consumableTypes: Array<'hint' | 'reveal_next_word' | 'undo_step' | 'time_extension_15s'> = [
-        'hint',
-        'reveal_next_word',
-        'undo_step',
-        'time_extension_15s',
+      const consumableTests: Array<{ type: 'hint' | 'reveal_next_word' | 'undo_step' | 'time_extension_15s'; defaultCount: number }> = [
+        { type: 'hint', defaultCount: 5 },
+        { type: 'reveal_next_word', defaultCount: 0 },
+        { type: 'undo_step', defaultCount: 3 },
+        { type: 'time_extension_15s', defaultCount: 0 },
       ];
 
-      for (const type of consumableTypes) {
+      for (const { type, defaultCount } of consumableTests) {
         act(() => {
           result.current.buyConsumable(type, 50, 2);
         });
 
-        expect(result.current.getCount(type)).toBe(2);
+        expect(result.current.getCount(type)).toBe(defaultCount + 2);
 
         act(() => {
           result.current.useItem(type);
         });
 
-        expect(result.current.getCount(type)).toBe(1);
+        expect(result.current.getCount(type)).toBe(defaultCount + 1);
       }
     });
 

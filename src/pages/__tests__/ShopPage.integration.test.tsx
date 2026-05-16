@@ -85,9 +85,9 @@ describe('ShopPage Integration Tests', () => {
       expect(savedWallet.coins).toBe(120);
       expect(savedWallet.lifetimeCoinsSpent).toBe(30);
 
-      // Verify inventory was updated: hints increased from 0 to 5
+      // Verify inventory was updated: hints increased from 5 (default) to 10 (5 default + 5 purchased)
       const savedInventory = JSON.parse(localStorage.getItem('wordLadder.inventory') || '{}');
-      expect(savedInventory.consumables.hint).toBe(5);
+      expect(savedInventory.consumables.hint).toBe(10);
     });
 
     test('purchase multiple items sequentially updates wallet and inventory correctly', async () => {
@@ -143,8 +143,8 @@ describe('ShopPage Integration Tests', () => {
       expect(finalWallet.lifetimeCoinsSpent).toBe(55);
 
       const finalInventory = JSON.parse(localStorage.getItem('wordLadder.inventory') || '{}');
-      expect(finalInventory.consumables.hint).toBe(5);
-      expect(finalInventory.consumables.undo_step).toBe(3);
+      expect(finalInventory.consumables.hint).toBe(10);
+      expect(finalInventory.consumables.undo_step).toBe(6);
     });
   });
 
@@ -326,7 +326,7 @@ describe('ShopPage Integration Tests', () => {
       const inventoryAfterPurchase = JSON.parse(localStorage.getItem('wordLadder.inventory') || '{}');
 
       expect(walletAfterPurchase.coins).toBe(120);
-      expect(inventoryAfterPurchase.consumables.hint).toBe(5);
+      expect(inventoryAfterPurchase.consumables.hint).toBe(10);
 
       // Unmount and remount
       unmount();
@@ -347,7 +347,7 @@ describe('ShopPage Integration Tests', () => {
       const inventoryAfterRemount = JSON.parse(localStorage.getItem('wordLadder.inventory') || '{}');
 
       expect(walletAfterRemount.coins).toBe(120);
-      expect(inventoryAfterRemount.consumables.hint).toBe(5);
+      expect(inventoryAfterRemount.consumables.hint).toBe(10);
     });
 
     test('wallet tracks lifetime coins spent correctly', async () => {
@@ -458,9 +458,9 @@ describe('ShopPage Integration Tests', () => {
 
       expect(finalWallet.coins).toBe(500 - totalSpent);
       expect(finalWallet.lifetimeCoinsSpent).toBe(totalSpent);
-      expect(finalInventory.consumables.hint).toBe(5);
+      expect(finalInventory.consumables.hint).toBe(10);
       expect(finalInventory.consumables.reveal_next_word).toBe(3);
-      expect(finalInventory.consumables.undo_step).toBe(3);
+      expect(finalInventory.consumables.undo_step).toBe(6);
       expect(finalInventory.consumables.time_extension_15s).toBe(5);
 
       jest.useRealTimers();
