@@ -21,6 +21,7 @@ export interface Wallet {
   lastEarnedAt: number;       // timestamp of last coin earning
   // Account tracking
   joinedAt: number;           // timestamp for catch-up period detection
+  dailyBonusClaimedAt: number;    // timestamp of last daily bonus claim
 }
 
 export type AddXpResult = {
@@ -51,6 +52,7 @@ export function migrateWallet(wallet: Partial<Wallet>): Wallet {
     bestStreak: wallet.bestStreak ?? 0,
     lastEarnedAt: wallet.lastEarnedAt ?? 0,
     joinedAt: wallet.joinedAt ?? now,
+    dailyBonusClaimedAt: wallet.dailyBonusClaimedAt ?? 0,
   };
 }
 
@@ -72,6 +74,7 @@ export function getDefaultWallet(): Wallet {
     bestStreak: 0,
     lastEarnedAt: 0,
     joinedAt: now,
+    dailyBonusClaimedAt: 0,
   };
 }
 
@@ -138,5 +141,37 @@ export function addXp(wallet: Wallet, amount: number, source: XpSource): AddXpRe
     newLevel,
     leveledUp: newLevel > oldLevel,
     rewards,
+  };
+}
+
+/**
+ * Check if player can claim their daily bonus today.
+ * Daily bonus resets at UTC midnight.
+ */
+export function canClaimDailyBonus(wallet: Wallet): boolean {
+  const now = Date.now();
+  const lastClaimDate = new Date(wallet.dailyBonusClaimedAt);
+  const todayDate = new Date(now);
+
+  // Reset at UTC midnight (00:00 UTC)
+  const lastClaimUTC = new Date(lastClaimDate.toISOString().split('T')[0]);
+  const todayUTC = new Date(todayDate.toISOString().split('T')[0]);
+
+  return lastClaimUTC < todayUTC;
+}
+
+/**
+ * Claim the daily bonus (1 Hint + 1 Undo).
+ * Returns updated wallet or null if already claimed today.
+ */
+export function claimDailyBonus(wallet: Wallet): Wallet | null {
+  if (!canClaimDailyBonus(wallet)) {
+    return null;
+  }
+
+  return {
+    ...wallet,
+    dailyBonusClaimedAt: Date.now(),
+    lastUpdatedAt: new Date().toISOString(),
   };
 }

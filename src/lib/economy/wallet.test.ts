@@ -1,4 +1,4 @@
-import { loadWallet, saveWallet, earnCoins, spendCoins, addXp, getDefaultWallet } from './wallet';
+import { loadWallet, saveWallet, earnCoins, spendCoins, addXp, getDefaultWallet, migrateWallet } from './wallet';
 
 describe('Wallet', () => {
   beforeEach(() => {
@@ -64,5 +64,18 @@ describe('Wallet', () => {
     const wallet = getDefaultWallet();
     const result = addXp(wallet, 100, 'puzzle_solve_easy');
     expect(result.newState.lifetimeXpEarned).toBe(100);
+  });
+
+  test('wallet includes dailyBonusClaimedAt field', () => {
+    const wallet = getDefaultWallet();
+    expect(wallet).toHaveProperty('dailyBonusClaimedAt');
+    expect(typeof wallet.dailyBonusClaimedAt).toBe('number');
+  });
+
+  test('migration preserves dailyBonusClaimedAt', () => {
+    const old = { coins: 100 };
+    const migrated = migrateWallet(old);
+    expect(migrated).toHaveProperty('dailyBonusClaimedAt');
+    expect(typeof migrated.dailyBonusClaimedAt).toBe('number');
   });
 });
