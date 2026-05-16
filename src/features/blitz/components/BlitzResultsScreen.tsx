@@ -55,7 +55,7 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
   const navigate = useNavigate();
   const room = useBlitzRoom();
   const economy = useEconomy();
-  const { push: pushLevelUpRewards } = useLevelUpQueue();
+  const { push: pushLevelUpRewards, onAchievementUnlocked } = useLevelUpQueue();
 
   const [showConfetti, setShowConfetti] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -162,12 +162,7 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
         // Check for newly unlocked achievements
         const newAchievements = await leaderboardAdapter.checkAndGrantAchievements(userId);
         if (newAchievements && newAchievements.length > 0) {
-          // Display achievement notifications
-          newAchievements.forEach(achievementId => {
-            console.log(`Achievement unlocked: ${achievementId}`);
-          });
-
-          // Award coins from achievement rewards
+          // Award consumables and coins from achievement rewards
           const achievements = await leaderboardAdapter.getAchievements();
           let totalCoinsEarned = 0;
           for (const achievementId of newAchievements) {
@@ -175,6 +170,8 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
             if (config?.reward?.coins) {
               totalCoinsEarned += config.reward.coins;
             }
+            // Award consumable rewards based on rarity
+            onAchievementUnlocked(achievementId);
           }
           if (totalCoinsEarned > 0) {
             economy.earnCoins(totalCoinsEarned, 'achievement');

@@ -49,7 +49,7 @@ const getUserId = (): string => {
 export const TimeAttackPage: React.FC = () => {
   const state = useTimeAttack();
   const { earnCoins, addXp } = useEconomy();
-  const { push: pushLevelUpRewards } = useLevelUpQueue();
+  const { push: pushLevelUpRewards, onAchievementUnlocked } = useLevelUpQueue();
   const { recordResult } = useGameResult(getUserId());
   const xpAwardedRef = useRef(false);
   const coinsAwardedRef = useRef(false);
@@ -128,13 +128,10 @@ export const TimeAttackPage: React.FC = () => {
       )
         .then(({ newAchievements }) => {
           if (newAchievements && newAchievements.length > 0) {
-            // Display achievement notifications
+            // Award consumable rewards based on achievement rarity
             newAchievements.forEach(achievementId => {
-              console.log(`Achievement unlocked: ${achievementId}`);
+              onAchievementUnlocked(achievementId);
             });
-
-            // Note: Achievement coin rewards are handled by the leaderboard adapter
-            // Additional handling can be added here if needed
           }
         })
         .catch(err => {

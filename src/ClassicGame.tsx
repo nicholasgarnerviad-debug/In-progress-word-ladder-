@@ -78,7 +78,7 @@ export const ClassicGame: React.FC = () => {
   });
 
   const economy = useEconomy();
-  const { push: pushLevelUpRewards } = useLevelUpQueue();
+  const { push: pushLevelUpRewards, onAchievementUnlocked } = useLevelUpQueue();
   const xpAwardedRef = useRef(false);
   const { recordResult } = useGameResult(getUserId());
 
@@ -184,9 +184,9 @@ export const ClassicGame: React.FC = () => {
         puzzle.start.length
       ).then(({ newAchievements }) => {
         if (newAchievements && newAchievements.length > 0) {
-          // Display achievement notifications
+          // Award consumable rewards and handle each achievement
           newAchievements.forEach(achievementId => {
-            console.log(`Achievement unlocked: ${achievementId}`);
+            onAchievementUnlocked(achievementId);
           });
         }
       }).catch(err => {

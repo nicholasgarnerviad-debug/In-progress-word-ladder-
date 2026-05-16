@@ -254,3 +254,34 @@ export { commonAchievements, rareAchievements, legendaryAchievements };
 export const achievementMap = new Map(
   getAllAchievements().map((achievement) => [achievement.id, achievement])
 );
+
+/**
+ * Achievement Consumable Reward Interface
+ */
+export interface AchievementReward {
+  consumableType: 'hint' | 'reveal_next_word' | 'undo_step' | 'time_extension_15s';
+  count: number;
+}
+
+/**
+ * Get consumable rewards based on achievement rarity.
+ * Common: 1 Hint
+ * Rare: 2 Hints + 1 Undo
+ * Legendary: 5 Time Extensions
+ *
+ * @param rarity The rarity tier of the achievement
+ * @returns Array of consumable rewards to grant
+ */
+export function getAchievementReward(rarity: AchievementRarity): AchievementReward[] {
+  switch (rarity) {
+    case 'common':
+      return [{ consumableType: 'hint', count: 1 }];
+    case 'rare':
+      return [
+        { consumableType: 'hint', count: 2 },
+        { consumableType: 'undo_step', count: 1 },
+      ];
+    case 'legendary':
+      return [{ consumableType: 'time_extension_15s', count: 5 }];
+  }
+}
