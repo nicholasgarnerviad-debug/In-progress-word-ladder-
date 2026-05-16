@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { PlayerProfile, AchievementConfig } from '../../lib/leaderboard/types';
 import { FirebaseLeaderboardAdapter } from '../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
+import { LeaderboardSyncError, LeaderboardSyncErrorCode } from '../../lib/leaderboard/sync/LeaderboardSyncAdapter';
 import { AchievementModal } from './AchievementModal';
 import { getAllAchievements } from '../../lib/leaderboard/achievements/achievements';
 import { Timestamp } from 'firebase/firestore';
@@ -46,7 +47,7 @@ export const PlayerProfileScreen: React.FC = () => {
         setProfile(p);
       } catch (err) {
         // If profile doesn't exist, create a default one
-        if (err instanceof Error && err.message.includes('PROFILE_NOT_FOUND')) {
+        if (err instanceof LeaderboardSyncError && err.code === LeaderboardSyncErrorCode.PROFILE_NOT_FOUND) {
           const defaultProfile = createDefaultProfile(userId);
           setProfile(defaultProfile);
         } else {
