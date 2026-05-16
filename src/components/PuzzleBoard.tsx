@@ -114,13 +114,25 @@ export const PuzzleBoard = forwardRef<{ applyHint: (index: number) => void }, Pu
         )}
       </div>
 
+      {/* Hint feedback */}
+      {game.state.lastHintedIndex !== null && (
+        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded text-center">
+          <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+            💡 Hint: Change the letter at position {game.state.lastHintedIndex + 1}
+          </p>
+        </div>
+      )}
+
       {/* Revealed word ghost row */}
       {game.state.lastRevealedWord && (
-        <Rung
-          word={game.state.lastRevealedWord}
-          tileStates={game.state.lastRevealedWord.map(() => 'locked')}
-          status="neutral"
-        />
+        <div className="mt-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 font-semibold">Next step</p>
+          <Rung
+            word={game.state.lastRevealedWord}
+            tileStates={game.state.lastRevealedWord.map(() => 'locked')}
+            status="neutral"
+          />
+        </div>
       )}
 
       {/* Current input */}
