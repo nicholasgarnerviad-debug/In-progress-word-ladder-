@@ -33,7 +33,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm test -- --coverage --passWithNoTests
+        run: npm test -- --passWithNoTests --ci
 
       - name: Build production bundle
         run: npm run build
