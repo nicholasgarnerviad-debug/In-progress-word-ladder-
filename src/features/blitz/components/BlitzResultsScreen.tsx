@@ -10,6 +10,7 @@ import type { BlitzPlayer, PlayerId } from '../types';
 import { FirebaseLeaderboardAdapter } from '../../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
 import type { GameResult } from '../../../lib/leaderboard/types';
 import { Timestamp } from 'firebase/firestore';
+import { addConsumable, loadInventory, saveInventory } from '../../../lib/economy/inventory';
 
 export type BlitzResultsScreenProps = {
   /** Optional callback when leaving room */
@@ -82,24 +83,34 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
   useEffect(() => {
     if (!room.room || !room.me) return;
 
+    const me = room.me;
+
     // Get player's placement based on final rankings
     const sortedPlayers = [...room.room.players.values()].sort((a, b) => b.score - a.score);
-    const placement = sortedPlayers.findIndex((p) => p.id === room.me.id) + 1;
+    const placement = sortedPlayers.findIndex((p) => p.id === me.id) + 1;
 
     // Calculate placement-based coins (not puzzle-completion based)
     const coins = calculatePlacementCoins(placement);
 
     const xp = calculateBlitzXP({
-      solved: room.me.solved,
-      wrong: room.me.wrong,
-      hints: room.me.hints,
-      score: room.me.score,
+      solved: me.solved,
+      wrong: me.wrong,
+      hints: me.hints,
+      score: me.score,
       difficulty: room.room.meta.difficulty,
     });
 
     // Apply rewards
     economy.earnCoins(coins, 'blitz_win');
     const xpResult = economy.addXp(xp, 'blitz_win');
+
+    // Award time extension for winning Blitz
+    if (placement === 1) {
+      const inventory = loadInventory();
+      const updatedInventory = addConsumable(inventory, 'time_extension_15s', 1);
+      saveInventory(updatedInventory);
+      console.log('Victory bonus! +1 Time Extension ⏱️');
+    }
 
     // Store for display
     setEarnedCoins(coins);
