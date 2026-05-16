@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { WordPuzzle } from '../generatePuzzle';
-import { useGameState } from '../useGameState';
+import { useGameState, type GameState } from '../useGameState';
 import { Rung } from '../Rung';
 import { GameKeyboard } from '../GameKeyboard';
+
+export type GameInstance = ReturnType<typeof useGameState>;
 
 export type PuzzleBoardProps = {
   puzzle: WordPuzzle;
@@ -16,6 +18,8 @@ export type PuzzleBoardProps = {
   disabled?: boolean;
   /** Optional: callback to apply a hint at the given index. Used by modes that need external hint management. */
   onUseHint?: (index: number) => void;
+  /** Optional: pass the game instance from parent to keep state in sync. */
+  gameInstance?: GameInstance;
 };
 
 export const PuzzleBoard = forwardRef<{ applyHint: (index: number) => void }, PuzzleBoardProps>(({
@@ -25,8 +29,11 @@ export const PuzzleBoard = forwardRef<{ applyHint: (index: number) => void }, Pu
   hideScore = false,
   disabled = false,
   onUseHint,
+  gameInstance,
 }, ref) => {
-  const game = useGameState(puzzle);
+  // Use provided game instance or create new one
+  const localGame = useGameState(puzzle);
+  const game = gameInstance || localGame;
   const [submissionError, setSubmissionError] = useState(false);
   const prevFailedRef = useRef(game.state.failedSubmissions);
 

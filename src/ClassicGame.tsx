@@ -543,6 +543,7 @@ export const ClassicGame: React.FC = () => {
               // ClassicGame tracks the win via game.state.phase
             }}
             hideScore={false}
+            gameInstance={game}
           />
         </div>
 
