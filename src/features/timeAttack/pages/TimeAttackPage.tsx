@@ -9,6 +9,8 @@ import { WalletStrip } from '../../../components/economy/WalletStrip';
 import { HomeButton } from '../../../components/navigation/HomeButton';
 import { SettingsButton } from '../../../components/navigation/SettingsButton';
 import { useGameResult } from '../../../hooks/useGameResult';
+import { addCompletedPuzzle, isCompletedPuzzle } from '../../../lib/economy/puzzleTracking';
+import { calculateTimeAttackCoins } from '../../../lib/economy/coinEarning';
 
 const XP_BASE_PER_SOLVE = 5;
 const XP_PER_SECOND_REMAINING = 1;
@@ -50,15 +52,18 @@ export const TimeAttackPage: React.FC = () => {
   const { push: pushLevelUpRewards } = useLevelUpQueue();
   const { recordResult } = useGameResult(getUserId());
   const xpAwardedRef = useRef(false);
+  const coinsAwardedRef = useRef(false);
   const lastSolvedCountRef = useRef(0);
   const [cumulativeXp, setCumulativeXp] = useState(0);
+  const [coinsEarned, setCoinsEarned] = useState(0);
+  const [newPuzzlesSolvedThisRun, setNewPuzzlesSolvedThisRun] = useState(0);
   const leaderboardRecordedRef = useRef(false);
 
   useEffect(() => {
     document.title = 'Time Attack — Word Ladder';
   }, []);
 
-  // Per-solve XP award
+  // Per-solve XP award and puzzle tracking for new puzzles
   useEffect(() => {
     if (state.phase === 'playing' && state.solvedCount > lastSolvedCountRef.current) {
       const isSurvivalMode = state.mode === 'survival';
@@ -69,11 +74,21 @@ export const TimeAttackPage: React.FC = () => {
       });
 
       setCumulativeXp(prev => prev + solveXp);
+
+      // Track puzzle completion for coin earning
+      if (state.currentPuzzle) {
+        const isNewPuzzle = !isCompletedPuzzle('timeAttack', state.currentPuzzle.start, state.currentPuzzle.end);
+        if (isNewPuzzle) {
+          addCompletedPuzzle('timeAttack', state.currentPuzzle.start, state.currentPuzzle.end);
+          setNewPuzzlesSolvedThisRun(prev => prev + 1);
+        }
+      }
+
       lastSolvedCountRef.current = state.solvedCount;
     }
-  }, [state.solvedCount, state.timeRemainingMs, state.mode, state.phase]);
+  }, [state.solvedCount, state.timeRemainingMs, state.mode, state.phase, state.currentPuzzle]);
 
-  // Run-end XP award and coin earning
+  // Run-end XP and coin award (once at end)
   useEffect(() => {
     if (state.phase === 'ended' && !xpAwardedRef.current && cumulativeXp > 0) {
       // Award XP
@@ -83,15 +98,19 @@ export const TimeAttackPage: React.FC = () => {
         pushLevelUpRewards(result.rewards);
       }
 
-      // Award coins based on completed puzzles
-      const coinsEarned = Math.floor((state.solvedCount || 0) * 50);
-      if (coinsEarned > 0) {
-        earnCoins(coinsEarned, 'time_attack_solve');
-      }
-
       xpAwardedRef.current = true;
     }
-  }, [state.phase, cumulativeXp, state.solvedCount, addXp, pushLevelUpRewards, earnCoins]);
+  }, [state.phase, cumulativeXp, addXp, pushLevelUpRewards]);
+
+  // Award coins once at game end based on new puzzles solved (not per-puzzle)
+  useEffect(() => {
+    if (state.phase === 'ended' && !coinsAwardedRef.current && newPuzzlesSolvedThisRun > 0) {
+      const coinsToEarn = calculateTimeAttackCoins(newPuzzlesSolvedThisRun);
+      earnCoins(coinsToEarn, 'time_attack_solve');
+      setCoinsEarned(coinsToEarn);
+      coinsAwardedRef.current = true;
+    }
+  }, [state.phase, newPuzzlesSolvedThisRun, earnCoins]);
 
   // Record to leaderboard on game end
   useEffect(() => {
@@ -129,8 +148,11 @@ export const TimeAttackPage: React.FC = () => {
       // Reset when starting a new run
       if (lastSolvedCountRef.current > 0) {
         setCumulativeXp(0);
+        setCoinsEarned(0);
+        setNewPuzzlesSolvedThisRun(0);
         lastSolvedCountRef.current = 0;
         xpAwardedRef.current = false;
+        coinsAwardedRef.current = false;
         leaderboardRecordedRef.current = false;
       }
     }
@@ -175,6 +197,8 @@ export const TimeAttackPage: React.FC = () => {
           mode={state.mode!}
           tier={state.tier!}
           solvedCount={state.solvedCount}
+          newPuzzlesSolved={newPuzzlesSolvedThisRun}
+          coinsEarned={coinsEarned}
           longestStreak={state.longestStreak}
           timeRemainingMs={state.timeRemainingMs}
           averageSolveMs={

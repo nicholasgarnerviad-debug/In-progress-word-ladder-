@@ -3834,3 +3834,18 @@ Port 3006 is in use, trying another one...
 [2m10:26:11 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mcoverage/lcov-report/src/lib/leaderboard/sync/LeaderboardSyncAdapter.ts.html[22m
 [2m10:26:41 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mplaywright-report/index.html[22m
 [2m10:27:13 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mplaywright-report/index.html[22m
+[2m10:33:51 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/PuzzleBoard.tsx[22m
+[2m10:35:10 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/PuzzleBoard.tsx[22m
+[2m10:35:14 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx[22m
+[2m10:59:37 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx, /src/features/timeAttack/components/PlayScreen.tsx, /src/features/timeAttack/components/EndScreen.tsx, /src/features/blitz/components/BlitzResultsScreen.tsx, /src/features/timeAttack/pages/TimeAttackPage.tsx, /src/components/economy/WalletStrip.tsx[22m
+[2m10:59:41 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx, /src/features/timeAttack/components/PlayScreen.tsx, /src/features/timeAttack/components/EndScreen.tsx, /src/features/blitz/components/BlitzResultsScreen.tsx, /src/features/timeAttack/pages/TimeAttackPage.tsx, /src/components/economy/WalletStrip.tsx[22m
+[2m10:59:44 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx, /src/features/timeAttack/components/PlayScreen.tsx, /src/features/timeAttack/components/EndScreen.tsx, /src/features/blitz/components/BlitzResultsScreen.tsx, /src/features/timeAttack/pages/TimeAttackPage.tsx, /src/components/economy/WalletStrip.tsx[22m
+[2m10:59:48 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx, /src/features/timeAttack/components/PlayScreen.tsx, /src/features/timeAttack/components/EndScreen.tsx, /src/features/blitz/components/BlitzResultsScreen.tsx, /src/features/timeAttack/pages/TimeAttackPage.tsx, /src/components/economy/WalletStrip.tsx[22m
+[2m11:01:44 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx, /src/features/timeAttack/components/PlayScreen.tsx, /src/features/timeAttack/components/EndScreen.tsx, /src/features/blitz/components/BlitzResultsScreen.tsx, /src/features/timeAttack/pages/TimeAttackPage.tsx, /src/components/economy/WalletStrip.tsx[22m
+[2m12:49:48 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/timeAttack/pages/TimeAttackPage.tsx, /src/ClassicGame.tsx, /src/features/timeAttack/components/PlayScreen.tsx, /src/features/timeAttack/components/EndScreen.tsx, /src/features/blitz/components/BlitzResultsScreen.tsx, /src/components/economy/WalletStrip.tsx[22m
+[2m12:49:53 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/timeAttack/pages/TimeAttackPage.tsx, /src/ClassicGame.tsx, /src/features/timeAttack/components/PlayScreen.tsx, /src/features/timeAttack/components/EndScreen.tsx, /src/features/blitz/components/BlitzResultsScreen.tsx, /src/components/economy/WalletStrip.tsx[22m
+[2m12:55:21 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx[22m
+[2m12:55:25 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx[22m
+[2m12:55:34 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx[22m
+[2m12:55:45 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx[22m
+[2m12:55:50 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/ClassicGame.tsx[22m

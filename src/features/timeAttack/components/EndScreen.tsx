@@ -10,6 +10,8 @@ export type EndScreenProps = {
   mode: TimeAttackMode;
   tier: DurationTier;
   solvedCount: number;
+  newPuzzlesSolved: number; // New puzzles solved this run (for coin earning)
+  coinsEarned: number; // Coins earned from new puzzles (8 per new puzzle)
   longestStreak: number;
   timeRemainingMs: number; // For sprint: tier * 1000 - timeRemaining
   averageSolveMs: number | null;
@@ -56,6 +58,8 @@ export const EndScreen: React.FC<EndScreenProps> = ({
   mode,
   tier,
   solvedCount,
+  newPuzzlesSolved,
+  coinsEarned,
   longestStreak,
   timeRemainingMs,
   averageSolveMs,
@@ -66,33 +70,12 @@ export const EndScreen: React.FC<EndScreenProps> = ({
   onBackToHome,
 }) => {
   const navigate = useNavigate();
-  const economy = useEconomy();
-  const [rewardAwarded, setRewardAwarded] = useState(false);
-  const [awardedXp, setAwardedXp] = useState(0);
 
   const isPersonalBest = previousBestAtRunEnd === null || solvedCount > previousBestAtRunEnd.solved;
   const isFirstRun = previousBestAtRunEnd === null;
 
-  // Award reward on mount (only once)
-  useEffect(() => {
-    if (rewardAwarded) return;
-
-    const baseCoins = solvedCount * 20;
-    const personalBestBonus = isPersonalBest && !isFirstRun ? 50 : 0;
-    const totalCoins = baseCoins + personalBestBonus;
-
-    // Award coins for solving puzzles, plus bonus for personal best
-    if (solvedCount > 0) {
-      economy.earnCoins(solvedCount * 20, 'time_attack_solve');
-    }
-    if (isPersonalBest && !isFirstRun) {
-      economy.earnCoins(50, 'time_attack_personal_best');
-    }
-
-    // Display the XP earned (already awarded by TimeAttackPage if cumulativeXp > 0)
-    setAwardedXp(cumulativeXp);
-    setRewardAwarded(true);
-  }, [solvedCount, previousBestAtRunEnd, economy, rewardAwarded, cumulativeXp]);
+  // Display the XP earned (already awarded by TimeAttackPage)
+  const awardedXp = cumulativeXp;
 
   const handleBackToHome = () => {
     onBackToHome();
@@ -162,9 +145,13 @@ export const EndScreen: React.FC<EndScreenProps> = ({
             </span>
           </div>
           <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-800">
+            <span className="text-gray-600 dark:text-gray-400">New Puzzles</span>
+            <span className="font-mono font-semibold text-lg">{newPuzzlesSolved}</span>
+          </div>
+          <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-800">
             <span className="text-gray-600 dark:text-gray-400">Coins Earned</span>
             <span className="font-mono font-semibold text-lg">
-              +{Math.round(solvedCount * 20 + (isPersonalBest && !isFirstRun ? 50 : 0))}
+              +{coinsEarned}
             </span>
           </div>
           <div className="flex justify-between items-center pt-2">
