@@ -119,7 +119,7 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
       <HomeButton />
       <SettingsButton />
       <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed top-4 left-4 z-50">
           <WalletStrip compact={true} />
         </div>
       {/* Top: Timer */}
