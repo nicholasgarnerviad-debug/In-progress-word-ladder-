@@ -296,4 +296,200 @@ describe('useEconomy', () => {
       expect(parsedWallet.lastUpdatedAt).toBeDefined();
     });
   });
+
+  describe('earnCoinsWithCap (cap and streak integration)', () => {
+    it('adds coins to wallet when under daily cap', () => {
+      const { result } = renderHook(() => useEconomy());
+
+      act(() => {
+        result.current.earnCoins(10, 'classic_solve');
+      });
+
+      expect(result.current.coins).toBe(160); // 150 + 10
+      const wallet = localStorage.getItem('wordLadder.wallet');
+      const parsed = JSON.parse(wallet!);
+      expect(parsed.dailyCoinsEarned).toBe(10);
+    });
+
+    it('caps coins at 100 per day for old accounts', () => {
+      // Pre-set old account in localStorage before rendering
+      const oldAccountTime = Date.now() - 86400000 * 10;
+      const oldWallet = {
+        coins: 150,
+        xp: 0,
+        level: 1,
+        lifetimeCoinsEarned: 0,
+        lifetimeCoinsSpent: 0,
+        lifetimeXpEarned: 0,
+        lastUpdatedAt: new Date().toISOString(),
+        dailyCoinsEarned: 0,
+        lastDailyResetAt: Date.now(),
+        weeklyCoinsEarned: 0,
+        lastWeeklyResetAt: Date.now(),
+        currentStreak: 0,
+        bestStreak: 0,
+        lastEarnedAt: 0,
+        joinedAt: oldAccountTime,
+      };
+      localStorage.setItem('wordLadder.wallet', JSON.stringify(oldWallet));
+
+      const { result } = renderHook(() => useEconomy());
+
+      // Try to earn 90 coins, then 20 more (should be capped to 10)
+      act(() => {
+        result.current.earnCoins(90, 'classic_solve');
+      });
+      expect(result.current.coins).toBe(240); // 150 + 90
+
+      act(() => {
+        result.current.earnCoins(20, 'classic_solve');
+      });
+      const wallet = localStorage.getItem('wordLadder.wallet');
+      const parsed = JSON.parse(wallet!);
+      expect(parsed.dailyCoinsEarned).toBe(100); // 90 + 10 (capped)
+      expect(result.current.coins).toBe(250); // 240 + 10 (capped)
+    });
+
+    it('increments streak when coins earned', () => {
+      const { result } = renderHook(() => useEconomy());
+
+      act(() => {
+        result.current.earnCoins(10, 'classic_solve');
+      });
+
+      const wallet = localStorage.getItem('wordLadder.wallet');
+      const parsed = JSON.parse(wallet!);
+      expect(parsed.currentStreak).toBe(1);
+    });
+
+    it('does not cap coins during catch-up period (first 7 days)', () => {
+      const { result } = renderHook(() => useEconomy());
+
+      act(() => {
+        result.current.earnCoins(90, 'classic_solve');
+      });
+      expect(result.current.coins).toBe(240); // 150 + 90
+
+      act(() => {
+        result.current.earnCoins(30, 'classic_solve'); // 120 total, would exceed cap but in catch-up
+      });
+      expect(result.current.coins).toBe(270); // 240 + 30 (no cap during catch-up)
+    });
+
+    it('resets daily coins when 24+ hours have passed', () => {
+      const { result } = renderHook(() => useEconomy());
+
+      act(() => {
+        result.current.earnCoins(50, 'classic_solve');
+      });
+      let wallet = localStorage.getItem('wordLadder.wallet');
+      let parsed = JSON.parse(wallet!);
+      expect(parsed.dailyCoinsEarned).toBe(50);
+
+      // Simulate time passing to next day
+      act(() => {
+        const walletData = JSON.parse(localStorage.getItem('wordLadder.wallet')!);
+        walletData.lastDailyResetAt = Date.now() - 86400000 - 1000; // Past 24h
+        localStorage.setItem('wordLadder.wallet', JSON.stringify(walletData));
+      });
+
+      act(() => {
+        result.current.earnCoins(10, 'classic_solve');
+      });
+
+      wallet = localStorage.getItem('wordLadder.wallet');
+      parsed = JSON.parse(wallet!);
+      // Should have reset to 0 and then added 10
+      expect(parsed.dailyCoinsEarned).toBe(10);
+    });
+
+    it('does not earn coins when 0 coins passed after cap', () => {
+      // Set up: old account, at cap
+      const oldAccountTime = Date.now() - 86400000 * 10;
+      const oldWallet = {
+        coins: 150,
+        xp: 0,
+        level: 1,
+        lifetimeCoinsEarned: 0,
+        lifetimeCoinsSpent: 0,
+        lifetimeXpEarned: 0,
+        lastUpdatedAt: new Date().toISOString(),
+        dailyCoinsEarned: 100,
+        lastDailyResetAt: Date.now(),
+        weeklyCoinsEarned: 0,
+        lastWeeklyResetAt: Date.now(),
+        currentStreak: 0,
+        bestStreak: 0,
+        lastEarnedAt: 0,
+        joinedAt: oldAccountTime,
+      };
+      localStorage.setItem('wordLadder.wallet', JSON.stringify(oldWallet));
+
+      const { result } = renderHook(() => useEconomy());
+
+      const initialCoins = result.current.coins;
+      act(() => {
+        result.current.earnCoins(10, 'classic_solve'); // Should be capped to 0
+      });
+
+      // Coins should remain unchanged (0 earned after cap)
+      expect(result.current.coins).toBe(initialCoins);
+    });
+
+    it('preserves existing coin balance when earning new coins', () => {
+      const { result } = renderHook(() => useEconomy());
+
+      act(() => {
+        result.current.earnCoins(100, 'classic_solve');
+      });
+      expect(result.current.coins).toBe(250); // 150 + 100
+
+      act(() => {
+        result.current.earnCoins(25, 'classic_solve');
+      });
+
+      expect(result.current.coins).toBe(275); // 250 + 25
+    });
+
+    it('returns early if 0 coins earned after cap', () => {
+      // Set old account at cap
+      const oldAccountTime = Date.now() - 86400000 * 10;
+      const oldWallet = {
+        coins: 150,
+        xp: 0,
+        level: 1,
+        lifetimeCoinsEarned: 0,
+        lifetimeCoinsSpent: 0,
+        lifetimeXpEarned: 0,
+        lastUpdatedAt: new Date().toISOString(),
+        dailyCoinsEarned: 100,
+        lastDailyResetAt: Date.now(),
+        weeklyCoinsEarned: 0,
+        lastWeeklyResetAt: Date.now(),
+        currentStreak: 0,
+        bestStreak: 0,
+        lastEarnedAt: 0,
+        joinedAt: oldAccountTime,
+      };
+      localStorage.setItem('wordLadder.wallet', JSON.stringify(oldWallet));
+
+      const { result } = renderHook(() => useEconomy());
+
+      const walletBefore = localStorage.getItem('wordLadder.wallet');
+      const parsedBefore = JSON.parse(walletBefore!);
+      const streakBefore = parsedBefore.currentStreak;
+
+      // Try to earn coins (should be capped to 0 and return early)
+      act(() => {
+        result.current.earnCoins(10, 'classic_solve');
+      });
+
+      const walletAfter = localStorage.getItem('wordLadder.wallet');
+      const parsedAfter = JSON.parse(walletAfter!);
+
+      // Streak should not have incremented
+      expect(parsedAfter.currentStreak).toBe(streakBefore);
+      expect(parsedAfter.dailyCoinsEarned).toBe(100);
+    });
+  });
 });

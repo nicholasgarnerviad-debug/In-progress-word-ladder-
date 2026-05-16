@@ -5,6 +5,14 @@ import { loadInventory, saveInventory, addConsumable, useConsumable, getConsumab
 import type { Inventory } from './inventory';
 import { ConsumableType } from './shop';
 import type { CoinSource, XpSource } from './types';
+import {
+  shouldResetDailyCoins,
+  resetDailyCoins,
+  shouldResetWeeklyCoins,
+  resetWeeklyCoins,
+  enforceDailyCap,
+  updateStreak,
+} from './capAndStreaks';
 
 export interface EconomyState {
   coins: number;
@@ -33,10 +41,44 @@ export function useEconomy() {
   }, []);
 
   const earnCoins = useCallback((amount: number, source: CoinSource) => {
-    const current = loadWallet();
-    const updated = walletEarnCoins(current, amount, source);
-    saveWallet(updated);
-    setWallet(updated);
+    if (amount <= 0) return;
+
+    // Get fresh wallet state from localStorage
+    let wallet = loadWallet();
+
+    // Auto-reset daily/weekly if needed
+    if (shouldResetDailyCoins(wallet)) {
+      wallet = resetDailyCoins(wallet);
+    }
+    if (shouldResetWeeklyCoins(wallet)) {
+      wallet = resetWeeklyCoins(wallet);
+    }
+
+    // Apply cap enforcement
+    const coinsAfterCap = enforceDailyCap(wallet, amount);
+
+    // Don't proceed if cap resulted in 0 coins
+    if (coinsAfterCap === 0) {
+      return;
+    }
+
+    // Update wallet state
+    wallet = {
+      ...wallet,
+      coins: wallet.coins + coinsAfterCap,
+      dailyCoinsEarned: wallet.dailyCoinsEarned + coinsAfterCap,
+      lifetimeCoinsEarned: wallet.lifetimeCoinsEarned + coinsAfterCap,
+      lastUpdatedAt: new Date().toISOString(),
+    };
+
+    // Update streak
+    wallet = updateStreak(wallet, coinsAfterCap);
+
+    // Persist to localStorage
+    saveWallet(wallet);
+
+    // Update React state
+    setWallet(wallet);
   }, []);
 
   const spend = useCallback((amount: number): boolean => {
