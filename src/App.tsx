@@ -30,7 +30,7 @@ const GameLoadingFallback = () => (
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.GITHUB_ACTIONS ? '/Word-Ladder-backup/' : '/'}>
       <LevelUpProvider>
         <Routes>
           <Route path="/" element={<HomePage />} />
