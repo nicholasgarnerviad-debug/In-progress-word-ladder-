@@ -55,9 +55,9 @@ export const HomePage: React.FC = () => {
           {/* Right nav: Shop & Settings */}
           <div className="flex items-center gap-2">
             <Link
-              to="/settings"
+              to="/shop"
               className="px-3 py-1.5 text-sm font-medium rounded hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
-              title="Shop and settings"
+              title="View shop"
             >
               Shop
             </Link>
