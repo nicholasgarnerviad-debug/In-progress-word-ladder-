@@ -151,7 +151,7 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
           <div className="lg:col-span-2 flex flex-col">
             {/* Player name and puzzle progress */}
             <div className="mb-4">
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
+              <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">
                 {me.name}
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">

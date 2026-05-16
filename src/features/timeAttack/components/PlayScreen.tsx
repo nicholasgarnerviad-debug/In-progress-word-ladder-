@@ -153,7 +153,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
       {/* Top bar */}
       <div className="border-b border-gray-200 dark:border-gray-800 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
