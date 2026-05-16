@@ -10,6 +10,17 @@ export interface Wallet {
   lifetimeCoinsSpent: number;
   lifetimeXpEarned: number;
   lastUpdatedAt: string;      // ISO datetime
+  // Daily/Weekly tracking
+  dailyCoinsEarned: number;   // coins earned today
+  lastDailyResetAt: number;   // timestamp of last daily reset
+  weeklyCoinsEarned: number;  // coins earned this week
+  lastWeeklyResetAt: number;  // timestamp of last weekly reset
+  // Streak tracking
+  currentStreak: number;      // consecutive days with earnings
+  bestStreak: number;         // longest streak ever
+  lastEarnedAt: number;       // timestamp of last coin earning
+  // Account tracking
+  joinedAt: number;           // timestamp for catch-up period detection
 }
 
 export type AddXpResult = {
@@ -22,7 +33,29 @@ export type AddXpResult = {
 
 const WALLET_KEY = 'wordLadder.wallet';
 
+export function migrateWallet(wallet: any): Wallet {
+  const now = Date.now();
+  return {
+    coins: wallet.coins ?? 150,
+    xp: wallet.xp ?? 0,
+    level: wallet.level ?? 1,
+    lifetimeCoinsEarned: wallet.lifetimeCoinsEarned ?? 0,
+    lifetimeCoinsSpent: wallet.lifetimeCoinsSpent ?? 0,
+    lifetimeXpEarned: wallet.lifetimeXpEarned ?? 0,
+    lastUpdatedAt: wallet.lastUpdatedAt ?? new Date().toISOString(),
+    dailyCoinsEarned: wallet.dailyCoinsEarned ?? 0,
+    lastDailyResetAt: wallet.lastDailyResetAt ?? now,
+    weeklyCoinsEarned: wallet.weeklyCoinsEarned ?? 0,
+    lastWeeklyResetAt: wallet.lastWeeklyResetAt ?? now,
+    currentStreak: wallet.currentStreak ?? 0,
+    bestStreak: wallet.bestStreak ?? 0,
+    lastEarnedAt: wallet.lastEarnedAt ?? 0,
+    joinedAt: wallet.joinedAt ?? now,
+  };
+}
+
 export function getDefaultWallet(): Wallet {
+  const now = Date.now();
   return {
     coins: 150,
     xp: 0,
@@ -31,6 +64,14 @@ export function getDefaultWallet(): Wallet {
     lifetimeCoinsSpent: 0,
     lifetimeXpEarned: 0,
     lastUpdatedAt: new Date().toISOString(),
+    dailyCoinsEarned: 0,
+    lastDailyResetAt: now,
+    weeklyCoinsEarned: 0,
+    lastWeeklyResetAt: now,
+    currentStreak: 0,
+    bestStreak: 0,
+    lastEarnedAt: 0,
+    joinedAt: now,
   };
 }
 
@@ -41,10 +82,12 @@ export function loadWallet(): Wallet {
   }
   try {
     const data = JSON.parse(saved);
+    // Migrate wallet to ensure all new fields exist
+    const migrated = migrateWallet(data);
     // Ensure level is computed from xp (defensive)
     return {
-      ...data,
-      level: computeLevel(data.xp),
+      ...migrated,
+      level: computeLevel(migrated.xp),
     };
   } catch {
     return getDefaultWallet();
