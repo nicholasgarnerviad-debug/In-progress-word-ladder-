@@ -164,6 +164,8 @@ export class LocalLeaderboardAdapter implements LeaderboardSyncAdapter {
       userId,
       name,
       joinedAt: Timestamp.now(),
+      level: 1,
+      xp: 0,
       totalGames: 0,
       totalScore: 0,
       stats: {

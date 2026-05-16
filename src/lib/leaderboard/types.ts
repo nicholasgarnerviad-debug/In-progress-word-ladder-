@@ -45,6 +45,8 @@ export interface PlayerProfile {
   name: string;
   avatar?: string;
   joinedAt: Timestamp;
+  level: number;
+  xp: number;
   totalGames: number;
   totalScore: number;
   stats: {

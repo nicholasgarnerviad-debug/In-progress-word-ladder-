@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import type { PlayerProfile } from '../../lib/leaderboard/types';
+import type { PlayerProfile, AchievementConfig } from '../../lib/leaderboard/types';
 import { FirebaseLeaderboardAdapter } from '../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
 import { AchievementModal } from './AchievementModal';
 import { getAllAchievements } from '../../lib/leaderboard/achievements/achievements';
@@ -16,9 +16,7 @@ export const PlayerProfileScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAchievementId, setSelectedAchievementId] = useState<string | null>(null);
-  const [achievementMap, setAchievementMap] = useState<{
-    [key: string]: any;
-  }>({});
+  const [achievementMap, setAchievementMap] = useState<Record<string, AchievementConfig>>({});
 
   useEffect(() => {
     if (!userId) return;
@@ -37,7 +35,7 @@ export const PlayerProfileScreen: React.FC = () => {
 
   useEffect(() => {
     const achievements = getAllAchievements();
-    const map: { [key: string]: any } = {};
+    const map: Record<string, AchievementConfig> = {};
     achievements.forEach((achievement) => {
       map[achievement.id] = achievement;
     });
@@ -110,7 +108,7 @@ export const PlayerProfileScreen: React.FC = () => {
           <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4">Mode Stats</h2>
           <div className="space-y-3 md:space-y-4">
             {Object.entries(profile.stats).map(([mode, stats]) => {
-              const modeStats = stats as any;
+              const modeStats = stats;
               const formatTime = (ms: number) => {
                 const totalSeconds = Math.floor(ms / 1000);
                 const hours = Math.floor(totalSeconds / 3600);
@@ -151,22 +149,22 @@ export const PlayerProfileScreen: React.FC = () => {
                         <span className="font-bold text-gray-900 dark:text-white">{modeStats.wins}</span>
                       </div>
                     )}
-                    {modeStats.totalTime !== undefined && (
+                    {'totalTime' in modeStats && (
                       <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                         <span className="text-gray-600 dark:text-gray-400">Total Time:</span>
-                        <span className="font-bold text-gray-900 dark:text-white">{formatTime(modeStats.totalTime)}</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{formatTime((modeStats as any).totalTime)}</span>
                       </div>
                     )}
-                    {modeStats.bestTime !== undefined && (
+                    {'bestTime' in modeStats && (
                       <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                         <span className="text-gray-600 dark:text-gray-400">Best Time:</span>
-                        <span className="font-bold text-gray-900 dark:text-white">{formatTime(modeStats.bestTime)}</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{formatTime((modeStats as any).bestTime)}</span>
                       </div>
                     )}
-                    {modeStats.completedPuzzles !== undefined && (
+                    {'completedPuzzles' in modeStats && (
                       <div className="flex justify-between min-h-[32px] md:min-h-[36px] items-center">
                         <span className="text-gray-600 dark:text-gray-400">Completed:</span>
-                        <span className="font-bold text-gray-900 dark:text-white">{modeStats.completedPuzzles}</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{(modeStats as any).completedPuzzles}</span>
                       </div>
                     )}
                   </div>
