@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { PuzzleBoard } from '../../../components/PuzzleBoard';
 import { BlitzLeaderboard } from './BlitzLeaderboard';
 import { useBlitzTimer } from '../useBlitzTimer';
@@ -9,6 +9,8 @@ import { BLITZ_ACCENT, BUTTON_STYLES, TIMER_STYLES, RESPONSIVE } from '../theme'
 import { WalletStrip } from '../../../components/economy/WalletStrip';
 import { HomeButton } from '../../../components/navigation/HomeButton';
 import { SettingsButton } from '../../../components/navigation/SettingsButton';
+import { useEconomy } from '../../../lib/economy';
+import { ConsumableButton } from '../../../components/ConsumableButton';
 
 export type BlitzGameScreenProps = {
   /** Optional callback when game ends */
@@ -27,6 +29,8 @@ export type BlitzGameScreenProps = {
  */
 export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) => {
   const room = useBlitzRoom();
+  const economy = useEconomy();
+  const puzzleBoardRef = useRef<{ applyHint: (index: number) => void }>(null);
 
   // Validate required room functions are available
   if (!room.postPuzzleResult || !room.updateMyState) {
@@ -162,6 +166,7 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
             {/* Puzzle board */}
             <div className="flex-1 overflow-auto">
               <PuzzleBoard
+                ref={puzzleBoardRef}
                 puzzle={game.currentPuzzle}
                 onSolved={handlePuzzleSolved}
                 hideScore={true}
@@ -183,8 +188,41 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
       </div>
 
       {/* Bottom: Action buttons */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row gap-4 justify-center shadow-md">
-        <button
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 flex flex-col gap-4 shadow-md">
+        {/* Consumables row (above Skip/Forfeit buttons) */}
+        <div className="flex gap-4 flex-wrap justify-center">
+          <ConsumableButton
+            type="hint"
+            label="Hint"
+            count={economy.getCount('hint')}
+            cost={30}
+            disabled={timer.isExpired}
+            onUse={() => {
+              economy.useItem('hint');
+              puzzleBoardRef.current?.applyHint(0);
+            }}
+            onBuy={() => {
+              economy.buyConsumable('hint', 30, 5);
+            }}
+          />
+          <ConsumableButton
+            type="time_extension_15s"
+            label="+15s"
+            count={economy.getCount('time_extension_15s')}
+            cost={40}
+            disabled={timer.isExpired}
+            onUse={() => {
+              economy.useItem('time_extension_15s');
+            }}
+            onBuy={() => {
+              economy.buyConsumable('time_extension_15s', 40, 5);
+            }}
+          />
+        </div>
+
+        {/* Skip/Forfeit buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button
           onClick={handleSkipPuzzle}
           disabled={timer.isExpired}
           className={`
@@ -207,6 +245,7 @@ export const BlitzGameScreen: React.FC<BlitzGameScreenProps> = ({ onGameEnd }) =
         >
           Forfeit Game
         </button>
+        </div>
       </div>
       </div>
     </>
