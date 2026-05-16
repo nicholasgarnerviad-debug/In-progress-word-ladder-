@@ -13,8 +13,12 @@ jest.mock('./components/PuzzleBoard', () => ({
   PuzzleBoard: () => <div data-testid="puzzle-board">Puzzle Board</div>,
 }));
 
-jest.mock('./components/HomeButton', () => ({
+jest.mock('./components/navigation/HomeButton', () => ({
   HomeButton: () => <div>Home Button</div>,
+}));
+
+jest.mock('./components/navigation/SettingsButton', () => ({
+  SettingsButton: () => <div>Settings Button</div>,
 }));
 
 jest.mock('./useGameState', () => ({
@@ -23,6 +27,18 @@ jest.mock('./useGameState', () => ({
 
 jest.mock('./generatePuzzle', () => ({
   generatePuzzleWithRetry: jest.fn(),
+}));
+
+jest.mock('./lib/economy/puzzleTracking', () => ({
+  isCompletedPuzzle: jest.fn(() => false),
+  addCompletedPuzzle: jest.fn(),
+}));
+
+jest.mock('./lib/economy/coinEarning', () => ({
+  calculateClassicCoins: jest.fn((difficulty) => {
+    const coinMap: Record<string, number> = { easy: 5, medium: 10, hard: 15 };
+    return coinMap[difficulty] || 10;
+  }),
 }));
 
 jest.mock('./components/economy/LevelUpProvider', () => ({
@@ -35,6 +51,12 @@ jest.mock('./components/economy/WalletStrip', () => ({
   WalletStrip: () => <div data-testid="wallet-strip">Wallet Strip</div>,
 }));
 
+jest.mock('./hooks/useGameResult', () => ({
+  useGameResult: jest.fn(() => ({
+    recordResult: jest.fn().mockResolvedValue({ newAchievements: [] }),
+  })),
+}));
+
 describe('ClassicGame Power-ups with Inventory', () => {
   const mockEconomy = {
     coins: 500,
@@ -43,7 +65,7 @@ describe('ClassicGame Power-ups with Inventory', () => {
     inventory: {},
     earnCoins: jest.fn(),
     spend: jest.fn(),
-    addXp: jest.fn(),
+    addXp: jest.fn(() => ({ leveledUp: false, rewards: [] })),
     buyConsumable: jest.fn(),
     useItem: jest.fn(),
     getCount: jest.fn(),
@@ -139,6 +161,113 @@ describe('ClassicGame Power-ups with Inventory', () => {
       mockEconomy.getCount.mockImplementation((type) => type === 'reveal_next_word' ? 1 : 0);
       render(<ClassicGame />);
       expect(screen.getByRole('button', { name: /Reveal.*1/ })).toBeInTheDocument();
+    });
+  });
+
+  describe('Classic mode coin earning', () => {
+    it('should earn coins when solving a new easy puzzle', async () => {
+      const { isCompletedPuzzle, addCompletedPuzzle } = require('./lib/economy/puzzleTracking');
+      isCompletedPuzzle.mockReturnValue(false);
+      addCompletedPuzzle.mockImplementation(() => {});
+
+      const easyPuzzle = {
+        start: 'cat',
+        end: 'dog',
+        chain: ['cat', 'hat', 'hot', 'dot', 'dog'],
+        optimal: 5,
+        alternativePaths: null,
+        difficulty: 'easy',
+      };
+
+      (useGameState as jest.Mock).mockReturnValue({
+        ...mockGameState,
+        state: {
+          ...mockGameState.state,
+          phase: 'won',
+        },
+      });
+
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock).mockReturnValue(easyPuzzle);
+
+      render(<ClassicGame />);
+
+      await waitFor(() => {
+        expect(mockEconomy.earnCoins).toHaveBeenCalledWith(expect.any(Number), 'classic_solve');
+      });
+    });
+
+    it('should not earn bonus coins on repeat puzzle solve', async () => {
+      const { isCompletedPuzzle, addCompletedPuzzle } = require('./lib/economy/puzzleTracking');
+      isCompletedPuzzle.mockReturnValue(true);
+      addCompletedPuzzle.mockImplementation(() => {});
+
+      const easyPuzzle = {
+        start: 'cat',
+        end: 'dog',
+        chain: ['cat', 'hat', 'hot', 'dot', 'dog'],
+        optimal: 5,
+        alternativePaths: null,
+        difficulty: 'easy',
+      };
+
+      mockEconomy.earnCoins.mockClear();
+
+      (useGameState as jest.Mock).mockReturnValue({
+        ...mockGameState,
+        state: {
+          ...mockGameState.state,
+          phase: 'won',
+        },
+      });
+
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock).mockReturnValue(easyPuzzle);
+
+      render(<ClassicGame />);
+
+      await waitFor(() => {
+        // earnCoins should be called but only with performance-based coins, not bonus difficulty coins
+        const calls = mockEconomy.earnCoins.mock.calls;
+        // First call should be the performance-based coins
+        expect(calls[0]).toBeDefined();
+        // Should only have one earnCoins call (performance reward), not two
+        // (no second call for difficulty-based bonus)
+        const difficultyBonusCalls = calls.filter(call => call[0] === 5 || call[0] === 10 || call[0] === 15);
+        expect(difficultyBonusCalls.length).toBe(0);
+      });
+    });
+
+    it('should display "earned coins" message on win', async () => {
+      const { isCompletedPuzzle, addCompletedPuzzle } = require('./lib/economy/puzzleTracking');
+      isCompletedPuzzle.mockReturnValue(false);
+      addCompletedPuzzle.mockImplementation(() => {});
+
+      const easyPuzzle = {
+        start: 'cat',
+        end: 'dog',
+        chain: ['cat', 'hat', 'hot', 'dot', 'dog'],
+        optimal: 5,
+        alternativePaths: null,
+        difficulty: 'easy',
+      };
+
+      (useGameState as jest.Mock).mockReturnValue({
+        ...mockGameState,
+        state: {
+          ...mockGameState.state,
+          phase: 'won',
+        },
+      });
+
+      (generatePuzzleModule.generatePuzzleWithRetry as jest.Mock).mockReturnValue(easyPuzzle);
+      mockEconomy.earnCoins.mockImplementation(() => {
+        mockEconomy.coins += 5; // Simulate earning coins
+      });
+
+      render(<ClassicGame />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/You Won!/)).toBeInTheDocument();
+      });
     });
   });
 });

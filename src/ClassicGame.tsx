@@ -11,6 +11,8 @@ import { useEconomy } from './lib/economy';
 import { useLevelUpQueue } from './components/economy/LevelUpProvider';
 import { WalletStrip } from './components/economy/WalletStrip';
 import { useGameResult } from './hooks/useGameResult';
+import { addCompletedPuzzle, isCompletedPuzzle } from './lib/economy/puzzleTracking';
+import { calculateClassicCoins } from './lib/economy/coinEarning';
 
 const XP_REWARDS = {
   puzzleSolve: { easy: 10, medium: 15, hard: 20 },
@@ -86,6 +88,9 @@ export const ClassicGame: React.FC = () => {
     xp?: number;
   } | null>(null);
 
+  const [coinsEarnedFromPuzzle, setCoinsEarnedFromPuzzle] = useState(0);
+  const [wasPuzzleAlreadyCompleted, setWasPuzzleAlreadyCompleted] = useState(false);
+
   useEffect(() => {
     localStorage.setItem('wordladder-records', JSON.stringify(puzzleRecords));
   }, [puzzleRecords]);
@@ -113,6 +118,22 @@ export const ClassicGame: React.FC = () => {
         const winReward = Math.max(20, efficiency - mistakePenalty);
 
         economy.earnCoins(winReward, 'classic_solve');
+
+        // Check if puzzle was already completed before awarding difficulty-based coins
+        const wasNewPuzzle = !isCompletedPuzzle('classic', puzzle.start, puzzle.end);
+        let puzzleCompletionCoins = 0;
+
+        if (wasNewPuzzle) {
+          // Mark puzzle as completed
+          addCompletedPuzzle('classic', puzzle.start, puzzle.end);
+
+          // Calculate and earn coins based on difficulty
+          puzzleCompletionCoins = calculateClassicCoins(puzzleDifficulty);
+          economy.earnCoins(puzzleCompletionCoins, 'classic_solve');
+        }
+
+        setCoinsEarnedFromPuzzle(puzzleCompletionCoins);
+        setWasPuzzleAlreadyCompleted(!wasNewPuzzle);
 
         // Calculate XP to award
         const xpReward = Math.floor(winReward / 2);
@@ -243,6 +264,8 @@ export const ClassicGame: React.FC = () => {
     setPuzzleDifficulty(difficulty);
     setIsGameOver(false);
     setCountdown(-1);
+    setCoinsEarnedFromPuzzle(0);
+    setWasPuzzleAlreadyCompleted(false);
     setResetKey(prev => prev + 1);
     setPuzzleBoardKey(prev => prev + 1);
     gameStartTimeRef.current = Date.now();
@@ -567,6 +590,24 @@ export const ClassicGame: React.FC = () => {
                 +{roundResult.xp} XP
               </div>
             )}
+
+            {/* Display puzzle completion coins */}
+            {coinsEarnedFromPuzzle > 0 && (
+              <div className="text-center my-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+                <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+                  ✨ Puzzle solved! +{coinsEarnedFromPuzzle} bonus coins
+                </p>
+              </div>
+            )}
+
+            {wasPuzzleAlreadyCompleted && coinsEarnedFromPuzzle === 0 && (
+              <div className="text-center my-3 p-3 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  You've already solved this puzzle
+                </p>
+              </div>
+            )}
+
             <div className="text-5xl font-bold animate-pulse mb-3">{countdown}</div>
             <div className="text-sm mb-4 dark:text-gray-300">New puzzle loading...</div>
             <button
