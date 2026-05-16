@@ -135,4 +135,51 @@ describe('ShopCard', () => {
 
     expect(screen.getByText('💡')).toBeInTheDocument();
   });
+
+  test('displays zero inventory when consumable not owned', () => {
+    const emptyInventory: Inventory = {
+      consumables: {
+        hint: 0,
+        reveal_next_word: 0,
+        undo_step: 0,
+        time_extension_15s: 0,
+      },
+      unlocks: [],
+      dictionaryVouchers: 0,
+    };
+
+    render(
+      <ShopCard
+        item={mockItem}
+        inventory={emptyInventory}
+        wallet={mockWallet}
+        onBuyClick={() => {}}
+      />
+    );
+
+    expect(screen.getByText(/You have: 0/i)).toBeInTheDocument();
+  });
+
+  test('displays fallback icon for unknown consumable type', () => {
+    const unknownItem: ShopItem = {
+      id: 'unknown-pack',
+      consumableType: 'unknown_type' as any,
+      name: 'Mystery Pack',
+      description: 'Who knows?',
+      cost: 50,
+      consumableCount: 3,
+      category: 'mystery',
+    };
+
+    render(
+      <ShopCard
+        item={unknownItem}
+        inventory={mockInventory}
+        wallet={mockWallet}
+        onBuyClick={() => {}}
+      />
+    );
+
+    expect(screen.getByText('📦')).toBeInTheDocument();
+  });
 });

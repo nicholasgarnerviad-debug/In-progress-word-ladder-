@@ -26,7 +26,7 @@ export const ShopCard = React.memo(({ item, inventory, wallet, onBuyClick }: Sho
   return (
     <div className="p-4 md:p-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md dark:hover:shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
       {/* Icon */}
-      <div className="text-4xl text-center mb-3">{icon}</div>
+      <div className="text-4xl text-center mb-3" aria-label={`${item.name} icon`}>{icon}</div>
 
       {/* Name */}
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-1">
@@ -55,13 +55,14 @@ export const ShopCard = React.memo(({ item, inventory, wallet, onBuyClick }: Sho
       <button
         onClick={() => onBuyClick(item)}
         disabled={!canAfford}
+        aria-label={`Buy ${item.consumableCount}x ${item.name}`}
         className={`w-full py-3 rounded-lg font-medium text-white transition-colors mb-2 ${
           canAfford
             ? 'bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer'
             : 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed opacity-50'
         }`}
       >
-        {canAfford ? 'Buy' : 'Buy'}
+        {canAfford ? 'Buy' : 'Cannot Buy'}
       </button>
 
       {/* Insufficient Coins Message */}
