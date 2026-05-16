@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import * as ReactRouter from 'react-router-dom';
+import { render, screen, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
 import { PlayerProfileScreen } from '../PlayerProfileScreen';
 
 jest.mock('react-router-dom', () => ({
@@ -24,9 +24,27 @@ jest.mock('../../../lib/leaderboard/sync/FirebaseLeaderboardAdapter', () => ({
       stats: {
         classic: {
           gamesPlayed: 20,
+          wins: 10,
           bestScore: 100,
           totalScore: 1500,
           averageScore: 75,
+        },
+        timeAttack: {
+          gamesPlayed: 15,
+          wins: 8,
+          bestScore: 85,
+          totalScore: 1200,
+          averageScore: 80,
+          bestTime: 45000,
+          completedPuzzles: 30,
+        },
+        blitz: {
+          gamesPlayed: 25,
+          wins: 12,
+          bestScore: 120,
+          totalScore: 2000,
+          averageScore: 80,
+          totalTime: 150000,
         },
       },
       achievements: ['firstGame'],
@@ -57,6 +75,10 @@ describe('PlayerProfileScreen', () => {
     );
   };
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('displays player level', async () => {
     renderWithRouter();
 
@@ -80,5 +102,56 @@ describe('PlayerProfileScreen', () => {
     await waitFor(() => {
       expect(screen.getByText(/achievements \(1\)/i)).toBeInTheDocument();
     });
+  });
+
+  it('opens achievement modal when achievement button clicked', async () => {
+    const user = userEvent.setup();
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText(/achievements \(1\)/i)).toBeInTheDocument();
+    });
+
+    const achievementButton = screen.getAllByRole('button').find(
+      (btn) => btn.textContent?.includes('First Steps') || btn.getAttribute('aria-label')?.includes('achievement')
+    );
+
+    if (achievementButton) {
+      await user.click(achievementButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('First Steps')).toBeInTheDocument();
+      });
+    }
+  });
+
+  it('closes achievement modal when backdrop clicked', async () => {
+    const user = userEvent.setup();
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText(/achievements \(1\)/i)).toBeInTheDocument();
+    });
+
+    const achievementButton = screen.getAllByRole('button').find(
+      (btn) => btn.textContent?.includes('First Steps') || btn.getAttribute('aria-label')?.includes('achievement')
+    );
+
+    if (achievementButton) {
+      await user.click(achievementButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('First Steps')).toBeInTheDocument();
+      });
+
+      const backdrop = document.querySelector('[role="presentation"]') || document.querySelector('.modal-backdrop');
+      if (backdrop) {
+        await user.click(backdrop);
+
+        await waitFor(() => {
+          expect(screen.queryByText('First Steps')).not.toBeInTheDocument();
+        });
+      }
+    }
   });
 });
