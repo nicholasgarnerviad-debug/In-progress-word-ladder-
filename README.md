@@ -119,6 +119,28 @@ All coin earnings are tracked locally and persist offline. When online, earnings
 
 For complete specification details, see `docs/superpowers/specs/coin-economy-redesign.md` and `docs/superpowers/implementation-summary.md`.
 
+## XP & Levels
+
+### XP Earning by Mode
+- **Classic Mode**: 20-40 XP per game (based on efficiency)
+- **Time Attack Mode**: 40-60 XP per session (8 XP per unique puzzle)
+- **Blitz Mode**: 30-60 XP per game (placement-based)
+
+### Level Progression
+- **Level 1**: 0 XP (starting level)
+- **Level 2**: 300 XP
+- **Level 5**: 1,500 XP (reachable in ~1-2 hours)
+- **Level 10**: 5,500 XP
+
+The XP curve follows a quadratic progression: `XP = 100 * N * (N+1) / 2` where N is the level number. This ensures early levels are frequent and rewarding for new players, while later levels provide long-term progression goals.
+
+### XP Balance Audit
+See `src/__tests__/xpBalance.test.ts` for detailed balance verification including:
+- Level curve validation (quadratic scaling)
+- New player experience curve (first 5 levels reachable in ~1-2 hours)
+- XP progression consistency checks
+- Mode balance placeholder tests (manual testing needed)
+
 ## Architecture
 
 ### Frontend Structure
