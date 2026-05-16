@@ -4,7 +4,8 @@ import Confetti from 'react-confetti';
 import { useBlitzRoom } from '../useBlitzRoom';
 import { useEconomy } from '../../../lib/economy';
 import { useLevelUpQueue } from '../../../components/economy/LevelUpProvider';
-import { calculateBlitzCoins, calculateBlitzXP } from '../economy';
+import { calculateBlitzCoins as calculatePlacementCoins } from '../../../lib/economy/coinEarning';
+import { calculateBlitzXP } from '../economy';
 import type { BlitzPlayer, PlayerId } from '../types';
 import { FirebaseLeaderboardAdapter } from '../../../lib/leaderboard/sync/FirebaseLeaderboardAdapter';
 import type { GameResult } from '../../../lib/leaderboard/types';
@@ -81,13 +82,12 @@ export const BlitzResultsScreen = ({ onLeaveRoom }: BlitzResultsScreenProps): Re
   useEffect(() => {
     if (!room.room || !room.me) return;
 
-    const coins = calculateBlitzCoins({
-      solved: room.me.solved,
-      wrong: room.me.wrong,
-      hints: room.me.hints,
-      score: room.me.score,
-      difficulty: room.room.meta.difficulty,
-    });
+    // Get player's placement based on final rankings
+    const sortedPlayers = [...room.room.players.values()].sort((a, b) => b.score - a.score);
+    const placement = sortedPlayers.findIndex((p) => p.id === room.me.id) + 1;
+
+    // Calculate placement-based coins (not puzzle-completion based)
+    const coins = calculatePlacementCoins(placement);
 
     const xp = calculateBlitzXP({
       solved: room.me.solved,

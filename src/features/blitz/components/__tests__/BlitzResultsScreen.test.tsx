@@ -31,6 +31,13 @@ jest.mock('../../../../lib/economy', () => ({
   useEconomy: mockUseEconomy,
 }));
 
+jest.mock('../../../../lib/economy/coinEarning', () => ({
+  calculateBlitzCoins: jest.fn((placement: number) => {
+    const coins: Record<number, number> = { 1: 50, 2: 40, 3: 25, 4: 10 };
+    return coins[placement] || 0;
+  }),
+}));
+
 // Now we can import
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -38,11 +45,32 @@ import { BrowserRouter } from 'react-router-dom';
 import { BlitzResultsScreen } from '../BlitzResultsScreen';
 import { useBlitzRoom } from '../../useBlitzRoom';
 import { useNavigate } from 'react-router-dom';
+import { LevelUpProvider } from '../../../../components/economy/LevelUpProvider';
 import type { BlitzRoom, BlitzPlayer, PlayerId } from '../../types';
 import { createPlayerId, createRoomCode } from '../../types';
 
 const mockUseBlitzRoom = useBlitzRoom as jest.MockedFunction<typeof useBlitzRoom>;
 const mockUseNavigate = useNavigate as jest.MockedFunction<typeof useNavigate>;
+
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <BrowserRouter>
+      <LevelUpProvider>
+        {component}
+      </LevelUpProvider>
+    </BrowserRouter>
+  );
+};
+
+const renderWithProvidersAndContainer = (component: React.ReactElement) => {
+  return render(
+    <BrowserRouter>
+      <LevelUpProvider>
+        {component}
+      </LevelUpProvider>
+    </BrowserRouter>
+  );
+};
 
 describe('BlitzResultsScreen', () => {
   const mockNavigate = jest.fn();
@@ -164,11 +192,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       expect(screen.getByText('Game Over')).toBeInTheDocument();
     });
@@ -193,11 +217,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       // Player 1 is the winner, so should see "You Won!"
       expect(screen.getByText(/You Won!/i)).toBeInTheDocument();
@@ -223,11 +243,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       // The final score header should show 560 (appears in header and table)
       const allScores = screen.getAllByText('560');
@@ -257,11 +273,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       expect(screen.getByTestId('confetti-mock')).toBeInTheDocument();
     });
@@ -286,11 +298,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       const confetti = screen.getByTestId('confetti-mock');
       expect(confetti).toHaveAttribute('data-gravity', '0.4');
@@ -320,11 +328,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       const playerRows = screen.getAllByRole('row');
       // Should have header row + 4 player rows
@@ -357,11 +361,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       const bobRow = screen.getByTestId('leaderboard-row-player2');
       expect(bobRow).toHaveClass('bg-blue-100');
@@ -387,11 +387,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       // Check for medal emojis
       expect(screen.getByText(/🥇/)).toBeInTheDocument(); // 1st place
@@ -419,11 +415,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       const dianaRow = screen.getByTestId('leaderboard-row-player4');
       const rowText = dianaRow.textContent || '';
@@ -451,11 +443,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       // Alice (rank 1)
       const aliceRow = screen.getByTestId('leaderboard-row-player1');
@@ -492,11 +480,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       expect(screen.getByRole('button', { name: /Play Again/i })).toBeInTheDocument();
     });
@@ -521,11 +505,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       expect(screen.queryByRole('button', { name: /Play Again/i })).not.toBeInTheDocument();
     });
@@ -550,11 +530,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       expect(screen.getByRole('button', { name: /Leave Room/i })).toBeInTheDocument();
     });
@@ -579,11 +555,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       expect(screen.getByRole('button', { name: /Home/i })).toBeInTheDocument();
     });
@@ -612,11 +584,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       const playAgainButton = screen.getByRole('button', { name: /Play Again/i });
       fireEvent.click(playAgainButton);
@@ -648,11 +616,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       const leaveButton = screen.getByRole('button', { name: /Leave Room/i });
       fireEvent.click(leaveButton);
@@ -683,11 +647,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       const homeButton = screen.getByRole('button', { name: /Home/i });
       fireEvent.click(homeButton);
@@ -721,11 +681,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       const buttons = screen.getAllByRole('button');
       buttons.forEach((button) => {
@@ -757,11 +713,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
@@ -788,16 +740,190 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      const { container } = render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      const { container } = renderWithProvidersAndContainer(<BlitzResultsScreen />);
 
       // Should render centered container
       const mainContainer = container.querySelector('[data-testid="results-container"]');
       expect(mainContainer).toBeInTheDocument();
       expect(mainContainer).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
+    });
+  });
+
+  describe('placement-based coin earning', () => {
+    it('should award 50 coins for 1st place', async () => {
+      const mockEarnCoins = jest.fn();
+      const mockAddXp = jest.fn(() => ({ leveledUp: false, rewards: [] }));
+
+      mockUseEconomy.mockReturnValue({
+        coins: 100,
+        xp: 50,
+        level: 1,
+        inventory: {},
+        earnCoins: mockEarnCoins,
+        spend: jest.fn(),
+        addXp: mockAddXp,
+        buyConsumable: jest.fn(),
+        useItem: jest.fn(),
+        getCount: jest.fn(),
+      });
+
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId1, // Player 1 has highest score (1st place)
+        me: mockPlayer1,
+        isHost: true,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      renderWithProviders(<BlitzResultsScreen />);
+
+      await waitFor(() => {
+        // Should call earnCoins with 50 (1st place: 10 base + 40 bonus)
+        expect(mockEarnCoins).toHaveBeenCalledWith(50, 'blitz_win');
+      });
+    });
+
+    it('should award 40 coins for 2nd place', async () => {
+      const mockEarnCoins = jest.fn();
+      const mockAddXp = jest.fn(() => ({ leveledUp: false, rewards: [] }));
+
+      mockUseEconomy.mockReturnValue({
+        coins: 100,
+        xp: 50,
+        level: 1,
+        inventory: {},
+        earnCoins: mockEarnCoins,
+        spend: jest.fn(),
+        addXp: mockAddXp,
+        buyConsumable: jest.fn(),
+        useItem: jest.fn(),
+        getCount: jest.fn(),
+      });
+
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId2, // Player 2 has 2nd highest score
+        me: mockPlayer2,
+        isHost: false,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      renderWithProviders(<BlitzResultsScreen />);
+
+      await waitFor(() => {
+        // Should call earnCoins with 40 (2nd place: 10 base + 30 bonus)
+        expect(mockEarnCoins).toHaveBeenCalledWith(40, 'blitz_win');
+      });
+    });
+
+    it('should award 25 coins for 3rd place', async () => {
+      const mockEarnCoins = jest.fn();
+      const mockAddXp = jest.fn(() => ({ leveledUp: false, rewards: [] }));
+
+      mockUseEconomy.mockReturnValue({
+        coins: 100,
+        xp: 50,
+        level: 1,
+        inventory: {},
+        earnCoins: mockEarnCoins,
+        spend: jest.fn(),
+        addXp: mockAddXp,
+        buyConsumable: jest.fn(),
+        useItem: jest.fn(),
+        getCount: jest.fn(),
+      });
+
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId3, // Player 3 has 3rd highest score
+        me: mockPlayer3,
+        isHost: false,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      renderWithProviders(<BlitzResultsScreen />);
+
+      await waitFor(() => {
+        // Should call earnCoins with 25 (3rd place: 10 base + 15 bonus)
+        expect(mockEarnCoins).toHaveBeenCalledWith(25, 'blitz_win');
+      });
+    });
+
+    it('should award 10 coins for 4th place', async () => {
+      const mockEarnCoins = jest.fn();
+      const mockAddXp = jest.fn(() => ({ leveledUp: false, rewards: [] }));
+
+      mockUseEconomy.mockReturnValue({
+        coins: 100,
+        xp: 50,
+        level: 1,
+        inventory: {},
+        earnCoins: mockEarnCoins,
+        spend: jest.fn(),
+        addXp: mockAddXp,
+        buyConsumable: jest.fn(),
+        useItem: jest.fn(),
+        getCount: jest.fn(),
+      });
+
+      mockUseBlitzRoom.mockReturnValue({
+        room: mockRoom,
+        myPlayerId: playerId4, // Player 4 has lowest score
+        me: mockPlayer4,
+        isHost: false,
+        error: null,
+        isLoading: false,
+        createRoom: jest.fn(),
+        joinRoom: jest.fn(),
+        updateSettings: jest.fn(),
+        startGame: jest.fn(),
+        postPuzzleResult: jest.fn(),
+        updateMyState: jest.fn(),
+        leaveRoom: jest.fn(),
+        endGame: jest.fn(),
+        playAgain: jest.fn(),
+        clearError: jest.fn(),
+      });
+
+      renderWithProviders(<BlitzResultsScreen />);
+
+      await waitFor(() => {
+        // Should call earnCoins with 10 (4th place: 10 base + 0 bonus)
+        expect(mockEarnCoins).toHaveBeenCalledWith(10, 'blitz_win');
+      });
     });
   });
 
@@ -838,11 +964,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       await waitFor(() => {
         expect(mockEarnCoins).toHaveBeenCalled();
@@ -885,11 +1007,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       await waitFor(() => {
         expect(mockAddXp).toHaveBeenCalled();
@@ -916,11 +1034,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       expect(screen.getByText(/Earnings Summary/i)).toBeInTheDocument();
     });
@@ -945,11 +1059,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       // Should display coins earned text with coin emoji
       expect(screen.getByText(/coins/i)).toBeInTheDocument();
@@ -975,11 +1085,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       // Should display XP earned text with star emoji
       expect(screen.getByText(/XP/i)).toBeInTheDocument();
@@ -1020,11 +1126,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      renderWithProviders(<BlitzResultsScreen />);
 
       await waitFor(() => {
         expect(screen.getByText(/Congratulations!.*level/i)).toBeInTheDocument();
@@ -1051,11 +1153,7 @@ describe('BlitzResultsScreen', () => {
         clearError: jest.fn(),
       });
 
-      const { container } = render(
-        <BrowserRouter>
-          <BlitzResultsScreen />
-        </BrowserRouter>
-      );
+      const { container } = renderWithProvidersAndContainer(<BlitzResultsScreen />);
 
       const coinRewardDiv = container.querySelector('.coin-reward');
       const xpRewardDiv = container.querySelector('.xp-reward');
