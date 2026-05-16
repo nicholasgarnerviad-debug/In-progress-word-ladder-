@@ -12,20 +12,23 @@ import { Timestamp } from 'firebase/firestore';
 const adapter = new FirebaseLeaderboardAdapter();
 
 function createDefaultProfile(userId: string): PlayerProfile {
+  const now = Timestamp.now();
   return {
     userId,
     name: userId.replace(/^user-/, '').substring(0, 12),
-    joinedAt: Timestamp.now(),
+    joinedAt: now,
+    lastGameAt: now,
     level: 1,
     xp: 0,
     totalGames: 0,
     totalScore: 0,
     stats: {
       classic: { gamesPlayed: 0, bestScore: 0, totalScore: 0, averageScore: 0, wins: 0 },
-      timeAttack: { gamesPlayed: 0, bestScore: 0, totalScore: 0, averageScore: 0, bestTime: 0, completedPuzzles: 0 },
+      timeAttack: { gamesPlayed: 0, bestScore: 0, totalScore: 0, averageScore: 0, wins: 0, bestTime: 0, completedPuzzles: 0 },
       blitz: { gamesPlayed: 0, bestScore: 0, totalScore: 0, averageScore: 0, wins: 0, totalTime: 0 },
     },
     achievements: [],
+    badges: [],
   };
 }
 
@@ -41,8 +44,9 @@ export const PlayerProfileScreen: React.FC = () => {
   useEffect(() => {
     if (!userId) return;
 
-    adapter.initialize().then(async () => {
+    const loadProfile = async () => {
       try {
+        await adapter.initialize();
         const p = await adapter.getPlayerProfile(userId);
         setProfile(p);
       } catch (err) {
@@ -51,12 +55,15 @@ export const PlayerProfileScreen: React.FC = () => {
           const defaultProfile = createDefaultProfile(userId);
           setProfile(defaultProfile);
         } else {
+          console.error('Profile load error:', err);
           setError(`Failed to load profile: ${err}`);
         }
       } finally {
         setLoading(false);
       }
-    });
+    };
+
+    loadProfile();
   }, [userId]);
 
   useEffect(() => {
