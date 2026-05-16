@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ComponentsPreview } from './pages/ComponentsPreview';
+import { ProgressionPage } from './pages/ProgressionPage';
 import { LevelUpProvider } from './components/economy/LevelUpProvider';
 
 // Lazy load game mode pages
@@ -31,6 +32,7 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/progression" element={<ProgressionPage />} />
           <Route
             path="/play/classic"
             element={
