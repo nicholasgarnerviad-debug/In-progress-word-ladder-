@@ -150,12 +150,14 @@ export function addXp(wallet: Wallet, amount: number, source: XpSource): AddXpRe
  */
 export function canClaimDailyBonus(wallet: Wallet): boolean {
   const now = Date.now();
+  if (wallet.dailyBonusClaimedAt === 0) return true; // Never claimed
+
   const lastClaimDate = new Date(wallet.dailyBonusClaimedAt);
   const todayDate = new Date(now);
 
-  // Reset at UTC midnight (00:00 UTC)
-  const lastClaimUTC = new Date(lastClaimDate.toISOString().split('T')[0]);
-  const todayUTC = new Date(todayDate.toISOString().split('T')[0]);
+  // Compare UTC date strings directly (YYYY-MM-DD format)
+  const lastClaimUTC = lastClaimDate.toISOString().split('T')[0];
+  const todayUTC = todayDate.toISOString().split('T')[0];
 
   return lastClaimUTC < todayUTC;
 }
