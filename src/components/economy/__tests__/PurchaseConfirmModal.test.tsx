@@ -105,7 +105,7 @@ describe('PurchaseConfirmModal', () => {
       />
     );
 
-    const confirmButton = screen.getByRole('button', { name: /confirm/i });
+    const confirmButton = screen.getByRole('button', { name: /confirm purchase/i });
     fireEvent.click(confirmButton);
 
     expect(mockConfirm).toHaveBeenCalledWith(mockItem);
@@ -124,7 +124,7 @@ describe('PurchaseConfirmModal', () => {
       />
     );
 
-    const cancelButton = screen.getByRole('button', { name: /cancel/i });
+    const cancelButton = screen.getByRole('button', { name: /cancel purchase/i });
     fireEvent.click(cancelButton);
 
     expect(mockCancel).toHaveBeenCalled();
@@ -163,5 +163,22 @@ describe('PurchaseConfirmModal', () => {
     );
 
     expect(screen.getByText('💡')).toBeInTheDocument();
+  });
+
+  test('calls onCancel when Escape key pressed', () => {
+    const mockCancel = jest.fn();
+
+    render(
+      <PurchaseConfirmModal
+        isOpen={true}
+        item={mockItem}
+        wallet={mockWallet}
+        onConfirm={() => {}}
+        onCancel={mockCancel}
+      />
+    );
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(mockCancel).toHaveBeenCalled();
   });
 });

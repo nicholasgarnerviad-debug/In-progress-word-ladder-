@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import type { ShopItem } from '../../lib/economy/shop';
 import type { Wallet } from '../../lib/economy/wallet';
 
@@ -24,11 +24,24 @@ export const PurchaseConfirmModal = React.memo(
     const icon = CONSUMABLE_ICONS[item.consumableType] || '📦';
     const balanceAfter = wallet.coins - item.cost;
 
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const handleBackdropClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
       if (e.target === e.currentTarget) {
         onCancel();
       }
-    };
+    }, [onCancel]);
+
+    useEffect(() => {
+      if (!isOpen) return;
+
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onCancel();
+        }
+      };
+
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }, [isOpen, onCancel]);
 
     return (
       <div
@@ -37,24 +50,26 @@ export const PurchaseConfirmModal = React.memo(
       >
         <div
           role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
           className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4"
         >
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            <h2 id="modal-title" className="text-lg font-bold text-gray-900 dark:text-white">
               Confirm Purchase
             </h2>
             <button
               onClick={onCancel}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl"
-              aria-label="Close modal"
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none rounded"
+              aria-label="Close confirmation modal"
             >
               ✕
             </button>
           </div>
 
           {/* Icon */}
-          <div className="text-6xl text-center mb-4">{icon}</div>
+          <div className="text-6xl text-center mb-4" aria-hidden="true">{icon}</div>
 
           {/* Item Details */}
           <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-1">
@@ -81,13 +96,15 @@ export const PurchaseConfirmModal = React.memo(
           <div className="flex gap-3">
             <button
               onClick={onCancel}
-              className="flex-1 py-3 px-4 rounded-lg font-medium bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+              className="flex-1 py-3 px-4 rounded-lg font-medium bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none"
+              aria-label="Cancel purchase"
             >
               Cancel
             </button>
             <button
               onClick={() => onConfirm(item)}
-              className="flex-1 py-3 px-4 rounded-lg font-medium bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white transition-colors"
+              className="flex-1 py-3 px-4 rounded-lg font-medium bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white transition-colors focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none"
+              aria-label="Confirm purchase"
             >
               Confirm
             </button>
