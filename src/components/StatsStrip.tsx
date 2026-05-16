@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { loadStats } from '../lib/stats';
 
 export const StatsStrip: React.FC = () => {
+  const navigate = useNavigate();
   const stats = useMemo(() => loadStats(), []);
 
   const winPercentage = stats.played === 0 ? 0 : Math.round((stats.won / stats.played) * 100);
@@ -14,7 +16,10 @@ export const StatsStrip: React.FC = () => {
   ];
 
   return (
-    <div className="w-full border-t border-b border-gray-200 dark:border-gray-800">
+    <div
+      onClick={() => navigate('/progression')}
+      className="w-full border-t border-b border-gray-200 dark:border-gray-800 cursor-pointer hover:opacity-80 transition-opacity"
+    >
       <div className="flex h-16">
         {statItems.map((item, idx) => (
           <div
