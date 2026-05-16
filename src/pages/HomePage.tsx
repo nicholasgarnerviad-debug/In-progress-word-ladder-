@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ModeTile } from '../components/ModeTile';
 import { WalletStrip } from '../components/economy/WalletStrip';
 import { StatsStrip } from '../components/StatsStrip';
+import { PuzzleLibraryBrowser } from '../features/classic/PuzzleLibraryBrowser';
 
 /**
  * Get or create a user ID for profile/leaderboard links.
@@ -23,6 +24,8 @@ function getUserId(): string {
 }
 
 export const HomePage: React.FC = () => {
+  const [showLibraryBrowser, setShowLibraryBrowser] = useState(false);
+
   useEffect(() => {
     document.title = 'Word Ladder';
   }, []);
@@ -108,10 +111,18 @@ export const HomePage: React.FC = () => {
         {/* Mode tiles */}
         <div className="space-y-3 mb-12">
           <ModeTile
-            name="Classic"
-            description="Find the shortest path between two words."
-            to="/play/classic"
+            name="Puzzle Library"
+            description="Browse and solve puzzles from our library."
+            to="/puzzle-library"
           />
+          <button
+            onClick={() => setShowLibraryBrowser(true)}
+            className="w-full p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors text-left focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:outline-none"
+            title="View library"
+          >
+            <div className="font-semibold text-gray-900 dark:text-gray-100">View Library</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">Browse completed puzzles</div>
+          </button>
           <ModeTile
             name="Blitz"
             description="Race against others. Real-time competitive mode."
@@ -139,6 +150,13 @@ export const HomePage: React.FC = () => {
           v0.1 — In Progress
         </div>
       </div>
+
+      {/* Puzzle Library Browser Modal */}
+      {showLibraryBrowser && (
+        <PuzzleLibraryBrowser
+          onClose={() => setShowLibraryBrowser(false)}
+        />
+      )}
     </div>
   );
 };
