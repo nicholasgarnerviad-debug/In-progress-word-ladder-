@@ -36,8 +36,6 @@ export const PlayerProfileScreen: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedAchievementId, setSelectedAchievementId] = useState<string | null>(null);
   const [achievementMap, setAchievementMap] = useState<Record<string, AchievementConfig>>({});
 
@@ -50,24 +48,19 @@ export const PlayerProfileScreen: React.FC = () => {
   }
 
   useEffect(() => {
-    if (!userId) return;
+    // Start with default profile immediately
+    const defaultProfile = createDefaultProfile(userId);
+    setProfile(defaultProfile);
 
+    // Try to load from Firebase in background
     const loadProfile = async () => {
       try {
         await adapter.initialize();
         const p = await adapter.getPlayerProfile(userId);
         setProfile(p);
       } catch (err) {
-        // If profile doesn't exist, create a default one
-        if (err instanceof LeaderboardSyncError && err.code === LeaderboardSyncErrorCode.PROFILE_NOT_FOUND) {
-          const defaultProfile = createDefaultProfile(userId);
-          setProfile(defaultProfile);
-        } else {
-          console.error('Profile load error:', err);
-          setError(`Failed to load profile: ${err}`);
-        }
-      } finally {
-        setLoading(false);
+        console.warn('Could not load profile from Firebase, using default:', err);
+        // Keep showing the default profile
       }
     };
 
@@ -83,26 +76,10 @@ export const PlayerProfileScreen: React.FC = () => {
     setAchievementMap(map);
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="p-8 text-center text-gray-900 dark:text-white">Loading profile...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="p-8 text-red-600 dark:text-red-400 max-w-md">{error}</div>
-      </div>
-    );
-  }
-
   if (!profile) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="p-8 text-gray-900 dark:text-white">Profile not found</div>
+        <div className="p-8 text-center text-gray-900 dark:text-white">Loading profile...</div>
       </div>
     );
   }
