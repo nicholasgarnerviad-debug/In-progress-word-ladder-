@@ -22,7 +22,7 @@ export type PuzzleBoardProps = {
   gameInstance?: GameInstance;
 };
 
-export const PuzzleBoard = forwardRef<{ applyHint: (index: number) => void }, PuzzleBoardProps>(({
+export const PuzzleBoard = forwardRef<{ applyHint: (index: number) => void; applyReveal: (word: string[]) => void; undoStep: () => void }, PuzzleBoardProps>(({
   puzzle,
   onSolved,
   onWrongGuess,
@@ -40,6 +40,12 @@ export const PuzzleBoard = forwardRef<{ applyHint: (index: number) => void }, Pu
   useImperativeHandle(ref, () => ({
     applyHint: (index: number) => {
       game.applyHint(index);
+    },
+    applyReveal: (word: string[]) => {
+      game.applyReveal(word);
+    },
+    undoStep: () => {
+      game.undoStep();
     }
   }));
 

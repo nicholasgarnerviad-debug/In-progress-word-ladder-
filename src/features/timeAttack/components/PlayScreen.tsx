@@ -241,6 +241,20 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
                 economy.buyConsumable('reveal_next_word', 60, 3);
               }}
             />
+            <ConsumableButton
+              type="undo_step"
+              label="Undo"
+              count={economy.getCount('undo_step')}
+              cost={25}
+              disabled={false}
+              onUse={() => {
+                economy.useItem('undo_step');
+                puzzleBoardRef.current?.undoStep?.();
+              }}
+              onBuy={() => {
+                economy.buyConsumable('undo_step', 25, 3);
+              }}
+            />
           </div>
 
           <button
