@@ -14,9 +14,10 @@ describe('Inventory', () => {
     localStorage.clear();
   });
 
-  it('returns default inventory (all zeros, empty unlocks) when empty', () => {
+  it('returns default inventory (starting consumables, empty unlocks) when empty', () => {
     const inv = loadInventory();
-    expect(inv.consumables.hint).toBe(0);
+    expect(inv.consumables.hint).toBe(5);
+    expect(inv.consumables.undo_step).toBe(3);
     expect(inv.consumables.reveal_next_word).toBe(0);
     expect(inv.unlocks).toHaveLength(0);
     expect(inv.dictionaryVouchers).toBe(0);
@@ -35,7 +36,7 @@ describe('Inventory', () => {
   });
 
   it('addConsumable increments count', () => {
-    let inv = getDefaultInventory();
+    let inv = { consumables: { hint: 0, reveal_next_word: 0, undo_step: 0, time_extension_15s: 0 }, unlocks: [], dictionaryVouchers: 0 };
     inv = addConsumable(inv, 'hint', 3);
     inv = addConsumable(inv, 'hint', 2);
     const count = getConsumableCount(inv, 'hint');
@@ -43,14 +44,14 @@ describe('Inventory', () => {
   });
 
   it('useConsumable decrements count and returns updated inventory', () => {
-    let inv = getDefaultInventory();
+    let inv = { consumables: { hint: 0, reveal_next_word: 0, undo_step: 0, time_extension_15s: 0 }, unlocks: [], dictionaryVouchers: 0 };
     inv = addConsumable(inv, 'hint', 3);
     inv = useConsumable(inv, 'hint');
     expect(getConsumableCount(inv, 'hint')).toBe(2);
   });
 
   it('useConsumable returns same inventory if count is 0', () => {
-    const inv = getDefaultInventory();
+    const inv = { consumables: { hint: 0, reveal_next_word: 0, undo_step: 0, time_extension_15s: 0 }, unlocks: [], dictionaryVouchers: 0 };
     const result = useConsumable(inv, 'hint');
     expect(result).toBe(inv);
     expect(getConsumableCount(result, 'hint')).toBe(0);

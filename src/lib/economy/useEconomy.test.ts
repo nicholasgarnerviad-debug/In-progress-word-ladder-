@@ -72,7 +72,7 @@ describe('useEconomy', () => {
     });
     expect(success).toBe(true);
     expect(result.current.coins).toBe(120); // 150 - 30
-    expect(result.current.inventory['hint']).toBe(5);
+    expect(result.current.inventory['hint']).toBe(10); // 5 (default) + 5 (purchased)
   });
 
   it('buyConsumable returns false if insufficient coins', () => {
@@ -83,7 +83,7 @@ describe('useEconomy', () => {
     });
     expect(success).toBe(false);
     expect(result.current.coins).toBe(150);
-    expect(result.current.getCount('hint')).toBe(0);
+    expect(result.current.getCount('hint')).toBe(5); // Default inventory hint count
   });
 
   it('useItem decrements consumable count', () => {
@@ -96,14 +96,14 @@ describe('useEconomy', () => {
       used = result.current.useItem('hint');
     });
     expect(used).toBe(true);
-    expect(result.current.getCount('hint')).toBe(4);
+    expect(result.current.getCount('hint')).toBe(9); // 5 (default) + 5 (purchased) - 1 (used)
   });
 
   it('useItem returns false if no consumables left', () => {
     const { result } = renderHook(() => useEconomy());
     let used = false;
     act(() => {
-      used = result.current.useItem('hint');
+      used = result.current.useItem('reveal_next_word');
     });
     expect(used).toBe(false);
   });
@@ -166,7 +166,7 @@ describe('useEconomy', () => {
       const inventory = localStorage.getItem('wordLadder.inventory');
       const parsed = JSON.parse(inventory!);
       expect(parsed.unlocks).toContain('badge_sprout');
-      expect(parsed.consumables.hint).toBe(3); // Level 3 gives +3 hints
+      expect(parsed.consumables.hint).toBe(8); // 5 (default) + 3 (Level 3 reward)
     });
 
     it('earnXp(1500) from 0 -> levels 2,3,5 applies coins+modes+badges atomically', () => {
@@ -197,7 +197,7 @@ describe('useEconomy', () => {
       expect(parsed.unlocks).toContain('mode_practice');
 
       // Consumables from level 3
-      expect(parsed.consumables.hint).toBe(3);
+      expect(parsed.consumables.hint).toBe(8); // 5 (default) + 3 (Level 3 reward)
     });
 
     it('earnXp without leveling applies no rewards', () => {
@@ -216,11 +216,11 @@ describe('useEconomy', () => {
       // Coins unchanged
       expect(result.current.coins).toBe(150);
 
-      // Inventory empty
+      // Inventory with defaults
       const inventory = localStorage.getItem('wordLadder.inventory');
       const parsed = JSON.parse(inventory!);
       expect(parsed.unlocks).toHaveLength(0);
-      expect(parsed.consumables.hint).toBe(0);
+      expect(parsed.consumables.hint).toBe(5); // Default starting hints
     });
 
     it('earnXp preserves previous unlocks when applying new rewards', () => {
@@ -242,7 +242,7 @@ describe('useEconomy', () => {
       const inventory = localStorage.getItem('wordLadder.inventory');
       const parsed = JSON.parse(inventory!);
       expect(parsed.unlocks).toContain('badge_sprout');
-      expect(parsed.consumables.hint).toBe(3);
+      expect(parsed.consumables.hint).toBe(8); // 5 (default) + 3 (Level 3 reward)
     });
 
     it('earnXp returns reward with correct description', () => {

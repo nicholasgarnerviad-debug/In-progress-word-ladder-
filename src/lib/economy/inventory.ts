@@ -11,9 +11,9 @@ const INVENTORY_KEY = 'wordLadder.inventory';
 export function getDefaultInventory(): Inventory {
   return {
     consumables: {
-      hint: 0,
+      hint: 5,
       reveal_next_word: 0,
-      undo_step: 0,
+      undo_step: 3,
       time_extension_15s: 0,
     },
     unlocks: [],
