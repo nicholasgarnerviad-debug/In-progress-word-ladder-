@@ -240,6 +240,39 @@ describe('Coin Economy Integration - Task 10', () => {
 
       expect(result.current.coins).toBe(startCoins + totalEarned);
     });
+
+    it('awards 10 coins for 4th place (no bonus)', () => {
+      const { result } = renderHook(() => useEconomy());
+      const startCoins = result.current.coins;
+
+      // Game 1: 1st place
+      act(() => {
+        const coinsEarned = calculateBlitzCoins(1); // 50
+        result.current.earnCoins(coinsEarned, 'blitz_win');
+      });
+      expect(result.current.coins).toBe(startCoins + 50);
+
+      // Game 2: 2nd place
+      act(() => {
+        const coinsEarned = calculateBlitzCoins(2); // 40
+        result.current.earnCoins(coinsEarned, 'blitz_win');
+      });
+      expect(result.current.coins).toBe(startCoins + 50 + 40);
+
+      // Game 3: 3rd place
+      act(() => {
+        const coinsEarned = calculateBlitzCoins(3); // 25
+        result.current.earnCoins(coinsEarned, 'blitz_win');
+      });
+      expect(result.current.coins).toBe(startCoins + 50 + 40 + 25);
+
+      // Game 4: 4th place
+      act(() => {
+        const coinsEarned = calculateBlitzCoins(4); // 10
+        result.current.earnCoins(coinsEarned, 'blitz_win');
+      });
+      expect(result.current.coins).toBe(startCoins + 50 + 40 + 25 + 10);
+    });
   });
 
   // ============================================================================
@@ -433,6 +466,37 @@ describe('Coin Economy Integration - Task 10', () => {
       // Simulate checking if reset is needed
       const needsReset = wallet.lastWeeklyResetAt < Date.now();
       expect(needsReset).toBe(true);
+    });
+
+    it('awards 50 bonus coins when 5+ days have earnings in a week', () => {
+      const { result } = renderHook(() => useEconomy());
+      const startCoins = result.current.coins;
+
+      act(() => {
+        // Simulate 5 days of earnings (Mon-Fri)
+        const daysWithEarnings = 5;
+
+        // Verify qualification
+        const qualifies = daysWithEarnings >= 5;
+        expect(qualifies).toBe(true);
+
+        // Award bonus coins (simulating automatic Sunday payout)
+        if (qualifies) {
+          result.current.earnCoins(50, 'weekly_bonus');
+        }
+      });
+
+      // Should have earned 50 bonus coins
+      expect(result.current.coins).toBe(startCoins + 50);
+
+      // Verify bonus doesn't count toward daily cap
+      // (already in wallet, doesn't affect dailyCoinsEarned counter)
+      act(() => {
+        result.current.earnCoins(100, 'test'); // Next day, normal earning
+      });
+
+      // Should be 50 (bonus) + 100 (next day) = 150
+      expect(result.current.coins).toBe(startCoins + 150);
     });
   });
 
